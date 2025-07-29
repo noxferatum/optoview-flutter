@@ -1,0 +1,20 @@
+{
+  "menuTitle": "OptoView Menu",
+  "startTest": "Start Test",
+  "configTitle": "Test Configuration",
+  "selectSide": "Stimulus side",
+  "left": "Left",
+  "right": "Right",
+  "both": "Both",
+  "selectSpeed": "Stimulus speed",
+  "slow": "Slow",
+  "medium": "Medium",
+  "fast": "Fast",
+  "selectSymbol": "Symbol type",
+  "symbolCircle": "Circle",
+  "symbolLetter": "Letter",
+  "symbolFace": "Face",
+  "runTest": "Run Test",
+  "testCompleted": "Test Completed",
+  "correctTaps": "Correct taps"
+}

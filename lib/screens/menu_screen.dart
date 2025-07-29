@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'config_screen.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -6,9 +7,11 @@ class MenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('OptoView Menu'),
+        title: Text(loc.menuTitle),
         centerTitle: true,
       ),
       body: Center(
@@ -19,7 +22,7 @@ class MenuScreen extends StatelessWidget {
               MaterialPageRoute(builder: (context) => const ConfigScreen()),
             );
           },
-          child: const Text('Start Test'),
+          child: Text(loc.startTest),
         ),
       ),
     );

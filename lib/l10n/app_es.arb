@@ -1,0 +1,20 @@
+{
+  "menuTitle": "Menú OptoView",
+  "startTest": "Iniciar prueba",
+  "configTitle": "Configuración de prueba",
+  "selectSide": "Lado del estímulo",
+  "left": "Izquierda",
+  "right": "Derecha",
+  "both": "Ambos",
+  "selectSpeed": "Velocidad del estímulo",
+  "slow": "Lenta",
+  "medium": "Media",
+  "fast": "Rápida",
+  "selectSymbol": "Tipo de símbolo",
+  "symbolCircle": "Círculo",
+  "symbolLetter": "Letra",
+  "symbolFace": "Cara",
+  "runTest": "Ejecutar prueba",
+  "testCompleted": "Prueba completada",
+  "correctTaps": "Toques correctos"
+}
