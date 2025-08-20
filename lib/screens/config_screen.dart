@@ -5,6 +5,7 @@ import '../widgets/config/side_selector.dart';
 import '../widgets/config/symbol_selector.dart';
 import '../widgets/config/speed_selector.dart';
 import '../widgets/config/movement_selector.dart';
+import '../widgets/config/distance_selector.dart';
 import 'dynamic_periphery_test.dart';
 
 class ConfigScreen extends StatefulWidget {
@@ -31,6 +32,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
           movimiento: Movimiento.fijo,
           duracionSegundos: 60,
           tamanoPorc: 20,
+          // Por defecto ahora al 100%
+          distanciaPct: 100,
+          distanciaModo: DistanciaModo.controlada,
         );
   }
 
@@ -58,6 +62,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
         value: _config.movimiento,
         onChanged: (m) =>
             setState(() => _config = _config.copyWith(movimiento: m)),
+      ),
+      DistanceSelector(
+        modo: _config.distanciaModo,
+        distanciaPct: _config.distanciaPct,
+        onModoChanged: (m) =>
+            setState(() => _config = _config.copyWith(distanciaModo: m)),
+        onDistChanged: (d) =>
+            setState(() => _config = _config.copyWith(distanciaPct: d)),
       ),
       _DurationCard(
         value: _config.duracionSegundos,

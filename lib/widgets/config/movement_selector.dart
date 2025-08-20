@@ -19,7 +19,8 @@ class MovementSelector extends StatelessWidget {
       child: SegmentedButton<Movimiento>(
         segments: const [
           ButtonSegment(value: Movimiento.fijo, label: Text('Fijo')),
-          ButtonSegment(value: Movimiento.vertical, label: Text('Vertical')),
+          // Renombrado: antes decía "Vertical"
+          ButtonSegment(value: Movimiento.vertical, label: Text('Movimiento')),
         ],
         selected: {value},
         onSelectionChanged: (s) => onChanged(s.first),
@@ -43,9 +44,10 @@ class _SectionCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(title,
-                style: theme.textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w600)),
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 12),
             child,
           ],

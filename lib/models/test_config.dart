@@ -14,18 +14,29 @@ enum Forma {
 enum Velocidad { lenta, media, rapida }
 
 /// Tipo de movimiento del estímulo.
-/// Nota: Si se elige 'vertical' y el lado es ARRIBA/ABAJO,
-/// el movimiento se aplicará en horizontal (auto-eje).
+/// Si es 'fijo', no hay animación.
+/// Si es 'vertical', el eje de animación se adapta:
+/// - Lado Izq./Der. -> movimiento vertical (arriba<->abajo)
+/// - Lado Arriba/Abajo -> movimiento horizontal (izq.<->der.)
 enum Movimiento { fijo, vertical }
+
+/// Modo de distancia respecto al centro
+enum DistanciaModo { controlada, aleatoria }
 
 class TestConfig {
   final Lado lado;
   final SimboloCategoria categoria;
-  final Forma? forma; // solo se usa si categoria == formas; null = aleatoria
+  final Forma? forma; // si categoria == formas; null = aleatoria
   final Velocidad velocidad;
   final Movimiento movimiento;
   final int duracionSegundos;
   final double tamanoPorc;
+
+  /// Distancia desde el centro (0–100%). 0 = centro; 100 = máximo hacia el borde.
+  final double distanciaPct;
+
+  /// Si es aleatoria, en cada aparición se ignora distanciaPct y se elige aleatoriamente 0–100%.
+  final DistanciaModo distanciaModo;
 
   const TestConfig({
     required this.lado,
@@ -35,6 +46,8 @@ class TestConfig {
     required this.movimiento,
     required this.duracionSegundos,
     required this.tamanoPorc,
+    required this.distanciaPct,
+    required this.distanciaModo,
   });
 
   TestConfig copyWith({
@@ -45,6 +58,8 @@ class TestConfig {
     Movimiento? movimiento,
     int? duracionSegundos,
     double? tamanoPorc,
+    double? distanciaPct,
+    DistanciaModo? distanciaModo,
   }) {
     return TestConfig(
       lado: lado ?? this.lado,
@@ -54,6 +69,8 @@ class TestConfig {
       movimiento: movimiento ?? this.movimiento,
       duracionSegundos: duracionSegundos ?? this.duracionSegundos,
       tamanoPorc: tamanoPorc ?? this.tamanoPorc,
+      distanciaPct: distanciaPct ?? this.distanciaPct,
+      distanciaModo: distanciaModo ?? this.distanciaModo,
     );
   }
 
@@ -61,5 +78,6 @@ class TestConfig {
   String toString() =>
       'TestConfig(lado: $lado, categoria: $categoria, forma: $forma, '
       'velocidad: $velocidad, movimiento: $movimiento, '
-      'duracionSegundos: $duracionSegundos, tamanoPorc: $tamanoPorc)';
+      'duracionSegundos: $duracionSegundos, tamanoPorc: $tamanoPorc, '
+      'distanciaPct: $distanciaPct, distanciaModo: $distanciaModo)';
 }

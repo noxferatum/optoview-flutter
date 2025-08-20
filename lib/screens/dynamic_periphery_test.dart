@@ -19,7 +19,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   Timer? _stimulusTimer;   // alterna mostrar/ocultar estímulo
   Timer? _endTimer;        // fin de prueba
-  Timer? _countdownTimer;  // actualiza cuenta atrás
+  Timer? _countdownTimer;  // cuenta atrás
 
   bool _showStimulus = false;
   late int _remaining; // segundos restantes
@@ -66,7 +66,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     }
   }
 
-  // Mapeo de velocidades (nuevo más lento en general):
+  // Velocidades nuevas (más lentas en general):
   // rápida = 1200ms (equivale a "lenta" antigua)
   // media  = 1800ms
   // lenta  = 2500ms
@@ -82,48 +82,50 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   }
 
   void _startTest() {
-    // Countdown global
+    // Cuenta atrás global
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() {
-        _remaining = max(0, _remaining - 1);
-      });
+      setState(() => _remaining = max(0, _remaining - 1));
     });
 
     // Fin de prueba
     _endTimer = Timer(Duration(seconds: _remaining), _finishTest);
 
-    // Aparición rítmica del estímulo
-    final onMs = _velocidadMs(widget.config.velocidad);  // visible
-    final offMs = _velocidadMs(widget.config.velocidad); // oculto
+    // Aparición rítmica
+    final onMs = _velocidadMs(widget.config.velocidad);
+    final offMs = _velocidadMs(widget.config.velocidad);
     final period = onMs + offMs;
 
     _stimulusTimer = Timer.periodic(Duration(milliseconds: period), (t) async {
       if (!mounted) return;
 
-      // Elegir lado según config
+      // Elegir lado para esta aparición
       final Lado side = switch (widget.config.lado) {
         Lado.izquierda => Lado.izquierda,
         Lado.derecha => Lado.derecha,
         Lado.arriba => Lado.arriba,
         Lado.abajo => Lado.abajo,
-        Lado.ambos => Lado.values[_rand.nextInt(4)], // cualquiera de los 4 (sin 'ambos')
+        Lado.ambos => Lado.values[_rand.nextInt(4)], // 0..3 (sin 'ambos')
       };
 
-      // Elegir símbolo UNA sola vez por aparición
+      // Elegir distancia (0–100%)
+      final double distPct = widget.config.distanciaModo == DistanciaModo.aleatoria
+          ? _rand.nextDouble() * 100
+          : widget.config.distanciaPct;
+
+      // Elegir símbolo UNA vez para esta aparición
       _chooseSymbolOnceForThisAppearance();
 
       if (widget.config.movimiento == Movimiento.fijo) {
-        await _showFixed(onMs, side);
+        await _showFixed(onMs, side, distPct);
       } else {
-        // Movimiento según el lado: vertical para izq/der, horizontal para arriba/abajo
         if (side == Lado.izquierda || side == Lado.derecha) {
-          await _runVerticalMovement(onMs, side);
+          await _runVerticalMovement(onMs, side, distPct);
         } else {
-          await _runHorizontalMovement(onMs, side);
+          await _runHorizontalMovement(onMs, side, distPct);
         }
       }
-      // offMs queda como tiempo "apagado"
+      // offMs queda como tiempo apagado
     });
   }
 
@@ -134,12 +136,10 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
         _currentText = letters[_rand.nextInt(letters.length)];
         _currentForma = null;
         break;
-
       case SimboloCategoria.numeros:
         _currentText = '${_rand.nextInt(10)}';
         _currentForma = null;
         break;
-
       case SimboloCategoria.formas:
         _currentText = null;
         _currentForma =
@@ -148,33 +148,55 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     }
   }
 
-  Future<void> _showFixed(int onMs, Lado side) async {
-    final sz = MediaQuery.of(context).size;
-    // ESCALA NUEVA: 100% nuevo = 50% antiguo -> /200
-    final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
-    const margin = 32.0;
+  // ======== Posicionamiento respecto al centro ========
 
-    // Posición según lado
+  /// Tamaño del estímulo (escala nueva: 100% nuevo = 50% antiguo -> /200)
+  double _sizePx(Size sz) =>
+      sz.shortestSide * (widget.config.tamanoPorc / 200);
+
+  /// Márgenes para no tocar los bordes
+  static const double _margin = 32.0;
+
+  /// Calcula la posición fija (left/top) a una distancia porcentual del centro
+  /// hacia el lado indicado.
+  (double left, double top) _fixedPositionForSide(
+      Size sz, double sizePx, Lado side, double distPct) {
+    final centerX = sz.width / 2;
+    final centerY = sz.height / 2;
+
+    // Distancias máximas permitidas desde el centro hasta cada borde (dejando margen y radio del símbolo)
+    final maxLeft = (centerX - _margin) - (sizePx / 2);
+    final maxRight = (sz.width - _margin - (sizePx / 2)) - centerX;
+    final maxUp = (centerY - _margin) - (sizePx / 2);
+    final maxDown = (sz.height - _margin - (sizePx / 2)) - centerY;
+
+    // Convertimos porcentaje a píxeles en cada eje
+    final dxLeft = maxLeft * (distPct / 100);
+    final dxRight = maxRight * (distPct / 100);
+    final dyUp = maxUp * (distPct / 100);
+    final dyDown = maxDown * (distPct / 100);
+
     switch (side) {
       case Lado.izquierda:
-        _currentLeft = margin;
-        _currentTop = (sz.height / 2) - (sizePx / 2);
-        break;
+        return (centerX - (sizePx / 2) - dxLeft, centerY - (sizePx / 2));
       case Lado.derecha:
-        _currentLeft = sz.width - sizePx - margin;
-        _currentTop = (sz.height / 2) - (sizePx / 2);
-        break;
+        return (centerX - (sizePx / 2) + dxRight, centerY - (sizePx / 2));
       case Lado.arriba:
-        _currentTop = margin;
-        _currentLeft = (sz.width / 2) - (sizePx / 2);
-        break;
+        return (centerX - (sizePx / 2), centerY - (sizePx / 2) - dyUp);
       case Lado.abajo:
-        _currentTop = sz.height - sizePx - margin;
-        _currentLeft = (sz.width / 2) - (sizePx / 2);
-        break;
+        return (centerX - (sizePx / 2), centerY - (sizePx / 2) + dyDown);
       case Lado.ambos:
-        break;
+        return (centerX - (sizePx / 2), centerY - (sizePx / 2));
     }
+  }
+
+  Future<void> _showFixed(int onMs, Lado side, double distPct) async {
+    final sz = MediaQuery.of(context).size;
+    final sizePx = _sizePx(sz);
+
+    final (left, top) = _fixedPositionForSide(sz, sizePx, side, distPct);
+    _currentLeft = left;
+    _currentTop = top;
 
     setState(() => _showStimulus = true);
     await Future.delayed(Duration(milliseconds: onMs));
@@ -182,27 +204,20 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     setState(() => _showStimulus = false);
   }
 
-  Future<void> _runVerticalMovement(int onMs, Lado side) async {
+  Future<void> _runVerticalMovement(int onMs, Lado side, double distPct) async {
     final sz = MediaQuery.of(context).size;
-    // ESCALA NUEVA: 100% nuevo = 50% antiguo -> /200
-    final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
-    const margin = 32.0;
+    final sizePx = _sizePx(sz);
 
-    // left fijo según lado; top animado
-    _currentLeft = side == Lado.izquierda
-        ? margin
-        : sz.width - sizePx - margin;
+    // left fijo según distancia al centro; top animado
+    final (left, _) = _fixedPositionForSide(sz, sizePx, side, distPct);
+    _currentLeft = left;
 
-    final topStart = margin;
-    final topEnd = max(margin, sz.height - sizePx - margin);
+    final topStart = _margin;
+    final topEnd = max(_margin, sz.height - sizePx - _margin);
     final upToDown = _rand.nextBool();
 
     _disposeMoveCtrl();
-    _moveCtrl = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: onMs),
-    );
-
+    _moveCtrl = AnimationController(vsync: this, duration: Duration(milliseconds: onMs));
     final curved = CurvedAnimation(parent: _moveCtrl!, curve: Curves.linear);
     final tween = Tween<double>(
       begin: upToDown ? topStart : topEnd,
@@ -217,36 +232,27 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     });
 
     setState(() => _showStimulus = true);
-
     try {
       await _moveCtrl!.forward().orCancel;
     } catch (_) {}
-
     if (!mounted) return;
     setState(() => _showStimulus = false);
   }
 
-  Future<void> _runHorizontalMovement(int onMs, Lado side) async {
+  Future<void> _runHorizontalMovement(int onMs, Lado side, double distPct) async {
     final sz = MediaQuery.of(context).size;
-    // ESCALA NUEVA: 100% nuevo = 50% antiguo -> /200
-    final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
-    const margin = 32.0;
+    final sizePx = _sizePx(sz);
 
-    // top fijo según lado; left animado
-    _currentTop = side == Lado.arriba
-        ? margin
-        : sz.height - sizePx - margin;
+    // top fijo según distancia al centro; left animado
+    final (_, top) = _fixedPositionForSide(sz, sizePx, side, distPct);
+    _currentTop = top;
 
-    final leftStart = margin;
-    final leftEnd = max(margin, sz.width - sizePx - margin);
+    final leftStart = _margin;
+    final leftEnd = max(_margin, sz.width - sizePx - _margin);
     final leftToRight = _rand.nextBool();
 
     _disposeMoveCtrl();
-    _moveCtrl = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: onMs),
-    );
-
+    _moveCtrl = AnimationController(vsync: this, duration: Duration(milliseconds: onMs));
     final curved = CurvedAnimation(parent: _moveCtrl!, curve: Curves.linear);
     final tween = Tween<double>(
       begin: leftToRight ? leftStart : leftEnd,
@@ -261,11 +267,9 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     });
 
     setState(() => _showStimulus = true);
-
     try {
       await _moveCtrl!.forward().orCancel;
     } catch (_) {}
-
     if (!mounted) return;
     setState(() => _showStimulus = false);
   }
@@ -320,9 +324,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
 
   @override
   Widget build(BuildContext context) {
-    // Tamaño también se usa para centrar en algunos cálculos internos.
-    final sizePx =
-        MediaQuery.of(context).size.shortestSide * (widget.config.tamanoPorc / 200);
+    final sizePx = _sizePx(MediaQuery.of(context).size);
 
     return Scaffold(
       body: Stack(
@@ -339,7 +341,6 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
               left: _currentLeft,
               onTap: () {},
             ),
-
           // HUD
           Positioned(
             top: 24,
