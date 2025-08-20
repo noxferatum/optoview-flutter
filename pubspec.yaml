@@ -9,7 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_localizations:
-    sdk: flutterS
+    sdk: flutter
   intl: 0.20.2
 
 dev_dependencies:
