@@ -26,7 +26,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   TestConfig config = const TestConfig(
     lado: Lado.ambos,
     categoria: SimboloCategoria.formas,
-    forma: Forma.circulo,
+    forma: null,
     velocidad: Velocidad.media,
     movimiento: Movimiento.fijo,
     duracionSegundos: 60,

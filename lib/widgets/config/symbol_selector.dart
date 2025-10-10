@@ -6,6 +6,7 @@ class SymbolSelector extends StatelessWidget {
   final Forma? forma; // null = aleatoria
   final ValueChanged<SimboloCategoria> onCategoriaChanged;
   final ValueChanged<Forma?> onFormaChanged;
+  final VoidCallback onFormaClear;
 
   const SymbolSelector({
     super.key,
@@ -13,6 +14,7 @@ class SymbolSelector extends StatelessWidget {
     required this.forma,
     required this.onCategoriaChanged,
     required this.onFormaChanged,
+    required this.onFormaClear,
   });
 
   @override
@@ -51,8 +53,15 @@ class SymbolSelector extends StatelessWidget {
                   key: const ValueKey('aleatoria'),
                   label: const Text('Aleatoria'),
                   selected: forma == null,
-                  onSelected: (_) => onFormaChanged(null),
-                  selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                  onSelected: (selected) {
+                    if (selected) {
+                      onFormaClear(); // 🔹 usa copyWith(formaSetNull: true)
+                    }
+                  },
+                  selectedColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withOpacity(0.25),
                 ),
                 ...Forma.values.map((f) {
                   final isSelected = f == forma;
@@ -60,9 +69,15 @@ class SymbolSelector extends StatelessWidget {
                     key: ValueKey(f.name),
                     label: Text(_labelForma(f)),
                     selected: isSelected,
-                    onSelected: (_) => onFormaChanged(f),
-                    selectedColor:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.2),
+                    onSelected: (selected) {
+                      if (selected) {
+                        onFormaChanged(f);
+                      }
+                    },
+                    selectedColor: Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withOpacity(0.25),
                   );
                 }),
               ],
@@ -105,8 +120,8 @@ class _SectionCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style:
-                  theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             child,

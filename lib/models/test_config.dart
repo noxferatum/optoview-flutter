@@ -1,22 +1,19 @@
+import 'package:flutter/material.dart';
 
-// Enums existentes
-enum Lado { izquierda, derecha, ambos, arriba, abajo }
+enum Lado { izquierda, derecha, arriba, abajo, ambos, aleatorio }
 enum SimboloCategoria { letras, numeros, formas }
 enum Forma { circulo, cuadrado, corazon, triangulo, trebol }
 enum Velocidad { lenta, media, rapida }
 enum Movimiento { fijo, movimiento }
 enum DistanciaModo { fijo, aleatorio }
-
-// 🔹 Nuevo enum para punto de fijación
 enum Fijacion { cara, ojo, punto, trebol, cruz }
-
-// 🔹 Nuevo enum para fondo
 enum Fondo { claro, oscuro }
 
+@immutable
 class TestConfig {
   final Lado lado;
   final SimboloCategoria categoria;
-  final Forma? forma;
+  final Forma? forma; // null = aleatoria
   final Velocidad velocidad;
   final Movimiento movimiento;
   final int duracionSegundos;
@@ -46,6 +43,7 @@ class TestConfig {
     Lado? lado,
     SimboloCategoria? categoria,
     Forma? forma,
+    bool formaSetNull = false, // 🔹 permite establecer null explícitamente
     Velocidad? velocidad,
     Movimiento? movimiento,
     int? duracionSegundos,
@@ -59,7 +57,7 @@ class TestConfig {
     return TestConfig(
       lado: lado ?? this.lado,
       categoria: categoria ?? this.categoria,
-      forma: forma ?? this.forma,
+      forma: formaSetNull ? null : (forma ?? this.forma),
       velocidad: velocidad ?? this.velocidad,
       movimiento: movimiento ?? this.movimiento,
       duracionSegundos: duracionSegundos ?? this.duracionSegundos,
