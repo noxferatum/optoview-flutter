@@ -1,4 +1,3 @@
-// lib/widgets/config/symbol_selector.dart
 import 'package:flutter/material.dart';
 import '../../models/test_config.dart';
 
@@ -49,16 +48,21 @@ class SymbolSelector extends StatelessWidget {
               runSpacing: 8,
               children: [
                 ChoiceChip(
+                  key: const ValueKey('aleatoria'),
                   label: const Text('Aleatoria'),
                   selected: forma == null,
                   onSelected: (_) => onFormaChanged(null),
+                  selectedColor: Theme.of(context).colorScheme.primary.withOpacity(0.2),
                 ),
                 ...Forma.values.map((f) {
                   final isSelected = f == forma;
                   return ChoiceChip(
+                    key: ValueKey(f.name),
                     label: Text(_labelForma(f)),
                     selected: isSelected,
                     onSelected: (_) => onFormaChanged(f),
+                    selectedColor:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.2),
                   );
                 }),
               ],

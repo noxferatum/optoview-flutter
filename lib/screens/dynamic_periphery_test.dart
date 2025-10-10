@@ -1,189 +1,295 @@
+import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/test_config.dart';
-import '../widgets/config/side_selector.dart';
-import '../widgets/config/symbol_selector.dart';
-import '../widgets/config/speed_selector.dart';
-import '../widgets/config/movement_selector.dart';
-import '../widgets/config/distance_selector.dart';
-import '../widgets/config/fixation_selector.dart';
-import '../widgets/config/background_selector.dart';
-import 'dynamic_periphery_test.dart';
+import '../widgets/center_fixation.dart';
+import '../widgets/peripheral_stimulus.dart';
+import '../widgets/background_pattern.dart';
 
-class ConfigScreen extends StatefulWidget {
-  const ConfigScreen({super.key});
+class DynamicPeripheryTest extends StatefulWidget {
+  final TestConfig config;
+  const DynamicPeripheryTest({super.key, required this.config});
 
   @override
-  State<ConfigScreen> createState() => _ConfigScreenState();
+  State<DynamicPeripheryTest> createState() => _DynamicPeripheryTestState();
 }
 
-class _ConfigScreenState extends State<ConfigScreen> {
-  TestConfig config = const TestConfig(
-    lado: Lado.ambos,
-    categoria: SimboloCategoria.formas,
-    forma: Forma.circulo,
-    velocidad: Velocidad.media,
-    movimiento: Movimiento.fijo,
-    duracionSegundos: 60,
-    tamanoPorc: 50,
-    distanciaPct: 100,
-    distanciaModo: DistanciaModo.fijo,
-    fijacion: Fijacion.punto,
-    fondo: Fondo.oscuro,
-    fondoDistractor: false,
-  );
+class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
+  Timer? _stimulusTimer;
+  Timer? _endTimer;
+  Timer? _countdownTimer;
+
+  bool _showStimulus = false;
+  String _stimulusSide = 'left';
+  late int _remaining;
+  AnimationController? _moveCtrl;
+  double _currentTop = 0;
+
+  String? _currentText;
+  Forma? _currentForma;
+  final _rand = Random();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _remaining = widget.config.duracionSegundos.clamp(1, 3600);
+    _startTest();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _cancelAllTimers();
+    _disposeMoveCtrl();
+    super.dispose();
+  }
+
+  void _disposeMoveCtrl() {
+    _moveCtrl?.stop();
+    _moveCtrl?.dispose();
+    _moveCtrl = null;
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      _pauseTimers();
+    } else if (state == AppLifecycleState.resumed) {
+      _resumeTimers();
+    }
+  }
+
+  // Mapear velocidad (más lento en general)
+  int _velocidadMs(Velocidad v) {
+    switch (v) {
+      case Velocidad.rapida:
+        return 1200;
+      case Velocidad.media:
+        return 1800;
+      case Velocidad.lenta:
+        return 2500;
+    }
+  }
+
+  void _startTest() {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() => _remaining = max(0, _remaining - 1));
+    });
+
+    _endTimer = Timer(Duration(seconds: _remaining), _finishTest);
+
+    final onMs = _velocidadMs(widget.config.velocidad);
+    final offMs = _velocidadMs(widget.config.velocidad);
+    final period = onMs + offMs;
+
+    _stimulusTimer = Timer.periodic(Duration(milliseconds: period), (t) async {
+      if (!mounted) return;
+
+      final side = switch (widget.config.lado) {
+        Lado.izquierda => 'left',
+        Lado.derecha => 'right',
+        Lado.arriba => 'top',
+        Lado.abajo => 'bottom',
+        Lado.ambos => _rand.nextBool() ? 'left' : 'right',
+      };
+
+      _chooseSymbolOnceForThisAppearance();
+
+      if (widget.config.movimiento == Movimiento.fijo) {
+        await _showFixed(onMs, side);
+      } else {
+        await _runMovement(onMs, side);
+      }
+    });
+  }
+
+  void _chooseSymbolOnceForThisAppearance() {
+    switch (widget.config.categoria) {
+      case SimboloCategoria.letras:
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        _currentText = letters[_rand.nextInt(letters.length)];
+        _currentForma = null;
+        break;
+      case SimboloCategoria.numeros:
+        _currentText = '${_rand.nextInt(10)}';
+        _currentForma = null;
+        break;
+      case SimboloCategoria.formas:
+        _currentText = null;
+        _currentForma =
+            widget.config.forma ?? Forma.values[_rand.nextInt(Forma.values.length)];
+        break;
+    }
+  }
+
+  Future<void> _showFixed(int onMs, String side) async {
+    final sz = MediaQuery.of(context).size;
+    final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
+    _currentTop = (sz.height / 2) - (sizePx / 2);
+
+    setState(() {
+      _stimulusSide = side;
+      _showStimulus = true;
+    });
+
+    await Future.delayed(Duration(milliseconds: onMs));
+    if (!mounted) return;
+    setState(() => _showStimulus = false);
+  }
+
+  Future<void> _runMovement(int onMs, String side) async {
+    final sz = MediaQuery.of(context).size;
+    final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
+    const margin = 32.0;
+
+    final isVertical = side == 'left' || side == 'right';
+    final upToDown = _rand.nextBool();
+
+    _disposeMoveCtrl();
+    _moveCtrl = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: onMs),
+    );
+
+    final curved = CurvedAnimation(parent: _moveCtrl!, curve: Curves.linear);
+    late Animation<double> anim;
+
+    if (isVertical) {
+      final topStart = margin;
+      final topEnd = max(margin, sz.height - sizePx - margin);
+      anim = Tween<double>(
+        begin: upToDown ? topStart : topEnd,
+        end: upToDown ? topEnd : topStart,
+      ).animate(curved)
+        ..addListener(() {
+          if (mounted) setState(() => _currentTop = anim.value);
+        });
+    } else {
+      final leftStart = margin;
+      final leftEnd = max(margin, sz.width - sizePx - margin);
+      anim = Tween<double>(
+        begin: upToDown ? leftStart : leftEnd,
+        end: upToDown ? leftEnd : leftStart,
+      ).animate(curved)
+        ..addListener(() {
+          if (mounted) setState(() => _currentTop = anim.value);
+        });
+    }
+
+    setState(() {
+      _stimulusSide = side;
+      _showStimulus = true;
+    });
+
+    try {
+      await _moveCtrl!.forward().orCancel;
+    } catch (_) {}
+
+    if (mounted) setState(() => _showStimulus = false);
+  }
+
+  void _finishTest() {
+    if (!mounted) return;
+    _cancelAllTimers();
+    _disposeMoveCtrl();
+    setState(() {
+      _showStimulus = false;
+      _remaining = 0;
+    });
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        title: const Text('Prueba completada'),
+        content: const Text('La duración configurada ha finalizado.'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              Navigator.of(context).maybePop();
+            },
+            child: const Text('Aceptar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _cancelAllTimers() {
+    _stimulusTimer?.cancel();
+    _endTimer?.cancel();
+    _countdownTimer?.cancel();
+  }
+
+  void _pauseTimers() {
+    _cancelAllTimers();
+    _moveCtrl?.stop();
+  }
+
+  void _resumeTimers() {
+    if (_remaining > 0) {
+      _startTest();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final sizePx =
+        MediaQuery.of(context).size.shortestSide * (widget.config.tamanoPorc / 200);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configuración de la prueba'),
-        centerTitle: true,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
+      body: BackgroundPattern(
+        fondo: widget.config.fondo,
+        distractor: widget.config.fondoDistractor,
+        child: Stack(
           children: [
-            SideSelector(
-              value: config.lado,
-              onChanged: (v) => setState(() => config = config.copyWith(lado: v)),
+            CenterFixation(
+              tipo: widget.config.fijacion,
+              fondo: widget.config.fondo,
             ),
-            const SizedBox(height: 16),
-            SymbolSelector(
-              categoria: config.categoria,
-              forma: config.forma,
-              onCategoriaChanged: (c) =>
-                  setState(() => config = config.copyWith(categoria: c)),
-              onFormaChanged: (f) =>
-                  setState(() => config = config.copyWith(forma: f)),
-            ),
-            const SizedBox(height: 16),
-            SpeedSelector(
-              value: config.velocidad,
-              onChanged: (v) =>
-                  setState(() => config = config.copyWith(velocidad: v)),
-            ),
-            const SizedBox(height: 16),
-            MovementSelector(
-              value: config.movimiento,
-              onChanged: (v) =>
-                  setState(() => config = config.copyWith(movimiento: v)),
-            ),
-            const SizedBox(height: 16),
-            DistanceSelector(
-              modo: config.distanciaModo,
-              distanciaPct: config.distanciaPct,
-              onModoChanged: (m) =>
-                  setState(() => config = config.copyWith(distanciaModo: m)),
-              onDistChanged: (d) =>
-                  setState(() => config = config.copyWith(distanciaPct: d)),
-            ),
-            const SizedBox(height: 16),
-            _DurationCard(
-              value: config.duracionSegundos,
-              onChanged: (v) =>
-                  setState(() => config = config.copyWith(duracionSegundos: v)),
-            ),
-            const SizedBox(height: 16),
-            _SizeCard(
-              value: config.tamanoPorc,
-              onChanged: (v) =>
-                  setState(() => config = config.copyWith(tamanoPorc: v)),
-            ),
-            const Divider(height: 32, thickness: 1),
-            // 🔹 Nuevas opciones
-            FixationSelector(
-              value: config.fijacion,
-              onChanged: (v) =>
-                  setState(() => config = config.copyWith(fijacion: v)),
-            ),
-            const SizedBox(height: 16),
-            BackgroundSelector(
-              fondo: config.fondo,
-              distractor: config.fondoDistractor,
-              onFondoChanged: (v) =>
-                  setState(() => config = config.copyWith(fondo: v)),
-              onDistractorChanged: (v) =>
-                  setState(() => config = config.copyWith(fondoDistractor: v)),
-            ),
-            const SizedBox(height: 32),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => DynamicPeripheryTest(config: config),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('Iniciar prueba'),
+            if (_showStimulus)
+              PeripheralStimulus(
+                categoria: widget.config.categoria,
+                forma: _currentForma,
+                text: _currentText,
+                size: sizePx,
+                side: _stimulusSide,
+                top: _currentTop,
+                onTap: () {},
+              ),
+            Positioned(
+              top: 24,
+              left: 24,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.4),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'Tiempo restante: $_remaining s',
+                  style: const TextStyle(color: Colors.white),
+                ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _DurationCard extends StatelessWidget {
-  final int value;
-  final ValueChanged<int> onChanged;
-  const _DurationCard({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Duración (segundos)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: value.toDouble(),
-              min: 10,
-              max: 300,
-              divisions: 29,
-              label: '$value s',
-              onChanged: (v) => onChanged(v.round()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SizeCard extends StatelessWidget {
-  final double value;
-  final ValueChanged<double> onChanged;
-  const _SizeCard({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Tamaño (%)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: value,
-              min: 5,
-              max: 100,
-              divisions: 95,
-              label: '${value.toStringAsFixed(0)}%',
-              onChanged: onChanged,
+            Positioned(
+              top: 24,
+              right: 24,
+              child: TextButton.icon(
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Colors.black45,
+                ),
+                onPressed: _finishTest,
+                icon: const Icon(Icons.stop),
+                label: const Text('Terminar'),
+              ),
             ),
           ],
         ),

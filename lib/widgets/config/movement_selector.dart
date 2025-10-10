@@ -1,4 +1,3 @@
-// lib/widgets/config/movement_selector.dart
 import 'package:flutter/material.dart';
 import '../../models/test_config.dart';
 
@@ -14,29 +13,6 @@ class MovementSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _SectionCard(
-      title: 'Movimiento del estímulo',
-      child: SegmentedButton<Movimiento>(
-        segments: const [
-          ButtonSegment(value: Movimiento.fijo, label: Text('Fijo')),
-          // Renombrado: antes decía "Vertical"
-          ButtonSegment(value: Movimiento.vertical, label: Text('Movimiento')),
-        ],
-        selected: {value},
-        onSelectionChanged: (s) => onChanged(s.first),
-      ),
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const _SectionCard({required this.title, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Card(
       elevation: 1,
       child: Padding(
@@ -45,11 +21,23 @@ class _SectionCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              title,
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              'Movimiento del estímulo',
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
-            child,
+            SegmentedButton<Movimiento>(
+              segments: const [
+                ButtonSegment(
+                    value: Movimiento.fijo, label: Text('Fijo')),
+                ButtonSegment(
+                    value: Movimiento.movimiento, label: Text('Movimiento')),
+              ],
+              selected: {value},
+              onSelectionChanged: (s) => onChanged(s.first),
+            ),
           ],
         ),
       ),

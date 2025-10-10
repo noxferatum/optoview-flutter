@@ -1,79 +1,111 @@
-// lib/widgets/peripheral_stimulus.dart
 import 'package:flutter/material.dart';
 import '../models/test_config.dart';
 
-/// Renderiza el estímulo periférico en una coordenada absoluta [top], [left].
-/// - Para letras/números, usa [text].
-/// - Para formas, usa [forma].
 class PeripheralStimulus extends StatelessWidget {
   final SimboloCategoria categoria;
-  final Forma? forma;       // usado cuando categoria == formas
-  final String? text;       // usado cuando categoria == letras|numeros
+  final Forma? forma;
+  final String? text;
   final double size;
-  final double top;         // posición vertical en px
-  final double left;        // posición horizontal en px
+  final String side; // left, right, top, bottom
+  final double top;
   final VoidCallback onTap;
 
   const PeripheralStimulus({
     super.key,
     required this.categoria,
-    required this.forma,
-    required this.text,
+    this.forma,
+    this.text,
     required this.size,
+    required this.side,
     required this.top,
-    required this.left,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    final Widget content = _buildStimulus();
+
     return Positioned(
-      top: top,
-      left: left,
+      top: side == 'top'
+          ? 50
+          : side == 'bottom'
+              ? MediaQuery.of(context).size.height - size - 100
+              : top,
+      left: side == 'left'
+          ? 40
+          : side == 'right'
+              ? MediaQuery.of(context).size.width - size - 40
+              : null,
+      right: side == 'right' ? 40 : null,
       child: GestureDetector(
         onTap: onTap,
-        child: _buildSymbol(),
+        child: SizedBox(width: size, height: size, child: content),
       ),
     );
   }
 
-  Widget _buildSymbol() {
+  Widget _buildStimulus() {
     switch (categoria) {
       case SimboloCategoria.letras:
       case SimboloCategoria.numeros:
-        final String value = (text ?? '').isNotEmpty ? text! : '?';
-        return Text(
-          value,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: size,
-            fontWeight: FontWeight.bold,
+        return FittedBox(
+          fit: BoxFit.contain,
+          child: Text(
+            text ?? '',
+            style: TextStyle(
+              color: Colors.redAccent,
+              fontSize: 100,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         );
       case SimboloCategoria.formas:
-        return _buildForma(forma ?? Forma.circulo);
+        return _buildShape();
     }
   }
 
-  Widget _buildForma(Forma f) {
-    switch (f) {
-      case Forma.cuadrado:
-        return Container(width: size, height: size, color: Colors.white);
-      case Forma.corazon:
-        return Icon(Icons.favorite, color: Colors.red, size: size);
-      case Forma.triangulo:
-        return Icon(Icons.change_history, color: Colors.white, size: size);
-      case Forma.trebol:
-        return Icon(Icons.filter_vintage, color: Colors.green, size: size);
+  Widget _buildShape() {
+    Color color = Colors.redAccent;
+
+    switch (forma) {
       case Forma.circulo:
         return Container(
-          width: size,
-          height: size,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         );
+      case Forma.cuadrado:
+        return Container(
+          color: color,
+        );
+      case Forma.corazon:
+        return Icon(Icons.favorite, color: color, size: size);
+      case Forma.triangulo:
+        return CustomPaint(
+          painter: _TrianglePainter(color),
+        );
+      case Forma.trebol:
+        return Icon(Icons.filter_vintage, color: color, size: size);
+      default:
+        return Container(color: color);
     }
   }
+}
+
+class _TrianglePainter extends CustomPainter {
+  final Color color;
+  _TrianglePainter(this.color);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    final path = Path()
+      ..moveTo(size.width / 2, 0)
+      ..lineTo(0, size.height)
+      ..lineTo(size.width, size.height)
+      ..close();
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _TrianglePainter oldDelegate) =>
+      oldDelegate.color != color;
 }

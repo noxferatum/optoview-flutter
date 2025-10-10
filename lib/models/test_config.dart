@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 
 // Enums existentes
 enum Lado { izquierda, derecha, ambos, arriba, abajo }
