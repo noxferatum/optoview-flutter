@@ -1,42 +1,32 @@
-// lib/models/test_config.dart
-enum Lado { izquierda, derecha, arriba, abajo, ambos }
+import 'package:flutter/material.dart';
 
+// Enums existentes
+enum Lado { izquierda, derecha, ambos, arriba, abajo }
 enum SimboloCategoria { letras, numeros, formas }
-
-enum Forma {
-  circulo,
-  cuadrado,
-  corazon,
-  triangulo,
-  trebol,
-}
-
+enum Forma { circulo, cuadrado, corazon, triangulo, trebol }
 enum Velocidad { lenta, media, rapida }
+enum Movimiento { fijo, movimiento }
+enum DistanciaModo { fijo, aleatorio }
 
-/// Tipo de movimiento del estímulo.
-/// Si es 'fijo', no hay animación.
-/// Si es 'vertical', el eje de animación se adapta:
-/// - Lado Izq./Der. -> movimiento vertical (arriba<->abajo)
-/// - Lado Arriba/Abajo -> movimiento horizontal (izq.<->der.)
-enum Movimiento { fijo, vertical }
+// 🔹 Nuevo enum para punto de fijación
+enum Fijacion { cara, ojo, punto, trebol, cruz }
 
-/// Modo de distancia respecto al centro
-enum DistanciaModo { controlada, aleatoria }
+// 🔹 Nuevo enum para fondo
+enum Fondo { claro, oscuro }
 
 class TestConfig {
   final Lado lado;
   final SimboloCategoria categoria;
-  final Forma? forma; // si categoria == formas; null = aleatoria
+  final Forma? forma;
   final Velocidad velocidad;
   final Movimiento movimiento;
   final int duracionSegundos;
   final double tamanoPorc;
-
-  /// Distancia desde el centro (0–100%). 0 = centro; 100 = máximo hacia el borde.
   final double distanciaPct;
-
-  /// Si es aleatoria, en cada aparición se ignora distanciaPct y se elige aleatoriamente 0–100%.
   final DistanciaModo distanciaModo;
+  final Fijacion fijacion;
+  final Fondo fondo;
+  final bool fondoDistractor;
 
   const TestConfig({
     required this.lado,
@@ -48,6 +38,9 @@ class TestConfig {
     required this.tamanoPorc,
     required this.distanciaPct,
     required this.distanciaModo,
+    required this.fijacion,
+    required this.fondo,
+    required this.fondoDistractor,
   });
 
   TestConfig copyWith({
@@ -60,6 +53,9 @@ class TestConfig {
     double? tamanoPorc,
     double? distanciaPct,
     DistanciaModo? distanciaModo,
+    Fijacion? fijacion,
+    Fondo? fondo,
+    bool? fondoDistractor,
   }) {
     return TestConfig(
       lado: lado ?? this.lado,
@@ -71,13 +67,9 @@ class TestConfig {
       tamanoPorc: tamanoPorc ?? this.tamanoPorc,
       distanciaPct: distanciaPct ?? this.distanciaPct,
       distanciaModo: distanciaModo ?? this.distanciaModo,
+      fijacion: fijacion ?? this.fijacion,
+      fondo: fondo ?? this.fondo,
+      fondoDistractor: fondoDistractor ?? this.fondoDistractor,
     );
   }
-
-  @override
-  String toString() =>
-      'TestConfig(lado: $lado, categoria: $categoria, forma: $forma, '
-      'velocidad: $velocidad, movimiento: $movimiento, '
-      'duracionSegundos: $duracionSegundos, tamanoPorc: $tamanoPorc, '
-      'distanciaPct: $distanciaPct, distanciaModo: $distanciaModo)';
 }
