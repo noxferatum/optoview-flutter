@@ -1,12 +1,18 @@
 import 'package:flutter/material.dart';
 import '../models/test_config.dart';
+
+// Selectores ya existentes
 import '../widgets/config/side_selector.dart';
 import '../widgets/config/symbol_selector.dart';
 import '../widgets/config/speed_selector.dart';
 import '../widgets/config/movement_selector.dart';
 import '../widgets/config/distance_selector.dart';
+
+// Nuevos selectores
 import '../widgets/config/fixation_selector.dart';
 import '../widgets/config/background_selector.dart';
+
+// Pantalla del test
 import 'dynamic_periphery_test.dart';
 
 class ConfigScreen extends StatefulWidget {
@@ -34,8 +40,6 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configuración de la prueba'),
@@ -45,11 +49,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
+            // 🔹 Lado de estimulación
             SideSelector(
               value: config.lado,
               onChanged: (v) => setState(() => config = config.copyWith(lado: v)),
             ),
             const SizedBox(height: 16),
+
+            // 🔹 Tipo de símbolo
             SymbolSelector(
               categoria: config.categoria,
               forma: config.forma,
@@ -59,18 +66,24 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   setState(() => config = config.copyWith(forma: f)),
             ),
             const SizedBox(height: 16),
+
+            // 🔹 Velocidad
             SpeedSelector(
               value: config.velocidad,
               onChanged: (v) =>
                   setState(() => config = config.copyWith(velocidad: v)),
             ),
             const SizedBox(height: 16),
+
+            // 🔹 Movimiento
             MovementSelector(
               value: config.movimiento,
               onChanged: (v) =>
                   setState(() => config = config.copyWith(movimiento: v)),
             ),
             const SizedBox(height: 16),
+
+            // 🔹 Distancia al centro
             DistanceSelector(
               modo: config.distanciaModo,
               distanciaPct: config.distanciaPct,
@@ -80,25 +93,32 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   setState(() => config = config.copyWith(distanciaPct: d)),
             ),
             const SizedBox(height: 16),
+
+            // 🔹 Duración
             _DurationCard(
               value: config.duracionSegundos,
               onChanged: (v) =>
                   setState(() => config = config.copyWith(duracionSegundos: v)),
             ),
             const SizedBox(height: 16),
+
+            // 🔹 Tamaño del estímulo
             _SizeCard(
               value: config.tamanoPorc,
               onChanged: (v) =>
                   setState(() => config = config.copyWith(tamanoPorc: v)),
             ),
             const Divider(height: 32, thickness: 1),
-            // 🔹 Nuevas opciones
+
+            // 🔹 Nuevo: punto de fijación
             FixationSelector(
               value: config.fijacion,
               onChanged: (v) =>
                   setState(() => config = config.copyWith(fijacion: v)),
             ),
             const SizedBox(height: 16),
+
+            // 🔹 Nuevo: fondo claro/oscuro y distractor
             BackgroundSelector(
               fondo: config.fondo,
               distractor: config.fondoDistractor,
@@ -108,8 +128,9 @@ class _ConfigScreenState extends State<ConfigScreen> {
                   setState(() => config = config.copyWith(fondoDistractor: v)),
             ),
             const SizedBox(height: 32),
-            Align(
-              alignment: Alignment.centerRight,
+
+            // 🔹 Botón de inicio
+            Center(
               child: FilledButton.icon(
                 onPressed: () {
                   Navigator.push(
