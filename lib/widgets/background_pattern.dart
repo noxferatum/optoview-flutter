@@ -41,10 +41,10 @@ class _DistractorPainter extends CustomPainter {
       ..color = (oscuro ? Colors.white : Colors.black).withOpacity(0.06)
       ..style = PaintingStyle.fill;
 
-    const double step = 50;
+    const double step = 60;
     for (double y = 0; y < size.height; y += step) {
       for (double x = 0; x < size.width; x += step) {
-        canvas.drawCircle(Offset(x + 10, y + 10), 6, paint);
+        canvas.drawCircle(Offset(x + 10, y + 10), 5, paint);
       }
     }
   }

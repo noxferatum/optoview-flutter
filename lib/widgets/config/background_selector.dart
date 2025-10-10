@@ -45,7 +45,8 @@ class BackgroundSelector extends StatelessWidget {
               value: distractor,
               onChanged: onDistractorChanged,
               title: const Text('Fondo distractor'),
-              subtitle: const Text('Añade un patrón suave de baja intensidad'),
+              subtitle:
+                  const Text('Añade un patrón suave de baja intensidad.'),
             ),
           ],
         ),
