@@ -28,19 +28,54 @@ class MovementSelector extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
+
+            // Segmentos de selección
             SegmentedButton<Movimiento>(
               segments: const [
                 ButtonSegment(
-                    value: Movimiento.fijo, label: Text('Fijo')),
+                  value: Movimiento.fijo,
+                  label: Text('Fijo'),
+                ),
                 ButtonSegment(
-                    value: Movimiento.movimiento, label: Text('Movimiento')),
+                  value: Movimiento.horizontal,
+                  label: Text('Horizontal'),
+                ),
+                ButtonSegment(
+                  value: Movimiento.vertical,
+                  label: Text('Vertical'),
+                ),
+                ButtonSegment(
+                  value: Movimiento.aleatorio,
+                  label: Text('Aleatorio'),
+                ),
               ],
               selected: {value},
               onSelectionChanged: (s) => onChanged(s.first),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Descripción de ayuda contextual
+            Text(
+              _descripcionMovimiento(value),
+              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _descripcionMovimiento(Movimiento m) {
+    switch (m) {
+      case Movimiento.fijo:
+        return 'El estímulo permanece estático en su posición.';
+      case Movimiento.horizontal:
+        return 'El estímulo se desliza de izquierda a derecha o viceversa.';
+      case Movimiento.vertical:
+        return 'El estímulo se desliza de arriba a abajo o viceversa.';
+      case Movimiento.aleatorio:
+        return 'El estímulo cambia aleatoriamente entre desplazamiento horizontal y vertical.';
+    }
   }
 }

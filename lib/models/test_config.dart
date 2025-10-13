@@ -23,6 +23,7 @@ class TestConfig {
   final Fijacion fijacion;
   final Fondo fondo;
   final bool fondoDistractor;
+  final bool fondoDistractorAnimado; // 🔹 nuevo campo
 
   const TestConfig({
     required this.lado,
@@ -37,13 +38,14 @@ class TestConfig {
     required this.fijacion,
     required this.fondo,
     required this.fondoDistractor,
+    this.fondoDistractorAnimado = false, // 🔹 desactivado por defecto
   });
 
   TestConfig copyWith({
     Lado? lado,
     SimboloCategoria? categoria,
     Forma? forma,
-    bool formaSetNull = false, // 🔹 permite establecer null explícitamente
+    bool formaSetNull = false,
     Velocidad? velocidad,
     Movimiento? movimiento,
     int? duracionSegundos,
@@ -53,6 +55,7 @@ class TestConfig {
     Fijacion? fijacion,
     Fondo? fondo,
     bool? fondoDistractor,
+    bool? fondoDistractorAnimado, // 🔹
   }) {
     return TestConfig(
       lado: lado ?? this.lado,
@@ -67,6 +70,8 @@ class TestConfig {
       fijacion: fijacion ?? this.fijacion,
       fondo: fondo ?? this.fondo,
       fondoDistractor: fondoDistractor ?? this.fondoDistractor,
+      fondoDistractorAnimado:
+          fondoDistractorAnimado ?? this.fondoDistractorAnimado,
     );
   }
 }

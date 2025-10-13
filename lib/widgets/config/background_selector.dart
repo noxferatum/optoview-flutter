@@ -4,15 +4,19 @@ import '../../models/test_config.dart';
 class BackgroundSelector extends StatelessWidget {
   final Fondo fondo;
   final bool distractor;
+  final bool animado; // 🔹 nuevo campo
   final ValueChanged<Fondo> onFondoChanged;
   final ValueChanged<bool> onDistractorChanged;
+  final ValueChanged<bool> onAnimadoChanged; // 🔹 nuevo callback
 
   const BackgroundSelector({
     super.key,
     required this.fondo,
     required this.distractor,
+    required this.animado,
     required this.onFondoChanged,
     required this.onDistractorChanged,
+    required this.onAnimadoChanged,
   });
 
   @override
@@ -25,7 +29,7 @@ class BackgroundSelector extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Fondo',
+              'Fondo y distractor',
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -48,6 +52,17 @@ class BackgroundSelector extends StatelessWidget {
               subtitle:
                   const Text('Añade un patrón suave de baja intensidad.'),
             ),
+            if (distractor) ...[
+              const SizedBox(height: 8),
+              SwitchListTile(
+                value: animado,
+                onChanged: onAnimadoChanged,
+                title: const Text('Animar distractor'),
+                subtitle: const Text(
+                  'Activa un movimiento leve del patrón para aumentar la dificultad visual.',
+                ),
+              ),
+            ],
           ],
         ),
       ),

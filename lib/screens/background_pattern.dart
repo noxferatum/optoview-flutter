@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../models/test_config.dart';
 
@@ -32,21 +33,48 @@ class BackgroundPattern extends StatelessWidget {
 
 class _DistractorPainter extends CustomPainter {
   final bool oscuro;
+  final Random _rand = Random();
 
   _DistractorPainter({required this.oscuro});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = (oscuro ? Colors.white : Colors.black).withOpacity(0.06)
-      ..style = PaintingStyle.fill;
+    final double step = 80.0;
+    final Paint paint = Paint()
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
 
-    const double step = 50;
+    // Capa semitransparente para mezcla más suave
+    canvas.saveLayer(Offset.zero & size, Paint());
+
     for (double y = 0; y < size.height; y += step) {
       for (double x = 0; x < size.width; x += step) {
-        canvas.drawCircle(Offset(x + 10, y + 10), 6, paint);
+        // Pequeñas variaciones para evitar patrón robótico
+        final offsetX = x + _rand.nextDouble() * 10 - 5;
+        final offsetY = y + _rand.nextDouble() * 10 - 5;
+
+        final double radius = 2 + _rand.nextDouble() * 3;
+        final double opacity = 0.04 + _rand.nextDouble() * 0.03;
+
+        paint.color =
+            (oscuro ? Colors.white : Colors.black).withOpacity(opacity);
+
+        // Dibuja puntos y alguna línea ocasional
+        if (_rand.nextDouble() > 0.15) {
+          canvas.drawCircle(Offset(offsetX, offsetY), radius, paint);
+        } else {
+          canvas.drawLine(
+            Offset(offsetX, offsetY),
+            Offset(offsetX + 10, offsetY + 10),
+            paint
+              ..strokeWidth = 0.5
+              ..style = PaintingStyle.stroke,
+          );
+        }
       }
     }
+
+    canvas.restore();
   }
 
   @override

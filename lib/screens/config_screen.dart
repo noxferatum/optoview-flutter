@@ -23,11 +23,10 @@ class ConfigScreen extends StatefulWidget {
 }
 
 class _ConfigScreenState extends State<ConfigScreen> {
-  // Ajusta aquí los valores iniciales que usabas
   TestConfig config = const TestConfig(
     lado: Lado.ambos,
     categoria: SimboloCategoria.formas,
-    forma: null, // <- Aleatoria por defecto
+    forma: null, // Aleatoria por defecto
     velocidad: Velocidad.media,
     movimiento: Movimiento.fijo,
     duracionSegundos: 60,
@@ -37,6 +36,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     fijacion: Fijacion.punto,
     fondo: Fondo.oscuro,
     fondoDistractor: false,
+    fondoDistractorAnimado: false, // 🔹 nuevo valor inicial
   );
 
   void _startTest() {
@@ -68,17 +68,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
             // Símbolo
             SymbolSelector(
               categoria: config.categoria,
-              forma: config.forma, // null = aleatoria
+              forma: config.forma,
               onCategoriaChanged: (c) => setState(() {
                 config = config.copyWith(categoria: c);
               }),
               onFormaChanged: (f) => setState(() {
-                // Si viene null desde el selector -> forzamos null real en copyWith
                 if (f == null) {
                   config = config.copyWith(formaSetNull: true);
                 } else {
                   config = config.copyWith(forma: f);
                 }
+              }),
+              onFormaClear: () => setState(() {
+                config = config.copyWith(formaSetNull: true);
               }),
             ),
             const SizedBox(height: 16),
@@ -142,15 +144,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
             ),
             const SizedBox(height: 16),
 
-            // Fondo + distractor
+            // Fondo + distractor + animación
             BackgroundSelector(
               fondo: config.fondo,
               distractor: config.fondoDistractor,
+              animado: config.fondoDistractorAnimado,
               onFondoChanged: (v) => setState(() {
                 config = config.copyWith(fondo: v);
               }),
               onDistractorChanged: (v) => setState(() {
                 config = config.copyWith(fondoDistractor: v);
+              }),
+              onAnimadoChanged: (v) => setState(() {
+                config = config.copyWith(fondoDistractorAnimado: v);
               }),
             ),
 
@@ -172,7 +178,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   }
 }
 
-// ---- Widgets internos (igual que tenías) ----
+// ---- Widgets internos ----
 
 class _DurationCard extends StatelessWidget {
   final int value;
@@ -206,7 +212,7 @@ class _DurationCard extends StatelessWidget {
 }
 
 class _SizeCard extends StatelessWidget {
-  final double value; // %
+  final double value;
   final ValueChanged<double> onChanged;
   const _SizeCard({required this.value, required this.onChanged});
 

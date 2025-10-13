@@ -14,29 +14,67 @@ class CenterFixation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool oscuro = fondo == Fondo.oscuro;
-    final Color color = oscuro ? Colors.white : Colors.black;
+    final Color colorPrincipal = oscuro ? Colors.white : Colors.black;
+    final Color borde = oscuro ? Colors.black54 : Colors.white70;
 
     return Center(
-      child: _buildFixation(color),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Borde o sombra para dar contraste
+          _buildFixation(borde, isShadow: true),
+          _buildFixation(colorPrincipal),
+        ],
+      ),
     );
   }
 
-  Widget _buildFixation(Color color) {
+  Widget _buildFixation(Color color, {bool isShadow = false}) {
+    final double mainSize = 64;
+    final double shadowOffset = isShadow ? 2.0 : 0.0;
+
     switch (tipo) {
       case Fijacion.cara:
-        return Icon(Icons.face, color: color, size: 64);
+        return Transform.translate(
+          offset: Offset(shadowOffset, shadowOffset),
+          child: Icon(Icons.face, color: color, size: mainSize),
+        );
       case Fijacion.ojo:
-        return Icon(Icons.remove_red_eye, color: color, size: 64);
+        return Transform.translate(
+          offset: Offset(shadowOffset, shadowOffset),
+          child: Icon(Icons.remove_red_eye, color: color, size: mainSize),
+        );
       case Fijacion.punto:
-        return Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+        return Transform.translate(
+          offset: Offset(shadowOffset, shadowOffset),
+          child: Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: color,
+              boxShadow: isShadow
+                  ? []
+                  : [
+                      BoxShadow(
+                        color: color.withOpacity(0.6),
+                        blurRadius: 4,
+                        spreadRadius: 2,
+                      )
+                    ],
+            ),
+          ),
         );
       case Fijacion.trebol:
-        return Icon(Icons.filter_vintage, color: color, size: 64);
+        return Transform.translate(
+          offset: Offset(shadowOffset, shadowOffset),
+          child: Icon(Icons.filter_vintage, color: color, size: mainSize),
+        );
       case Fijacion.cruz:
-        return Icon(Icons.add, color: color, size: 64);
+        return Transform.translate(
+          offset: Offset(shadowOffset, shadowOffset),
+          child: Icon(Icons.add, color: color, size: mainSize * 1.2),
+        );
     }
   }
 }

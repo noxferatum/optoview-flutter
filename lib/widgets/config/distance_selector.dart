@@ -17,7 +17,7 @@ class DistanceSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isAleatorio = modo == DistanciaModo.aleatorio;
+    final isAleatoria = modo == DistanciaModo.aleatoria;
 
     return Card(
       elevation: 1,
@@ -35,15 +35,14 @@ class DistanceSelector extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SwitchListTile(
-              value: isAleatorio,
-              onChanged: (v) =>
-                  onModoChanged(v ? DistanciaModo.aleatorio : DistanciaModo.fijo),
+              value: isAleatoria,
               title: const Text('Aleatoria'),
-              subtitle:
-                  const Text('Cambia aleatoriamente la distancia del estímulo'),
+              subtitle: const Text('Cambia aleatoriamente la distancia del estímulo'),
+              onChanged: (v) =>
+                  onModoChanged(v ? DistanciaModo.aleatoria : DistanciaModo.fijo),
             ),
             const SizedBox(height: 8),
-            if (!isAleatorio)
+            if (!isAleatoria)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

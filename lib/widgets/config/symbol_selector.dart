@@ -55,7 +55,7 @@ class SymbolSelector extends StatelessWidget {
                   selected: forma == null,
                   onSelected: (selected) {
                     if (selected) {
-                      onFormaClear(); // 🔹 usa copyWith(formaSetNull: true)
+                      onFormaChanged(null);
                     }
                   },
                   selectedColor: Theme.of(context)
@@ -72,6 +72,8 @@ class SymbolSelector extends StatelessWidget {
                     onSelected: (selected) {
                       if (selected) {
                         onFormaChanged(f);
+                      } else {
+                        onFormaChanged(null);
                       }
                     },
                     selectedColor: Theme.of(context)

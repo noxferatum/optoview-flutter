@@ -25,6 +25,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   late int _remaining;
   AnimationController? _moveCtrl;
   double _currentTop = 0;
+  double _currentLeft = 0;
 
   String? _currentText;
   Forma? _currentForma;
@@ -62,7 +63,6 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     }
   }
 
-  // Mapear velocidad (más lento en general)
   int _velocidadMs(Velocidad v) {
     switch (v) {
       case Velocidad.rapida:
@@ -89,20 +89,27 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     _stimulusTimer = Timer.periodic(Duration(milliseconds: period), (t) async {
       if (!mounted) return;
 
-      final side = switch (widget.config.lado) {
+      // Lado aleatorio si corresponde
+      final lado = switch (widget.config.lado) {
         Lado.izquierda => 'left',
         Lado.derecha => 'right',
         Lado.arriba => 'top',
         Lado.abajo => 'bottom',
         Lado.ambos => _rand.nextBool() ? 'left' : 'right',
+        Lado.aleatorio => ['left', 'right', 'top', 'bottom'][_rand.nextInt(4)],
       };
 
       _chooseSymbolOnceForThisAppearance();
 
-      if (widget.config.movimiento == Movimiento.fijo) {
-        await _showFixed(onMs, side);
+      // Elegir tipo de movimiento (si aleatorio)
+      final movimiento = widget.config.movimiento == Movimiento.aleatorio
+          ? (_rand.nextBool() ? Movimiento.horizontal : Movimiento.vertical)
+          : widget.config.movimiento;
+
+      if (movimiento == Movimiento.fijo) {
+        await _showFixed(onMs, lado);
       } else {
-        await _runMovement(onMs, side);
+        await _runMovement(onMs, lado, movimiento);
       }
     });
   }
@@ -130,6 +137,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     final sz = MediaQuery.of(context).size;
     final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
     _currentTop = (sz.height / 2) - (sizePx / 2);
+    _currentLeft = (sz.width / 2) - (sizePx / 2);
 
     setState(() {
       _stimulusSide = side;
@@ -141,13 +149,13 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     setState(() => _showStimulus = false);
   }
 
-  Future<void> _runMovement(int onMs, String side) async {
+  Future<void> _runMovement(int onMs, String side, Movimiento movimiento) async {
     final sz = MediaQuery.of(context).size;
     final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
     const margin = 32.0;
 
-    final isVertical = side == 'left' || side == 'right';
-    final upToDown = _rand.nextBool();
+    final isVertical = movimiento == Movimiento.vertical;
+    final forward = _rand.nextBool();
 
     _disposeMoveCtrl();
     _moveCtrl = AnimationController(
@@ -162,8 +170,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       final topStart = margin;
       final topEnd = max(margin, sz.height - sizePx - margin);
       anim = Tween<double>(
-        begin: upToDown ? topStart : topEnd,
-        end: upToDown ? topEnd : topStart,
+        begin: forward ? topStart : topEnd,
+        end: forward ? topEnd : topStart,
       ).animate(curved)
         ..addListener(() {
           if (mounted) setState(() => _currentTop = anim.value);
@@ -172,11 +180,11 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       final leftStart = margin;
       final leftEnd = max(margin, sz.width - sizePx - margin);
       anim = Tween<double>(
-        begin: upToDown ? leftStart : leftEnd,
-        end: upToDown ? leftEnd : leftStart,
+        begin: forward ? leftStart : leftEnd,
+        end: forward ? leftEnd : leftStart,
       ).animate(curved)
         ..addListener(() {
-          if (mounted) setState(() => _currentTop = anim.value);
+          if (mounted) setState(() => _currentLeft = anim.value);
         });
     }
 
@@ -260,6 +268,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                 size: sizePx,
                 side: _stimulusSide,
                 top: _currentTop,
+                left: _currentLeft,
                 onTap: () {},
               ),
             Positioned(
