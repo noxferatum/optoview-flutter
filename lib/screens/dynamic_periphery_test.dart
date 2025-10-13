@@ -128,7 +128,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       case SimboloCategoria.formas:
         _currentText = null;
         _currentForma =
-            widget.config.forma ?? Forma.values[_rand.nextInt(Forma.values.length)];
+            widget.config.forma ??
+            Forma.values[_rand.nextInt(Forma.values.length)];
         break;
     }
   }
@@ -149,7 +150,11 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     setState(() => _showStimulus = false);
   }
 
-  Future<void> _runMovement(int onMs, String side, Movimiento movimiento) async {
+  Future<void> _runMovement(
+    int onMs,
+    String side,
+    Movimiento movimiento,
+  ) async {
     final sz = MediaQuery.of(context).size;
     final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
     const margin = 32.0;
@@ -169,23 +174,23 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     if (isVertical) {
       final topStart = margin;
       final topEnd = max(margin, sz.height - sizePx - margin);
-      anim = Tween<double>(
-        begin: forward ? topStart : topEnd,
-        end: forward ? topEnd : topStart,
-      ).animate(curved)
-        ..addListener(() {
-          if (mounted) setState(() => _currentTop = anim.value);
-        });
+      anim =
+          Tween<double>(
+            begin: forward ? topStart : topEnd,
+            end: forward ? topEnd : topStart,
+          ).animate(curved)..addListener(() {
+            if (mounted) setState(() => _currentTop = anim.value);
+          });
     } else {
       final leftStart = margin;
       final leftEnd = max(margin, sz.width - sizePx - margin);
-      anim = Tween<double>(
-        begin: forward ? leftStart : leftEnd,
-        end: forward ? leftEnd : leftStart,
-      ).animate(curved)
-        ..addListener(() {
-          if (mounted) setState(() => _currentLeft = anim.value);
-        });
+      anim =
+          Tween<double>(
+            begin: forward ? leftStart : leftEnd,
+            end: forward ? leftEnd : leftStart,
+          ).animate(curved)..addListener(() {
+            if (mounted) setState(() => _currentLeft = anim.value);
+          });
     }
 
     setState(() {
@@ -248,12 +253,14 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   @override
   Widget build(BuildContext context) {
     final sizePx =
-        MediaQuery.of(context).size.shortestSide * (widget.config.tamanoPorc / 200);
+        MediaQuery.of(context).size.shortestSide *
+        (widget.config.tamanoPorc / 200);
 
     return Scaffold(
       body: BackgroundPattern(
         fondo: widget.config.fondo,
         distractor: widget.config.fondoDistractor,
+        animado: widget.config.fondoDistractorAnimado, // 🔹 añadido
         child: Stack(
           children: [
             CenterFixation(
@@ -275,8 +282,10 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
               top: 24,
               left: 24,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withOpacity(0.4),
                   borderRadius: BorderRadius.circular(8),

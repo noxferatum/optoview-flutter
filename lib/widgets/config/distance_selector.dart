@@ -17,7 +17,7 @@ class DistanceSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isAleatoria = modo == DistanciaModo.aleatoria;
+    final isAleatoria = modo == DistanciaModo.aleatorio;
 
     return Card(
       elevation: 1,
@@ -28,18 +28,20 @@ class DistanceSelector extends StatelessWidget {
           children: [
             Text(
               'Distancia al centro',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             SwitchListTile(
               value: isAleatoria,
               title: const Text('Aleatoria'),
-              subtitle: const Text('Cambia aleatoriamente la distancia del estímulo'),
-              onChanged: (v) =>
-                  onModoChanged(v ? DistanciaModo.aleatoria : DistanciaModo.fijo),
+              subtitle: const Text(
+                'Cambia aleatoriamente la distancia del estímulo',
+              ),
+              onChanged: (v) => onModoChanged(
+                v ? DistanciaModo.aleatorio : DistanciaModo.fijo,
+              ),
             ),
             const SizedBox(height: 8),
             if (!isAleatoria)

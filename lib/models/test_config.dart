@@ -1,14 +1,24 @@
 import 'package:flutter/material.dart';
 
+/// Enumeraciones principales de la prueba
 enum Lado { izquierda, derecha, arriba, abajo, ambos, aleatorio }
+
 enum SimboloCategoria { letras, numeros, formas }
+
 enum Forma { circulo, cuadrado, corazon, triangulo, trebol }
+
 enum Velocidad { lenta, media, rapida }
-enum Movimiento { fijo, movimiento }
+
+/// Añadimos todos los modos de movimiento soportados
+enum Movimiento { fijo, horizontal, vertical, aleatorio }
+
 enum DistanciaModo { fijo, aleatorio }
+
 enum Fijacion { cara, ojo, punto, trebol, cruz }
+
 enum Fondo { claro, oscuro }
 
+/// Configuración completa de la prueba
 @immutable
 class TestConfig {
   final Lado lado;
@@ -41,6 +51,7 @@ class TestConfig {
     this.fondoDistractorAnimado = false, // 🔹 desactivado por defecto
   });
 
+  /// Crea una copia modificada de la configuración actual
   TestConfig copyWith({
     Lado? lado,
     SimboloCategoria? categoria,
@@ -55,7 +66,7 @@ class TestConfig {
     Fijacion? fijacion,
     Fondo? fondo,
     bool? fondoDistractor,
-    bool? fondoDistractorAnimado, // 🔹
+    bool? fondoDistractorAnimado,
   }) {
     return TestConfig(
       lado: lado ?? this.lado,
