@@ -1,46 +1,48 @@
 import 'package:flutter/material.dart';
 import 'credits_screen.dart';
-import 'config_screen.dart';
+import 'test_menu_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("OptoviewApp - Menú"),
+        title: const Text("OptoViewApp - Menú"),
         centerTitle: true,
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo principal
             Image.asset(
               'assets/images/logo.png',
-              width: 200,
-              height: 200,
+              width: 160,
+              height: 160,
             ),
-            const SizedBox(height: 32),
-            // Botón configuración
+            const SizedBox(height: 48),
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ConfigScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const TestMenuScreen(),
+                  ),
                 );
               },
-              icon: const Icon(Icons.settings),
-              label: const Text("Configuración de la prueba"),
+              icon: const Icon(Icons.play_arrow),
+              label: const Text('Iniciar'),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               ),
             ),
             const SizedBox(height: 16),
-            // Botón créditos
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.push(
@@ -51,7 +53,7 @@ class MenuScreen extends StatelessWidget {
               icon: const Icon(Icons.info_outline),
               label: const Text("Créditos"),
               style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
               ),
             ),
           ],
