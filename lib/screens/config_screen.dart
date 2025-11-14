@@ -54,7 +54,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Configuración de la prueba')),
+      appBar: AppBar(title: const Text('Test de estimulación periférica')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
