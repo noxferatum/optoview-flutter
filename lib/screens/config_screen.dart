@@ -11,6 +11,7 @@ import '../widgets/config/distance_selector.dart';
 // Nuevos selectores
 import '../widgets/config/fixation_selector.dart';
 import '../widgets/config/background_selector.dart';
+import '../widgets/config/stimulus_color_selector.dart';
 
 // Pantalla del test
 import 'dynamic_periphery_test.dart';
@@ -24,19 +25,21 @@ class ConfigScreen extends StatefulWidget {
 
 class _ConfigScreenState extends State<ConfigScreen> {
   TestConfig config = const TestConfig(
-    lado: Lado.ambos,
+    lado: Lado.aleatorio,
     categoria: SimboloCategoria.formas,
     forma: null, // Aleatoria por defecto
     velocidad: Velocidad.media,
-    movimiento: Movimiento.fijo,
+    movimiento: Movimiento.aleatorio,
     duracionSegundos: 60,
-    tamanoPorc: 30,
-    distanciaPct: 100,
-    distanciaModo: DistanciaModo.fijo,
+    tamanoPorc: 15,
+    tamanoAleatorio: true,
+    distanciaPct: 80,
+    distanciaModo: DistanciaModo.aleatorio,
     fijacion: Fijacion.punto,
     fondo: Fondo.oscuro,
-    fondoDistractor: false,
-    fondoDistractorAnimado: false, // 🔹 nuevo valor inicial
+    fondoDistractor: true,
+    fondoDistractorAnimado: true,
+    estimuloColor: EstimuloColor.aleatorio,
   );
 
   void _startTest() {
@@ -85,6 +88,15 @@ class _ConfigScreenState extends State<ConfigScreen> {
             ),
             const SizedBox(height: 16),
 
+            // Color del estímulo
+            StimulusColorSelector(
+              value: config.estimuloColor,
+              onChanged: (value) => setState(() {
+                config = config.copyWith(estimuloColor: value);
+              }),
+            ),
+            const SizedBox(height: 16),
+
             // Velocidad
             SpeedSelector(
               value: config.velocidad,
@@ -128,8 +140,12 @@ class _ConfigScreenState extends State<ConfigScreen> {
             // Tamaño
             _SizeCard(
               value: config.tamanoPorc,
+              isRandom: config.tamanoAleatorio,
               onChanged: (v) => setState(() {
                 config = config.copyWith(tamanoPorc: v);
+              }),
+              onRandomChanged: (enabled) => setState(() {
+                config = config.copyWith(tamanoAleatorio: enabled);
               }),
             ),
 
@@ -213,11 +229,23 @@ class _DurationCard extends StatelessWidget {
 
 class _SizeCard extends StatelessWidget {
   final double value;
+  final bool isRandom;
   final ValueChanged<double> onChanged;
-  const _SizeCard({required this.value, required this.onChanged});
+  final ValueChanged<bool> onRandomChanged;
+  const _SizeCard({
+    required this.value,
+    required this.isRandom,
+    required this.onChanged,
+    required this.onRandomChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
+    const double minPct = 5;
+    const double maxPct = 35;
+    final double normalized =
+        ((value - minPct) / (maxPct - minPct)).clamp(0.0, 1.0);
+
     return Card(
       elevation: 1,
       child: Padding(
@@ -229,11 +257,20 @@ class _SizeCard extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600)),
             Slider(
               value: value,
-              min: 5,
-              max: 50,
-              divisions: 45,
-              label: '${value.toStringAsFixed(0)}%',
-              onChanged: onChanged,
+              min: minPct,
+              max: maxPct,
+              divisions: 30,
+              label: '${(normalized * 100).round()}%',
+              onChanged: isRandom ? null : onChanged,
+            ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              value: isRandom,
+              onChanged: onRandomChanged,
+              title: const Text('Variar tamaño aleatoriamente'),
+              subtitle: const Text(
+                'Si se activa, cada estímulo ajustará su tamaño alrededor del valor configurado.',
+              ),
             ),
           ],
         ),
@@ -241,3 +278,4 @@ class _SizeCard extends StatelessWidget {
     );
   }
 }
+

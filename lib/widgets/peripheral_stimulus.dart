@@ -10,6 +10,8 @@ class PeripheralStimulus extends StatelessWidget {
   final double top;
   final double left;
   final VoidCallback onTap;
+  final Color color;
+  final Color? outlineColor;
 
   const PeripheralStimulus({
     super.key,
@@ -21,11 +23,13 @@ class PeripheralStimulus extends StatelessWidget {
     required this.top,
     required this.left,
     required this.onTap,
+    required this.color,
+    this.outlineColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    final Widget content = _buildStimulus();
+    final Widget content = _buildStimulus(outlineColor);
     final screen = MediaQuery.of(context).size;
 
     // Calculamos posición según lado, pero si el test controla `top`/`left`, los usamos directamente
@@ -59,51 +63,130 @@ class PeripheralStimulus extends StatelessWidget {
     );
   }
 
-  Widget _buildStimulus() {
+  Widget _buildStimulus(Color? outline) {
     switch (categoria) {
       case SimboloCategoria.letras:
       case SimboloCategoria.numeros:
         return FittedBox(
           fit: BoxFit.contain,
-          child: Text(
-            text ?? '',
-            style: TextStyle(
-              color: Colors.redAccent,
-              fontSize: 100,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          child: _buildTextStimulus(outline),
         );
       case SimboloCategoria.formas:
-        return _buildShape();
+        return _buildShape(outline);
     }
   }
 
-  Widget _buildShape() {
-    const color = Colors.redAccent;
+  Widget _buildTextStimulus(Color? outline) {
+    final baseText = Text(
+      text ?? '',
+      style: TextStyle(
+        color: color,
+        fontSize: 100,
+        fontWeight: FontWeight.bold,
+      ),
+    );
 
+    if (outline == null) return baseText;
+
+    final stroke = Text(
+      text ?? '',
+      style: TextStyle(
+        fontSize: 100,
+        fontWeight: FontWeight.bold,
+        foreground: Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 8
+          ..color = outline,
+      ),
+    );
+
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        stroke,
+        baseText,
+      ],
+    );
+  }
+
+  Widget _buildShape(Color? outline) {
+    final Color fillColor = color;
     switch (forma) {
       case Forma.circulo:
-        return Container(
-          decoration: const BoxDecoration(color: color, shape: BoxShape.circle),
+        return SizedBox.expand(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: fillColor,
+              shape: BoxShape.circle,
+              border: outline != null
+                  ? Border.all(color: outline, width: 4)
+                  : null,
+            ),
+          ),
         );
       case Forma.cuadrado:
-        return Container(color: color);
+        return SizedBox.expand(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: fillColor,
+              borderRadius: BorderRadius.circular(size * 0.08),
+              border: outline != null
+                  ? Border.all(color: outline, width: 4)
+                  : null,
+            ),
+          ),
+        );
       case Forma.corazon:
-        return const Icon(Icons.favorite, color: color);
+        return _iconWithOutline(Icons.favorite, fillColor, outline);
       case Forma.triangulo:
-        return CustomPaint(painter: _TrianglePainter(color));
+        return SizedBox.expand(
+          child: CustomPaint(
+            painter: _TrianglePainter(fillColor, outline),
+          ),
+        );
       case Forma.trebol:
-        return const Icon(Icons.filter_vintage, color: color);
+        return _iconWithOutline(Icons.filter_vintage, fillColor, outline);
       default:
-        return Container(color: color);
+        return SizedBox.expand(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: fillColor,
+              border: outline != null
+                  ? Border.all(color: outline, width: 4)
+                  : null,
+            ),
+          ),
+        );
     }
+  }
+
+  Widget _iconWithOutline(IconData icon, Color fill, Color? outline) {
+    if (outline == null) {
+      return SizedBox.expand(
+        child: FittedBox(
+          child: Icon(icon, color: fill),
+        ),
+      );
+    }
+
+    final double outer = size;
+    final double inner = size * 0.82;
+    return SizedBox.expand(
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Icon(icon, color: outline, size: outer),
+          Icon(icon, color: fill, size: inner),
+        ],
+      ),
+    );
   }
 }
 
 class _TrianglePainter extends CustomPainter {
   final Color color;
-  _TrianglePainter(this.color);
+  final Color? outline;
+  _TrianglePainter(this.color, this.outline);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -114,9 +197,16 @@ class _TrianglePainter extends CustomPainter {
       ..lineTo(size.width, size.height)
       ..close();
     canvas.drawPath(path, paint);
+    if (outline != null) {
+      final border = Paint()
+        ..color = outline!
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4;
+      canvas.drawPath(path, border);
+    }
   }
 
   @override
   bool shouldRepaint(covariant _TrianglePainter oldDelegate) =>
-      oldDelegate.color != color;
+      oldDelegate.color != color || oldDelegate.outline != outline;
 }

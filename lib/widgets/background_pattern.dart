@@ -122,15 +122,15 @@ class _DistractorPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rand = Random(seed);
-    const double cell = 120.0;
+    const double cell = 70.0;
 
     for (double y = -cell; y < size.height + cell; y += cell) {
       for (double x = -cell; x < size.width + cell; x += cell) {
         final glyph = _glyphs[rand.nextInt(_glyphs.length)];
-        final double jitterX = rand.nextDouble() * 14 - 7;
-        final double jitterY = rand.nextDouble() * 14 - 7;
-        final double fontSize = cell * (0.45 + rand.nextDouble() * 0.2);
-        final double opacity = 0.06 + rand.nextDouble() * 0.1;
+        final double jitterX = rand.nextDouble() * 10 - 5;
+        final double jitterY = rand.nextDouble() * 10 - 5;
+        final double fontSize = cell * (0.25 + rand.nextDouble() * 0.15);
+        final double opacity = 0.05 + rand.nextDouble() * 0.08;
         final double rotation = (rand.nextDouble() - 0.5) * pi / 10;
 
         final textPainter = TextPainter(

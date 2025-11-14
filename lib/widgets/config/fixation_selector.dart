@@ -29,12 +29,42 @@ class FixationSelector extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             SegmentedButton<Fijacion>(
-              segments: const [
-                ButtonSegment(value: Fijacion.cara, label: Text('Cara')),
-                ButtonSegment(value: Fijacion.ojo, label: Text('Ojo')),
-                ButtonSegment(value: Fijacion.punto, label: Text('Punto')),
-                ButtonSegment(value: Fijacion.trebol, label: Text('Trébol')),
-                ButtonSegment(value: Fijacion.cruz, label: Text('Cruz')),
+              segments: [
+                ButtonSegment(
+                  value: Fijacion.cara,
+                  label: _FixationLabel(
+                    icon: Icons.face,
+                    text: 'Cara',
+                  ),
+                ),
+                ButtonSegment(
+                  value: Fijacion.ojo,
+                  label: _FixationLabel(
+                    icon: Icons.remove_red_eye,
+                    text: 'Ojo',
+                  ),
+                ),
+                ButtonSegment(
+                  value: Fijacion.punto,
+                  label: _FixationLabel(
+                    icon: Icons.circle,
+                    text: 'Punto',
+                  ),
+                ),
+                ButtonSegment(
+                  value: Fijacion.trebol,
+                  label: _FixationLabel(
+                    icon: Icons.filter_vintage,
+                    text: 'Trébol',
+                  ),
+                ),
+                ButtonSegment(
+                  value: Fijacion.cruz,
+                  label: _FixationLabel(
+                    icon: Icons.add,
+                    text: 'Cruz',
+                  ),
+                ),
               ],
               selected: {value},
               onSelectionChanged: (s) => onChanged(s.first),
@@ -42,6 +72,25 @@ class FixationSelector extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _FixationLabel extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _FixationLabel({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16),
+        const SizedBox(width: 6),
+        Text(text),
+      ],
     );
   }
 }

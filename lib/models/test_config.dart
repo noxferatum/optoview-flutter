@@ -9,7 +9,7 @@ enum Forma { circulo, cuadrado, corazon, triangulo, trebol }
 
 enum Velocidad { lenta, media, rapida }
 
-/// Añadimos todos los modos de movimiento soportados
+/// Modos de movimiento soportados
 enum Movimiento { fijo, horizontal, vertical, aleatorio }
 
 enum DistanciaModo { fijo, aleatorio }
@@ -17,6 +17,11 @@ enum DistanciaModo { fijo, aleatorio }
 enum Fijacion { cara, ojo, punto, trebol, cruz }
 
 enum Fondo { claro, oscuro, azul }
+
+enum EstimuloColor { rojo, verde, azul, amarillo, blanco, morado, negro, aleatorio }
+
+const Color _optoviewBlue = Color(0xFF3F6FB2);
+const Color _optoviewBluePattern = Color(0xFF8ABFF5);
 
 extension FondoTheme on Fondo {
   Color get baseColor {
@@ -26,7 +31,7 @@ extension FondoTheme on Fondo {
       case Fondo.oscuro:
         return Colors.black;
       case Fondo.azul:
-        return const Color(0xFF0B1E3D);
+        return _optoviewBlue;
     }
   }
 
@@ -37,14 +42,70 @@ extension FondoTheme on Fondo {
       case Fondo.oscuro:
         return Colors.white;
       case Fondo.azul:
-        return const Color(0xFF7FC8FF);
+        return _optoviewBluePattern;
     }
   }
 
   bool get isDark => this == Fondo.oscuro || this == Fondo.azul;
 }
 
-/// Configuración completa de la prueba
+extension EstimuloColorTheme on EstimuloColor {
+  static const List<EstimuloColor> solidColors = [
+    EstimuloColor.rojo,
+    EstimuloColor.verde,
+    EstimuloColor.azul,
+    EstimuloColor.amarillo,
+    EstimuloColor.blanco,
+    EstimuloColor.morado,
+    EstimuloColor.negro,
+  ];
+
+  bool get isRandom => this == EstimuloColor.aleatorio;
+
+  Color get color {
+    switch (this) {
+      case EstimuloColor.rojo:
+        return Colors.redAccent;
+      case EstimuloColor.verde:
+        return Colors.lightGreenAccent;
+      case EstimuloColor.azul:
+        return _optoviewBlue;
+      case EstimuloColor.amarillo:
+        return Colors.amberAccent;
+      case EstimuloColor.blanco:
+        return Colors.white;
+      case EstimuloColor.morado:
+        return Colors.purpleAccent;
+      case EstimuloColor.negro:
+        return Colors.black;
+      case EstimuloColor.aleatorio:
+        return Colors.deepPurpleAccent;
+    }
+  }
+
+  String get label {
+    switch (this) {
+      case EstimuloColor.rojo:
+        return 'Rojo';
+      case EstimuloColor.verde:
+        return 'Verde';
+      case EstimuloColor.azul:
+        return 'Azul';
+      case EstimuloColor.amarillo:
+        return 'Amarillo';
+      case EstimuloColor.blanco:
+        return 'Blanco';
+      case EstimuloColor.morado:
+        return 'Morado';
+      case EstimuloColor.negro:
+        return 'Negro';
+      case EstimuloColor.aleatorio:
+        return 'Aleatorio';
+    }
+  }
+}
+
+/// Configuracion completa de la prueba
 @immutable
 class TestConfig {
   final Lado lado;
@@ -54,12 +115,14 @@ class TestConfig {
   final Movimiento movimiento;
   final int duracionSegundos;
   final double tamanoPorc;
+  final bool tamanoAleatorio;
   final double distanciaPct;
   final DistanciaModo distanciaModo;
   final Fijacion fijacion;
   final Fondo fondo;
   final bool fondoDistractor;
-  final bool fondoDistractorAnimado; // 🔹 nuevo campo
+  final bool fondoDistractorAnimado;
+  final EstimuloColor estimuloColor;
 
   const TestConfig({
     required this.lado,
@@ -69,15 +132,17 @@ class TestConfig {
     required this.movimiento,
     required this.duracionSegundos,
     required this.tamanoPorc,
+    this.tamanoAleatorio = false,
     required this.distanciaPct,
     required this.distanciaModo,
     required this.fijacion,
     required this.fondo,
     required this.fondoDistractor,
-    this.fondoDistractorAnimado = false, // 🔹 desactivado por defecto
+    required this.estimuloColor,
+    this.fondoDistractorAnimado = false,
   });
 
-  /// Crea una copia modificada de la configuración actual
+  /// Crea una copia modificada de la configuracion actual
   TestConfig copyWith({
     Lado? lado,
     SimboloCategoria? categoria,
@@ -87,12 +152,14 @@ class TestConfig {
     Movimiento? movimiento,
     int? duracionSegundos,
     double? tamanoPorc,
+    bool? tamanoAleatorio,
     double? distanciaPct,
     DistanciaModo? distanciaModo,
     Fijacion? fijacion,
     Fondo? fondo,
     bool? fondoDistractor,
     bool? fondoDistractorAnimado,
+    EstimuloColor? estimuloColor,
   }) {
     return TestConfig(
       lado: lado ?? this.lado,
@@ -102,6 +169,7 @@ class TestConfig {
       movimiento: movimiento ?? this.movimiento,
       duracionSegundos: duracionSegundos ?? this.duracionSegundos,
       tamanoPorc: tamanoPorc ?? this.tamanoPorc,
+      tamanoAleatorio: tamanoAleatorio ?? this.tamanoAleatorio,
       distanciaPct: distanciaPct ?? this.distanciaPct,
       distanciaModo: distanciaModo ?? this.distanciaModo,
       fijacion: fijacion ?? this.fijacion,
@@ -109,6 +177,7 @@ class TestConfig {
       fondoDistractor: fondoDistractor ?? this.fondoDistractor,
       fondoDistractorAnimado:
           fondoDistractorAnimado ?? this.fondoDistractorAnimado,
+      estimuloColor: estimuloColor ?? this.estimuloColor,
     );
   }
 }

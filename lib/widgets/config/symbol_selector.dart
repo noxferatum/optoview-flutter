@@ -27,15 +27,24 @@ class SymbolSelector extends StatelessWidget {
             segments: const [
               ButtonSegment(
                 value: SimboloCategoria.letras,
-                label: Text('Letras'),
+                label: _SegmentLabel(
+                  icon: Icons.translate,
+                  text: 'Letras',
+                ),
               ),
               ButtonSegment(
                 value: SimboloCategoria.numeros,
-                label: Text('Números'),
+                label: _SegmentLabel(
+                  icon: Icons.pin,
+                  text: 'Números',
+                ),
               ),
               ButtonSegment(
                 value: SimboloCategoria.formas,
-                label: Text('Formas'),
+                label: _SegmentLabel(
+                  icon: Icons.category_outlined,
+                  text: 'Formas',
+                ),
               ),
             ],
             selected: {categoria},
@@ -49,25 +58,14 @@ class SymbolSelector extends StatelessWidget {
               spacing: 10,
               runSpacing: 8,
               children: [
-                ChoiceChip(
-                  key: const ValueKey('aleatoria'),
-                  label: const Text('Aleatoria'),
-                  selected: forma == null,
-                  onSelected: (selected) {
-                    if (selected) {
-                      onFormaChanged(null);
-                    }
-                  },
-                  selectedColor: Theme.of(context)
-                      .colorScheme
-                      .primary
-                      .withOpacity(0.25),
-                ),
                 ...Forma.values.map((f) {
                   final isSelected = f == forma;
                   return ChoiceChip(
                     key: ValueKey(f.name),
-                    label: Text(_labelForma(f)),
+                    label: _FormaLabel(
+                      icon: _iconForForma(f),
+                      text: _labelForma(f),
+                    ),
                     selected: isSelected,
                     onSelected: (selected) {
                       if (selected) {
@@ -82,6 +80,23 @@ class SymbolSelector extends StatelessWidget {
                         .withOpacity(0.25),
                   );
                 }),
+                ChoiceChip(
+                  key: const ValueKey('aleatoria'),
+                  label: const _FormaLabel(
+                    icon: Icons.all_inclusive,
+                    text: 'Aleatoria',
+                  ),
+                  selected: forma == null,
+                  onSelected: (selected) {
+                    if (selected) {
+                      onFormaChanged(null);
+                    }
+                  },
+                  selectedColor: Theme.of(context)
+                      .colorScheme
+                      .primary
+                      .withOpacity(0.25),
+                ),
               ],
             ),
           ),
@@ -131,5 +146,56 @@ class _SectionCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _SegmentLabel extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _SegmentLabel({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16),
+        const SizedBox(width: 6),
+        Text(text),
+      ],
+    );
+  }
+}
+
+class _FormaLabel extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  const _FormaLabel({required this.icon, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16),
+        const SizedBox(width: 6),
+        Text(text),
+      ],
+    );
+  }
+}
+
+IconData _iconForForma(Forma forma) {
+  switch (forma) {
+    case Forma.circulo:
+      return Icons.circle;
+    case Forma.cuadrado:
+      return Icons.check_box_outline_blank;
+    case Forma.corazon:
+      return Icons.favorite_border;
+    case Forma.triangulo:
+      return Icons.change_history; // triangle icon
+    case Forma.trebol:
+      return Icons.filter_vintage;
   }
 }

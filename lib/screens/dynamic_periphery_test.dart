@@ -35,6 +35,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
 
   String? _currentText;
   Forma? _currentForma;
+  EstimuloColor _currentColorOption = EstimuloColor.rojo;
+  double _currentSizePx = 0;
   final _rand = Random();
 
   @override
@@ -42,6 +44,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _remaining = widget.config.duracionSegundos.clamp(1, 3600);
+    _currentColorOption = _resolveStimulusColorOption();
     _startTest();
   }
 
@@ -138,6 +141,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
             Forma.values[_rand.nextInt(Forma.values.length)];
         break;
     }
+    _currentColorOption = _resolveStimulusColorOption();
   }
 
   static const double _edgeMargin = 32.0;
@@ -145,7 +149,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
 
   Future<void> _showFixed(int onMs, String side) async {
     final sz = MediaQuery.of(context).size;
-    final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
+    _currentSizePx = _resolveStimulusSize(sz);
+    final sizePx = _currentSizePx;
     final offset = _resolveTopLeftForSide(side, sz, sizePx);
     _currentLeft = offset.dx;
     _currentTop = offset.dy;
@@ -166,7 +171,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     Movimiento movimiento,
   ) async {
     final sz = MediaQuery.of(context).size;
-    final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
+    _currentSizePx = _resolveStimulusSize(sz);
+    final sizePx = _currentSizePx;
     final isVertical = movimiento == Movimiento.vertical;
     final forward = _rand.nextBool();
     final baseOffset = _resolveTopLeftForSide(side, sz, sizePx);
@@ -423,11 +429,56 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     return normalized;
   }
 
+  double _resolveStimulusSize(Size screenSize) {
+    final shortest = screenSize.shortestSide;
+    final basePct = widget.config.tamanoPorc;
+    final basePx = shortest * (basePct / 200);
+    if (!widget.config.tamanoAleatorio) return basePx;
+
+    const double sliderMin = 5;
+    const double sliderMax = 35;
+    final double minPct = (basePct * 0.7).clamp(sliderMin, sliderMax);
+    final double maxPct = (basePct * 1.3).clamp(sliderMin, sliderMax);
+    if ((maxPct - minPct).abs() < 0.1) return basePx;
+    final double pct = minPct + _rand.nextDouble() * (maxPct - minPct);
+    return shortest * (pct / 200);
+  }
+
+  double _layoutSizePx(Size sz) {
+    if (_currentSizePx > 0) return _currentSizePx;
+    return sz.shortestSide * (widget.config.tamanoPorc / 200);
+  }
+
+  EstimuloColor _resolveStimulusColorOption() {
+    final EstimuloColor option = widget.config.estimuloColor;
+    if (!option.isRandom) return option;
+    final palette = EstimuloColorTheme.solidColors;
+    if (palette.isEmpty) return option;
+    return palette[_rand.nextInt(palette.length)];
+  }
+
+  Color? _outlineColorForStimulus() {
+    final fondo = widget.config.fondo;
+    switch (_currentColorOption) {
+      case EstimuloColor.negro:
+        if (fondo == Fondo.oscuro) return Colors.white;
+        break;
+      case EstimuloColor.blanco:
+        if (fondo == Fondo.claro) return Colors.black;
+        break;
+      case EstimuloColor.azul:
+        if (fondo == Fondo.azul) return Colors.black;
+        break;
+      default:
+        break;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final sizePx =
-        MediaQuery.of(context).size.shortestSide *
-        (widget.config.tamanoPorc / 200);
+    final mediaSize = MediaQuery.of(context).size;
+    final sizePx = _layoutSizePx(mediaSize);
 
     return Scaffold(
       body: BackgroundPattern(
@@ -450,6 +501,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                 top: _currentTop,
                 left: _currentLeft,
                 onTap: () {},
+                color: _currentColorOption.color,
+                outlineColor: _outlineColorForStimulus(),
               ),
             Positioned(
               top: 24,

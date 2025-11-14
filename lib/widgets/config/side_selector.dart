@@ -41,16 +41,16 @@ class SideSelector extends StatelessWidget {
                   label: Text('Derecha'),
                 ),
                 ButtonSegment(
-                  value: Lado.ambos,
-                  label: Text('Ambos'),
-                ),
-                ButtonSegment(
                   value: Lado.arriba,
                   label: Text('Arriba'),
                 ),
                 ButtonSegment(
                   value: Lado.abajo,
                   label: Text('Abajo'),
+                ),
+                ButtonSegment(
+                  value: Lado.ambos,
+                  label: Text('Ambos'),
                 ),
                 ButtonSegment(
                   value: Lado.aleatorio,
