@@ -16,7 +16,33 @@ enum DistanciaModo { fijo, aleatorio }
 
 enum Fijacion { cara, ojo, punto, trebol, cruz }
 
-enum Fondo { claro, oscuro }
+enum Fondo { claro, oscuro, azul }
+
+extension FondoTheme on Fondo {
+  Color get baseColor {
+    switch (this) {
+      case Fondo.claro:
+        return Colors.white;
+      case Fondo.oscuro:
+        return Colors.black;
+      case Fondo.azul:
+        return const Color(0xFF0B1E3D);
+    }
+  }
+
+  Color get patternColor {
+    switch (this) {
+      case Fondo.claro:
+        return Colors.black;
+      case Fondo.oscuro:
+        return Colors.white;
+      case Fondo.azul:
+        return const Color(0xFF7FC8FF);
+    }
+  }
+
+  bool get isDark => this == Fondo.oscuro || this == Fondo.azul;
+}
 
 /// Configuración completa de la prueba
 @immutable

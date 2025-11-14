@@ -16,14 +16,13 @@ class BackgroundPattern extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool oscuro = fondo == Fondo.oscuro;
-    final Color baseColor = oscuro ? Colors.black : Colors.white;
+    final Color baseColor = fondo.baseColor;
 
     return Container(
       color: baseColor,
       child: distractor
           ? CustomPaint(
-              painter: _DistractorPainter(oscuro: oscuro),
+              painter: _DistractorPainter(patternColor: fondo.patternColor),
               child: child,
             )
           : child,
@@ -32,10 +31,10 @@ class BackgroundPattern extends StatelessWidget {
 }
 
 class _DistractorPainter extends CustomPainter {
-  final bool oscuro;
+  final Color patternColor;
   final Random _rand = Random();
 
-  _DistractorPainter({required this.oscuro});
+  _DistractorPainter({required this.patternColor});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -56,8 +55,7 @@ class _DistractorPainter extends CustomPainter {
         final double radius = 2 + _rand.nextDouble() * 3;
         final double opacity = 0.04 + _rand.nextDouble() * 0.03;
 
-        paint.color =
-            (oscuro ? Colors.white : Colors.black).withOpacity(opacity);
+        paint.color = patternColor.withOpacity(opacity);
 
         // Dibuja puntos y alguna línea ocasional
         if (_rand.nextDouble() > 0.15) {
@@ -79,5 +77,5 @@ class _DistractorPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _DistractorPainter oldDelegate) =>
-      oldDelegate.oscuro != oscuro;
+      oldDelegate.patternColor != patternColor;
 }

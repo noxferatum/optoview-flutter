@@ -22,14 +22,15 @@ class BackgroundPattern extends StatefulWidget {
 
 class _BackgroundPatternState extends State<BackgroundPattern>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+  late final AnimationController _controller;
+  int _patternSeed = Random().nextInt(1 << 31);
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 20),
+      duration: const Duration(seconds: 18),
     );
 
     if (widget.animado && widget.distractor) {
@@ -41,11 +42,17 @@ class _BackgroundPatternState extends State<BackgroundPattern>
   void didUpdateWidget(covariant BackgroundPattern oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // 🔹 Si se activa/desactiva la animación, gestionamos el controller
     if (widget.animado && widget.distractor) {
-      if (!_controller.isAnimating) _controller.repeat(reverse: true);
+      if (!_controller.isAnimating) {
+        _controller.repeat(reverse: true);
+      }
     } else {
       _controller.stop();
+    }
+
+    if ((widget.distractor && !oldWidget.distractor) ||
+        widget.fondo != oldWidget.fondo) {
+      _patternSeed = Random().nextInt(1 << 31);
     }
   }
 
@@ -57,90 +64,107 @@ class _BackgroundPatternState extends State<BackgroundPattern>
 
   @override
   Widget build(BuildContext context) {
-    final bool oscuro = widget.fondo == Fondo.oscuro;
-    final Color baseColor = oscuro ? Colors.black : Colors.white;
+    if (!widget.distractor) {
+      return Container(color: widget.fondo.baseColor, child: widget.child);
+    }
 
     return Container(
-      color: baseColor,
-      child: widget.distractor
-          ? AnimatedBuilder(
-              animation: _controller,
-              builder: (context, _) {
-                final offsetX = widget.animado ? _controller.value * 20 : 0.0;
-                final offsetY = widget.animado ? _controller.value * 15 : 0.0;
+      color: widget.fondo.baseColor,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (_, child) {
+          final offsetX =
+              widget.animado ? (_controller.value - 0.5) * 80 : 0.0;
+          final offsetY =
+              widget.animado ? (_controller.value - 0.5) * 60 : 0.0;
 
-                return CustomPaint(
-                  painter: _DistractorPainter(
-                    oscuro: oscuro,
-                    offsetX: offsetX,
-                    offsetY: offsetY,
-                  ),
-                  child: widget.child,
-                );
-              },
-            )
-          : widget.child,
+          return CustomPaint(
+            painter: _DistractorPainter(
+              patternColor: widget.fondo.patternColor,
+              offsetX: offsetX,
+              offsetY: offsetY,
+              seed: _patternSeed,
+            ),
+            child: child,
+          );
+        },
+        child: widget.child,
+      ),
     );
   }
 }
 
 class _DistractorPainter extends CustomPainter {
-  final bool oscuro;
+  static const List<String> _glyphs = [
+    'A',
+    'E',
+    'K',
+    'H',
+    'T',
+    'X',
+    'O',
+    '+',
+    '#'
+  ];
+
+  final Color patternColor;
   final double offsetX;
   final double offsetY;
-  final Random _rand = Random();
+  final int seed;
 
   _DistractorPainter({
-    required this.oscuro,
+    required this.patternColor,
     required this.offsetX,
     required this.offsetY,
+    required this.seed,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double step = 80.0;
-    final Paint paint = Paint()
-      ..style = PaintingStyle.fill
-      ..isAntiAlias = true;
+    final rand = Random(seed);
+    const double cell = 120.0;
 
-    // Capa semitransparente para suavizar el patrón
-    canvas.saveLayer(Offset.zero & size, Paint());
+    for (double y = -cell; y < size.height + cell; y += cell) {
+      for (double x = -cell; x < size.width + cell; x += cell) {
+        final glyph = _glyphs[rand.nextInt(_glyphs.length)];
+        final double jitterX = rand.nextDouble() * 14 - 7;
+        final double jitterY = rand.nextDouble() * 14 - 7;
+        final double fontSize = cell * (0.45 + rand.nextDouble() * 0.2);
+        final double opacity = 0.06 + rand.nextDouble() * 0.1;
+        final double rotation = (rand.nextDouble() - 0.5) * pi / 10;
 
-    for (double y = 0; y < size.height; y += step) {
-      for (double x = 0; x < size.width; x += step) {
-        final double radius = 2 + _rand.nextDouble() * 3;
-        final double opacity = 0.04 + _rand.nextDouble() * 0.03;
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: glyph,
+            style: TextStyle(
+              fontSize: fontSize,
+              color: patternColor.withValues(alpha: opacity),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
 
-        paint.color =
-            (oscuro ? Colors.white : Colors.black).withOpacity(opacity);
+        final posX = x + offsetX + jitterX;
+        final posY = y + offsetY + jitterY;
 
-        // Offset animado
-        final offset = Offset(
-          x + offsetX + _rand.nextDouble() * 4 - 2,
-          y + offsetY + _rand.nextDouble() * 4 - 2,
+        canvas.save();
+        canvas.translate(posX, posY);
+        canvas.rotate(rotation);
+        textPainter.paint(
+          canvas,
+          Offset(-textPainter.width / 2, -textPainter.height / 2),
         );
-
-        // Alterna entre puntos y líneas tenues
-        if (_rand.nextDouble() > 0.15) {
-          canvas.drawCircle(offset, radius, paint);
-        } else {
-          canvas.drawLine(
-            Offset(offset.dx, offset.dy),
-            Offset(offset.dx + 10, offset.dy + 10),
-            paint
-              ..strokeWidth = 0.5
-              ..style = PaintingStyle.stroke,
-          );
-        }
+        canvas.restore();
       }
     }
-
-    canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant _DistractorPainter old) =>
-      old.oscuro != oscuro ||
-      old.offsetX != offsetX ||
-      old.offsetY != offsetY;
+  bool shouldRepaint(covariant _DistractorPainter oldDelegate) {
+    return oldDelegate.patternColor != patternColor ||
+        oldDelegate.offsetX != offsetX ||
+        oldDelegate.offsetY != offsetY ||
+        oldDelegate.seed != seed;
+  }
 }

@@ -13,7 +13,7 @@ class CenterFixation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool oscuro = fondo == Fondo.oscuro;
+    final bool oscuro = fondo.isDark;
     final Color colorPrincipal = oscuro ? Colors.white : Colors.black;
     final Color borde = oscuro ? Colors.black54 : Colors.white70;
 

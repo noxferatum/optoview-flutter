@@ -40,6 +40,7 @@ class BackgroundSelector extends StatelessWidget {
               segments: const [
                 ButtonSegment(value: Fondo.claro, label: Text('Claro')),
                 ButtonSegment(value: Fondo.oscuro, label: Text('Oscuro')),
+                ButtonSegment(value: Fondo.azul, label: Text('Azul')),
               ],
               selected: {fondo},
               onSelectionChanged: (s) => onFondoChanged(s.first),

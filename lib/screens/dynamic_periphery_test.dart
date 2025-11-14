@@ -14,6 +14,12 @@ class DynamicPeripheryTest extends StatefulWidget {
   State<DynamicPeripheryTest> createState() => _DynamicPeripheryTestState();
 }
 
+class _Range {
+  final double min;
+  final double max;
+  const _Range(this.min, this.max);
+}
+
 class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     with WidgetsBindingObserver, TickerProviderStateMixin {
   Timer? _stimulusTimer;
@@ -134,11 +140,15 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     }
   }
 
+  static const double _edgeMargin = 32.0;
+  static const double _centerClearance = 110.0;
+
   Future<void> _showFixed(int onMs, String side) async {
     final sz = MediaQuery.of(context).size;
     final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
-    _currentTop = (sz.height / 2) - (sizePx / 2);
-    _currentLeft = (sz.width / 2) - (sizePx / 2);
+    final offset = _resolveTopLeftForSide(side, sz, sizePx);
+    _currentLeft = offset.dx;
+    _currentTop = offset.dy;
 
     setState(() {
       _stimulusSide = side;
@@ -157,10 +167,12 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   ) async {
     final sz = MediaQuery.of(context).size;
     final sizePx = sz.shortestSide * (widget.config.tamanoPorc / 200);
-    const margin = 32.0;
-
     final isVertical = movimiento == Movimiento.vertical;
     final forward = _rand.nextBool();
+    final baseOffset = _resolveTopLeftForSide(side, sz, sizePx);
+
+    _currentLeft = baseOffset.dx;
+    _currentTop = baseOffset.dy;
 
     _disposeMoveCtrl();
     _moveCtrl = AnimationController(
@@ -172,8 +184,15 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     late Animation<double> anim;
 
     if (isVertical) {
-      final topStart = margin;
-      final topEnd = max(margin, sz.height - sizePx - margin);
+      final bounds = _verticalBoundsForSide(side, sz.height, sizePx);
+      final travel = min(120.0, (bounds.max - bounds.min) / 2);
+      var topStart = max(bounds.min, baseOffset.dy - travel);
+      var topEnd = min(bounds.max, baseOffset.dy + travel);
+      if ((topEnd - topStart).abs() < 8) {
+        final mid = (bounds.min + bounds.max) / 2;
+        topStart = mid - 4;
+        topEnd = mid + 4;
+      }
       anim =
           Tween<double>(
             begin: forward ? topStart : topEnd,
@@ -182,8 +201,15 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
             if (mounted) setState(() => _currentTop = anim.value);
           });
     } else {
-      final leftStart = margin;
-      final leftEnd = max(margin, sz.width - sizePx - margin);
+      final bounds = _horizontalBoundsForSide(side, sz.width, sizePx);
+      final travel = min(120.0, (bounds.max - bounds.min) / 2);
+      var leftStart = max(bounds.min, baseOffset.dx - travel);
+      var leftEnd = min(bounds.max, baseOffset.dx + travel);
+      if ((leftEnd - leftStart).abs() < 8) {
+        final mid = (bounds.min + bounds.max) / 2;
+        leftStart = mid - 4;
+        leftEnd = mid + 4;
+      }
       anim =
           Tween<double>(
             begin: forward ? leftStart : leftEnd,
@@ -248,6 +274,153 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     if (_remaining > 0) {
       _startTest();
     }
+  }
+
+  Offset _resolveTopLeftForSide(String side, Size screenSize, double sizePx) {
+    final centerOffset = _generateCenterForSide(side, screenSize, sizePx);
+    final minLeft = _edgeMargin;
+    final maxLeft = max(minLeft, screenSize.width - sizePx - _edgeMargin);
+    final minTop = _edgeMargin;
+    final maxTop = max(minTop, screenSize.height - sizePx - _edgeMargin);
+
+    return Offset(
+      (centerOffset.dx - sizePx / 2).clamp(minLeft, maxLeft),
+      (centerOffset.dy - sizePx / 2).clamp(minTop, maxTop),
+    );
+  }
+
+  Offset _generateCenterForSide(String side, Size screenSize, double sizePx) {
+    final center = Offset(screenSize.width / 2, screenSize.height / 2);
+    final maxRadius =
+        min(screenSize.width, screenSize.height) / 2 - _edgeMargin - sizePx / 2;
+    if (maxRadius <= 0) return center;
+
+    final safeRadius = min(
+      maxRadius,
+      max(_centerClearance, sizePx * 0.75),
+    );
+    final minPct = (safeRadius / maxRadius).clamp(0.0, 1.0);
+    double pct;
+
+    if (widget.config.distanciaModo == DistanciaModo.fijo) {
+      pct = (widget.config.distanciaPct / 100).clamp(minPct, 1.0);
+    } else {
+      pct = _randRange(minPct, 1.0);
+    }
+
+    final radius = maxRadius * pct;
+    final angle = _angleForSide(side);
+    final target = Offset(
+      center.dx + cos(angle) * radius,
+      center.dy + sin(angle) * radius,
+    );
+
+    final minX = _edgeMargin + sizePx / 2;
+    final maxX = screenSize.width - _edgeMargin - sizePx / 2;
+    final minY = _edgeMargin + sizePx / 2;
+    final maxY = screenSize.height - _edgeMargin - sizePx / 2;
+
+    return Offset(
+      target.dx.clamp(minX, maxX),
+      target.dy.clamp(minY, maxY),
+    );
+  }
+
+  _Range _horizontalBoundsForSide(
+    String side,
+    double width,
+    double sizePx,
+  ) {
+    final center = width / 2;
+    final gap = _centerGap(sizePx);
+    double minLeft = _edgeMargin;
+    double maxLeft = width - sizePx - _edgeMargin;
+
+    if (side == 'right') {
+      final limit = center + gap - sizePx / 2;
+      minLeft = max(minLeft, limit);
+    } else if (side == 'left') {
+      final limit = center - gap - sizePx / 2;
+      maxLeft = min(maxLeft, limit);
+    }
+
+    if (minLeft > maxLeft) {
+      final fallback = (minLeft + maxLeft) / 2;
+      minLeft = fallback;
+      maxLeft = fallback;
+    }
+
+    return _Range(minLeft, maxLeft);
+  }
+
+  _Range _verticalBoundsForSide(
+    String side,
+    double height,
+    double sizePx,
+  ) {
+    final center = height / 2;
+    final gap = _centerGap(sizePx);
+    double minTop = _edgeMargin;
+    double maxTop = height - sizePx - _edgeMargin;
+
+    if (side == 'bottom') {
+      final limit = center + gap - sizePx / 2;
+      minTop = max(minTop, limit);
+    } else if (side == 'top') {
+      final limit = center - gap - sizePx / 2;
+      maxTop = min(maxTop, limit);
+    }
+
+    if (minTop > maxTop) {
+      final fallback = (minTop + maxTop) / 2;
+      minTop = fallback;
+      maxTop = fallback;
+    }
+
+    return _Range(minTop, maxTop);
+  }
+
+  double _centerGap(double sizePx) => (sizePx / 2) + _centerClearance;
+
+  double _angleForSide(String side) {
+    const double pad = 0.35;
+    double angle;
+
+    switch (side) {
+      case 'left':
+        angle = _randRange(pi / 2 + pad, (3 * pi / 2) - pad);
+        break;
+      case 'right':
+        angle = _randRange(-pi / 2 + pad, pi / 2 - pad);
+        break;
+      case 'top':
+        angle = _randRange(pad, pi - pad);
+        break;
+      case 'bottom':
+        angle = _randRange(pi + pad, (2 * pi) - pad);
+        break;
+      default:
+        angle = _randRange(0, 2 * pi);
+    }
+
+    return _normalizeAngle(angle);
+  }
+
+  double _randRange(double minValue, double maxValue) {
+    if (maxValue <= minValue) return minValue;
+    return minValue + _rand.nextDouble() * (maxValue - minValue);
+  }
+
+  double _normalizeAngle(double angle) {
+    final full = 2 * pi;
+    var normalized = angle;
+    while (normalized < 0) {
+      normalized += full;
+    }
+    while (normalized >= full) {
+      normalized -= full;
+    }
+    return normalized;
   }
 
   @override
