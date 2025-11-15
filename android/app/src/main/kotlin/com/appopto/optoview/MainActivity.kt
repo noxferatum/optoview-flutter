@@ -1,4 +1,4 @@
-package com.example.optoview_flutter
+package com.appopto.optoview
 
 import io.flutter.embedding.android.FlutterActivity
 

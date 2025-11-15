@@ -1,6 +1,7 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.appopto.optoview">
     <application
-        android:label="optoview_flutter"
+        android:label="OptoView"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

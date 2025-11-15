@@ -8,7 +8,7 @@ class TestMenuScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final tests = [
       _TestInfo(
-        title: 'Test de estimulación periférica',
+        title: 'Estimulación periférica',
         subtitle: 'Entrena la percepción periférica dinámica.',
         gradient: const [Color(0xFF5B72F2), Color(0xFF62C4FF)],
         icon: Icons.blur_circular,
@@ -21,7 +21,7 @@ class TestMenuScreen extends StatelessWidget {
         },
       ),
       _TestInfo(
-        title: 'Test de localización periférica',
+        title: 'Localización periférica',
         subtitle: 'Entrenamiento próximo.',
         gradient: const [Color(0xFF7B5BFF), Color(0xFFD16EF5)],
         icon: Icons.my_location,
@@ -53,7 +53,7 @@ class TestMenuScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Selecciona un test'),
+        title: const Text('Elige un ejercicio'),
         centerTitle: true,
       ),
       body: Padding(
