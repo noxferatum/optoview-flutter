@@ -4,6 +4,7 @@ import 'l10n/app_localizations.dart';
 import 'screens/menu_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const OptoViewApp());
 }
 

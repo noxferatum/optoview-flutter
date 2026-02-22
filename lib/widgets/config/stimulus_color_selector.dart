@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/test_config.dart';
+import 'section_card.dart';
 
 class StimulusColorSelector extends StatelessWidget {
   final EstimuloColor value;
@@ -13,36 +14,20 @@ class StimulusColorSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Color del estímulo',
-              style: textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
+    return SectionCard(
+      title: 'Color del estímulo',
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: EstimuloColor.values
+            .map(
+              (option) => ChoiceChip(
+                label: _ColorChipLabel(option: option),
+                selected: value == option,
+                onSelected: (_) => onChanged(option),
               ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: EstimuloColor.values
-                  .map(
-                    (option) => ChoiceChip(
-                      label: _ColorChipLabel(option: option),
-                      selected: value == option,
-                      onSelected: (_) => onChanged(option),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ],
-        ),
+            )
+            .toList(),
       ),
     );
   }

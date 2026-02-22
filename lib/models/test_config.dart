@@ -1,52 +1,160 @@
 import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
 
 /// Enumeraciones principales de la prueba
-enum Lado { izquierda, derecha, arriba, abajo, ambos, aleatorio }
+enum Lado {
+  izquierda,
+  derecha,
+  arriba,
+  abajo,
+  ambos,
+  aleatorio;
 
-enum SimboloCategoria { letras, numeros, formas }
+  String get label => switch (this) {
+        izquierda => 'Izquierda',
+        derecha => 'Derecha',
+        arriba => 'Arriba',
+        abajo => 'Abajo',
+        ambos => 'Ambos',
+        aleatorio => 'Aleatorio',
+      };
+}
 
-enum Forma { circulo, cuadrado, corazon, triangulo, trebol }
+enum SimboloCategoria {
+  letras,
+  numeros,
+  formas;
 
-enum Velocidad { lenta, media, rapida }
+  String get label => switch (this) {
+        letras => 'Letras',
+        numeros => 'Números',
+        formas => 'Formas',
+      };
+}
+
+enum Forma {
+  circulo,
+  cuadrado,
+  corazon,
+  triangulo,
+  trebol;
+
+  String get label => switch (this) {
+        circulo => 'Círculo',
+        cuadrado => 'Cuadrado',
+        corazon => 'Corazón',
+        triangulo => 'Triángulo',
+        trebol => 'Trébol',
+      };
+}
+
+enum Velocidad {
+  lenta,
+  media,
+  rapida;
+
+  String get label => switch (this) {
+        lenta => 'Lenta',
+        media => 'Media',
+        rapida => 'Rápida',
+      };
+
+  int get milliseconds => switch (this) {
+        lenta => 2500,
+        media => 1800,
+        rapida => 1200,
+      };
+}
 
 /// Modos de movimiento soportados
-enum Movimiento { fijo, horizontal, vertical, aleatorio }
+enum Movimiento {
+  fijo,
+  horizontal,
+  vertical,
+  aleatorio;
 
-enum DistanciaModo { fijo, aleatorio }
+  String get label => switch (this) {
+        fijo => 'Fijo',
+        horizontal => 'Horizontal',
+        vertical => 'Vertical',
+        aleatorio => 'Aleatorio',
+      };
+}
 
-enum Fijacion { cara, ojo, punto, trebol, cruz }
+enum DistanciaModo {
+  fijo,
+  aleatorio;
 
-enum Fondo { claro, oscuro, azul }
+  String get label => switch (this) {
+        fijo => 'Fija',
+        aleatorio => 'Aleatoria',
+      };
+}
 
-enum EstimuloColor { rojo, verde, azul, amarillo, blanco, morado, negro, aleatorio }
+enum Fijacion {
+  cara,
+  ojo,
+  punto,
+  trebol,
+  cruz;
 
-const Color _optoviewBlue = Color(0xFF3F6FB2);
-const Color _optoviewBluePattern = Color(0xFF8ABFF5);
+  String get label => switch (this) {
+        cara => 'Cara',
+        ojo => 'Ojo',
+        punto => 'Punto',
+        trebol => 'Trébol',
+        cruz => 'Cruz',
+      };
+}
+
+enum Fondo {
+  claro,
+  oscuro,
+  azul;
+
+  String get label => switch (this) {
+        claro => 'Claro',
+        oscuro => 'Oscuro',
+        azul => 'Azul',
+      };
+}
 
 extension FondoTheme on Fondo {
-  Color get baseColor {
-    switch (this) {
-      case Fondo.claro:
-        return Colors.white;
-      case Fondo.oscuro:
-        return Colors.black;
-      case Fondo.azul:
-        return _optoviewBlue;
-    }
-  }
+  Color get baseColor => switch (this) {
+        Fondo.claro => Colors.white,
+        Fondo.oscuro => Colors.black,
+        Fondo.azul => AppConstants.optoviewBlue,
+      };
 
-  Color get patternColor {
-    switch (this) {
-      case Fondo.claro:
-        return Colors.black;
-      case Fondo.oscuro:
-        return Colors.white;
-      case Fondo.azul:
-        return _optoviewBluePattern;
-    }
-  }
+  Color get patternColor => switch (this) {
+        Fondo.claro => Colors.black,
+        Fondo.oscuro => Colors.white,
+        Fondo.azul => AppConstants.optoviewBluePattern,
+      };
 
   bool get isDark => this == Fondo.oscuro || this == Fondo.azul;
+}
+
+enum EstimuloColor {
+  rojo,
+  verde,
+  azul,
+  amarillo,
+  blanco,
+  morado,
+  negro,
+  aleatorio;
+
+  String get label => switch (this) {
+        rojo => 'Rojo',
+        verde => 'Verde',
+        azul => 'Azul',
+        amarillo => 'Amarillo',
+        blanco => 'Blanco',
+        morado => 'Morado',
+        negro => 'Negro',
+        aleatorio => 'Aleatorio',
+      };
 }
 
 extension EstimuloColorTheme on EstimuloColor {
@@ -62,47 +170,16 @@ extension EstimuloColorTheme on EstimuloColor {
 
   bool get isRandom => this == EstimuloColor.aleatorio;
 
-  Color get color {
-    switch (this) {
-      case EstimuloColor.rojo:
-        return Colors.redAccent;
-      case EstimuloColor.verde:
-        return Colors.lightGreenAccent;
-      case EstimuloColor.azul:
-        return _optoviewBlue;
-      case EstimuloColor.amarillo:
-        return Colors.amberAccent;
-      case EstimuloColor.blanco:
-        return Colors.white;
-      case EstimuloColor.morado:
-        return Colors.purpleAccent;
-      case EstimuloColor.negro:
-        return Colors.black;
-      case EstimuloColor.aleatorio:
-        return Colors.deepPurpleAccent;
-    }
-  }
-
-  String get label {
-    switch (this) {
-      case EstimuloColor.rojo:
-        return 'Rojo';
-      case EstimuloColor.verde:
-        return 'Verde';
-      case EstimuloColor.azul:
-        return 'Azul';
-      case EstimuloColor.amarillo:
-        return 'Amarillo';
-      case EstimuloColor.blanco:
-        return 'Blanco';
-      case EstimuloColor.morado:
-        return 'Morado';
-      case EstimuloColor.negro:
-        return 'Negro';
-      case EstimuloColor.aleatorio:
-        return 'Aleatorio';
-    }
-  }
+  Color get color => switch (this) {
+        EstimuloColor.rojo => Colors.redAccent,
+        EstimuloColor.verde => Colors.lightGreenAccent,
+        EstimuloColor.azul => AppConstants.optoviewBlue,
+        EstimuloColor.amarillo => Colors.amberAccent,
+        EstimuloColor.blanco => Colors.white,
+        EstimuloColor.morado => Colors.purpleAccent,
+        EstimuloColor.negro => Colors.black,
+        EstimuloColor.aleatorio => Colors.deepPurpleAccent,
+      };
 }
 
 /// Configuracion completa de la prueba
@@ -179,5 +256,36 @@ class TestConfig {
           fondoDistractorAnimado ?? this.fondoDistractorAnimado,
       estimuloColor: estimuloColor ?? this.estimuloColor,
     );
+  }
+
+  /// Resumen legible de la configuración para pantalla de resultados
+  Map<String, String> get summaryMap {
+    final stimulusDesc = categoria == SimboloCategoria.formas
+        ? '${categoria.label} (${forma?.label ?? "Aleatoria"})'
+        : categoria.label;
+
+    String fondoDesc = fondo.label;
+    if (fondoDistractor) {
+      fondoDesc += fondoDistractorAnimado
+          ? ' + Distractor animado'
+          : ' + Distractor';
+    }
+
+    return {
+      'Lado': lado.label,
+      'Estímulo': stimulusDesc,
+      'Color': estimuloColor.label,
+      'Velocidad': velocidad.label,
+      'Movimiento': movimiento.label,
+      'Distancia': distanciaModo == DistanciaModo.aleatorio
+          ? 'Aleatoria'
+          : '${distanciaPct.toStringAsFixed(0)}%',
+      'Tamaño': tamanoAleatorio
+          ? '~${tamanoPorc.toStringAsFixed(0)}% (aleatorio)'
+          : '${tamanoPorc.toStringAsFixed(0)}%',
+      'Duración': '${duracionSegundos}s',
+      'Fijación': fijacion.label,
+      'Fondo': fondoDesc,
+    };
   }
 }

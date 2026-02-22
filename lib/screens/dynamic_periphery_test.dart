@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../constants/app_constants.dart';
 import '../models/test_config.dart';
+import '../models/test_result.dart';
 import '../widgets/center_fixation.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
+import 'test_results_screen.dart';
 
 class DynamicPeripheryTest extends StatefulWidget {
   final TestConfig config;
@@ -39,12 +43,28 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   double _currentSizePx = 0;
   final _rand = Random();
 
+  // Pausa
+  bool _isPaused = false;
+
+  // Conteo de estímulos
+  int _stimuliShown = 0;
+  late final DateTime _startedAt;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _remaining = widget.config.duracionSegundos.clamp(1, 3600);
     _currentColorOption = _resolveStimulusColorOption();
+    _startedAt = DateTime.now();
+
+    // Modo inmersivo y landscape
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+
     _startTest();
   }
 
@@ -53,6 +73,14 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     WidgetsBinding.instance.removeObserver(this);
     _cancelAllTimers();
     _disposeMoveCtrl();
+
+    // Restaurar UI del sistema
+    SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+      overlays: SystemUiOverlay.values,
+    );
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+
     super.dispose();
   }
 
@@ -66,21 +94,9 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-      _pauseTimers();
-    } else if (state == AppLifecycleState.resumed) {
-      _resumeTimers();
+      if (!_isPaused) _pauseTest();
     }
-  }
-
-  int _velocidadMs(Velocidad v) {
-    switch (v) {
-      case Velocidad.rapida:
-        return 1200;
-      case Velocidad.media:
-        return 1800;
-      case Velocidad.lenta:
-        return 2500;
-    }
+    // No auto-reanudar: el usuario debe tocar "Reanudar"
   }
 
   void _startTest() {
@@ -89,28 +105,31 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       setState(() => _remaining = max(0, _remaining - 1));
     });
 
-    _endTimer = Timer(Duration(seconds: _remaining), _finishTest);
+    _endTimer = Timer(Duration(seconds: _remaining), () {
+      _finishTest(stoppedManually: false);
+    });
 
-    final onMs = _velocidadMs(widget.config.velocidad);
-    final offMs = _velocidadMs(widget.config.velocidad);
+    final onMs = widget.config.velocidad.milliseconds;
+    final offMs = widget.config.velocidad.milliseconds;
     final period = onMs + offMs;
 
-    _stimulusTimer = Timer.periodic(Duration(milliseconds: period), (t) async {
-      if (!mounted) return;
+    _stimulusTimer =
+        Timer.periodic(Duration(milliseconds: period), (t) async {
+      if (!mounted || _isPaused) return;
 
-      // Lado aleatorio si corresponde
       final lado = switch (widget.config.lado) {
         Lado.izquierda => 'left',
         Lado.derecha => 'right',
         Lado.arriba => 'top',
         Lado.abajo => 'bottom',
         Lado.ambos => _rand.nextBool() ? 'left' : 'right',
-        Lado.aleatorio => ['left', 'right', 'top', 'bottom'][_rand.nextInt(4)],
+        Lado.aleatorio =>
+          ['left', 'right', 'top', 'bottom'][_rand.nextInt(4)],
       };
 
       _chooseSymbolOnceForThisAppearance();
+      _stimuliShown++;
 
-      // Elegir tipo de movimiento (si aleatorio)
       final movimiento = widget.config.movimiento == Movimiento.aleatorio
           ? (_rand.nextBool() ? Movimiento.horizontal : Movimiento.vertical)
           : widget.config.movimiento;
@@ -136,16 +155,12 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
         break;
       case SimboloCategoria.formas:
         _currentText = null;
-        _currentForma =
-            widget.config.forma ??
+        _currentForma = widget.config.forma ??
             Forma.values[_rand.nextInt(Forma.values.length)];
         break;
     }
     _currentColorOption = _resolveStimulusColorOption();
   }
-
-  static const double _edgeMargin = 32.0;
-  static const double _centerClearance = 110.0;
 
   Future<void> _showFixed(int onMs, String side) async {
     final sz = MediaQuery.of(context).size;
@@ -186,7 +201,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       duration: Duration(milliseconds: onMs),
     );
 
-    final curved = CurvedAnimation(parent: _moveCtrl!, curve: Curves.linear);
+    final curved =
+        CurvedAnimation(parent: _moveCtrl!, curve: Curves.linear);
     late Animation<double> anim;
 
     if (isVertical) {
@@ -199,13 +215,13 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
         topStart = mid - 4;
         topEnd = mid + 4;
       }
-      anim =
-          Tween<double>(
-            begin: forward ? topStart : topEnd,
-            end: forward ? topEnd : topStart,
-          ).animate(curved)..addListener(() {
-            if (mounted) setState(() => _currentTop = anim.value);
-          });
+      anim = Tween<double>(
+        begin: forward ? topStart : topEnd,
+        end: forward ? topEnd : topStart,
+      ).animate(curved)
+        ..addListener(() {
+          if (mounted) setState(() => _currentTop = anim.value);
+        });
     } else {
       final bounds = _horizontalBoundsForSide(side, sz.width, sizePx);
       final travel = min(120.0, (bounds.max - bounds.min) / 2);
@@ -216,13 +232,13 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
         leftStart = mid - 4;
         leftEnd = mid + 4;
       }
-      anim =
-          Tween<double>(
-            begin: forward ? leftStart : leftEnd,
-            end: forward ? leftEnd : leftStart,
-          ).animate(curved)..addListener(() {
-            if (mounted) setState(() => _currentLeft = anim.value);
-          });
+      anim = Tween<double>(
+        begin: forward ? leftStart : leftEnd,
+        end: forward ? leftEnd : leftStart,
+      ).animate(curved)
+        ..addListener(() {
+          if (mounted) setState(() => _currentLeft = anim.value);
+        });
     }
 
     setState(() {
@@ -237,30 +253,56 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     if (mounted) setState(() => _showStimulus = false);
   }
 
-  void _finishTest() {
+  // --- Pausa / Reanudación ---
+
+  void _togglePause() {
+    if (_isPaused) {
+      _resumeFromPause();
+    } else {
+      _pauseTest();
+    }
+  }
+
+  void _pauseTest() {
+    _cancelAllTimers();
+    _moveCtrl?.stop();
+    setState(() {
+      _isPaused = true;
+      _showStimulus = false;
+    });
+  }
+
+  void _resumeFromPause() {
+    setState(() => _isPaused = false);
+    _startTest();
+  }
+
+  // --- Fin del test ---
+
+  void _finishTest({required bool stoppedManually}) {
     if (!mounted) return;
     _cancelAllTimers();
     _disposeMoveCtrl();
+
+    final actualDuration = widget.config.duracionSegundos - _remaining;
+
     setState(() {
       _showStimulus = false;
       _remaining = 0;
     });
 
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        title: const Text('Prueba completada'),
-        content: const Text('La duración configurada ha finalizado.'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).maybePop();
-            },
-            child: const Text('Aceptar'),
-          ),
-        ],
+    final result = TestResult(
+      config: widget.config,
+      totalStimuliShown: _stimuliShown,
+      durationActualSeconds: actualDuration,
+      completedNaturally: !stoppedManually,
+      startedAt: _startedAt,
+      finishedAt: DateTime.now(),
+    );
+
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => TestResultsScreen(result: result),
       ),
     );
   }
@@ -271,23 +313,16 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     _countdownTimer?.cancel();
   }
 
-  void _pauseTimers() {
-    _cancelAllTimers();
-    _moveCtrl?.stop();
-  }
-
-  void _resumeTimers() {
-    if (_remaining > 0) {
-      _startTest();
-    }
-  }
-
-  Offset _resolveTopLeftForSide(String side, Size screenSize, double sizePx) {
-    final centerOffset = _generateCenterForSide(side, screenSize, sizePx);
-    final minLeft = _edgeMargin;
-    final maxLeft = max(minLeft, screenSize.width - sizePx - _edgeMargin);
-    final minTop = _edgeMargin;
-    final maxTop = max(minTop, screenSize.height - sizePx - _edgeMargin);
+  Offset _resolveTopLeftForSide(
+      String side, Size screenSize, double sizePx) {
+    final centerOffset =
+        _generateCenterForSide(side, screenSize, sizePx);
+    final minLeft = AppConstants.edgeMargin;
+    final maxLeft = max(
+        minLeft, screenSize.width - sizePx - AppConstants.edgeMargin);
+    final minTop = AppConstants.edgeMargin;
+    final maxTop = max(
+        minTop, screenSize.height - sizePx - AppConstants.edgeMargin);
 
     return Offset(
       (centerOffset.dx - sizePx / 2).clamp(minLeft, maxLeft),
@@ -295,15 +330,18 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     );
   }
 
-  Offset _generateCenterForSide(String side, Size screenSize, double sizePx) {
-    final center = Offset(screenSize.width / 2, screenSize.height / 2);
-    final maxRadius =
-        min(screenSize.width, screenSize.height) / 2 - _edgeMargin - sizePx / 2;
+  Offset _generateCenterForSide(
+      String side, Size screenSize, double sizePx) {
+    final center =
+        Offset(screenSize.width / 2, screenSize.height / 2);
+    final maxRadius = min(screenSize.width, screenSize.height) / 2 -
+        AppConstants.edgeMargin -
+        sizePx / 2;
     if (maxRadius <= 0) return center;
 
     final safeRadius = min(
       maxRadius,
-      max(_centerClearance, sizePx * 0.75),
+      max(AppConstants.centerClearance, sizePx * 0.75),
     );
     final minPct = (safeRadius / maxRadius).clamp(0.0, 1.0);
     double pct;
@@ -321,10 +359,12 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       center.dy + sin(angle) * radius,
     );
 
-    final minX = _edgeMargin + sizePx / 2;
-    final maxX = screenSize.width - _edgeMargin - sizePx / 2;
-    final minY = _edgeMargin + sizePx / 2;
-    final maxY = screenSize.height - _edgeMargin - sizePx / 2;
+    final minX = AppConstants.edgeMargin + sizePx / 2;
+    final maxX =
+        screenSize.width - AppConstants.edgeMargin - sizePx / 2;
+    final minY = AppConstants.edgeMargin + sizePx / 2;
+    final maxY =
+        screenSize.height - AppConstants.edgeMargin - sizePx / 2;
 
     return Offset(
       target.dx.clamp(minX, maxX),
@@ -339,8 +379,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   ) {
     final center = width / 2;
     final gap = _centerGap(sizePx);
-    double minLeft = _edgeMargin;
-    double maxLeft = width - sizePx - _edgeMargin;
+    double minLeft = AppConstants.edgeMargin;
+    double maxLeft = width - sizePx - AppConstants.edgeMargin;
 
     if (side == 'right') {
       final limit = center + gap - sizePx / 2;
@@ -366,8 +406,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   ) {
     final center = height / 2;
     final gap = _centerGap(sizePx);
-    double minTop = _edgeMargin;
-    double maxTop = height - sizePx - _edgeMargin;
+    double minTop = AppConstants.edgeMargin;
+    double maxTop = height - sizePx - AppConstants.edgeMargin;
 
     if (side == 'bottom') {
       final limit = center + gap - sizePx / 2;
@@ -386,7 +426,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     return _Range(minTop, maxTop);
   }
 
-  double _centerGap(double sizePx) => (sizePx / 2) + _centerClearance;
+  double _centerGap(double sizePx) =>
+      (sizePx / 2) + AppConstants.centerClearance;
 
   double _angleForSide(String side) {
     const double pad = 0.35;
@@ -435,12 +476,13 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     final basePx = shortest * (basePct / 200);
     if (!widget.config.tamanoAleatorio) return basePx;
 
-    const double sliderMin = 5;
-    const double sliderMax = 35;
-    final double minPct = (basePct * 0.7).clamp(sliderMin, sliderMax);
-    final double maxPct = (basePct * 1.3).clamp(sliderMin, sliderMax);
+    final double minPct = (basePct * 0.7)
+        .clamp(AppConstants.minSizePercent, AppConstants.maxSizePercent);
+    final double maxPct = (basePct * 1.3)
+        .clamp(AppConstants.minSizePercent, AppConstants.maxSizePercent);
     if ((maxPct - minPct).abs() < 0.1) return basePx;
-    final double pct = minPct + _rand.nextDouble() * (maxPct - minPct);
+    final double pct =
+        minPct + _rand.nextDouble() * (maxPct - minPct);
     return shortest * (pct / 200);
   }
 
@@ -484,14 +526,14 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       body: BackgroundPattern(
         fondo: widget.config.fondo,
         distractor: widget.config.fondoDistractor,
-        animado: widget.config.fondoDistractorAnimado, // 🔹 añadido
+        animado: widget.config.fondoDistractorAnimado,
         child: Stack(
           children: [
             CenterFixation(
               tipo: widget.config.fijacion,
               fondo: widget.config.fondo,
             ),
-            if (_showStimulus)
+            if (_showStimulus && !_isPaused)
               PeripheralStimulus(
                 categoria: widget.config.categoria,
                 forma: _currentForma,
@@ -504,6 +546,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                 color: _currentColorOption.color,
                 outlineColor: _outlineColorForStimulus(),
               ),
+            // Tiempo restante
             Positioned(
               top: 24,
               left: 24,
@@ -513,7 +556,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.4),
+                  color: Colors.black.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -522,19 +565,96 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                 ),
               ),
             ),
+            // Botones de control
             Positioned(
               top: 24,
               right: 24,
-              child: TextButton.icon(
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Colors.black45,
-                ),
-                onPressed: _finishTest,
-                icon: const Icon(Icons.stop),
-                label: const Text('Terminar'),
+              child: Row(
+                children: [
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.black45,
+                    ),
+                    onPressed: _togglePause,
+                    icon: Icon(
+                        _isPaused ? Icons.play_arrow : Icons.pause),
+                    label:
+                        Text(_isPaused ? 'Reanudar' : 'Pausar'),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton.icon(
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.black45,
+                    ),
+                    onPressed: () =>
+                        _finishTest(stoppedManually: true),
+                    icon: const Icon(Icons.stop),
+                    label: const Text('Terminar'),
+                  ),
+                ],
               ),
             ),
+            // Overlay de pausa
+            if (_isPaused)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.pause_circle_filled,
+                          size: 80,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'PRUEBA EN PAUSA',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Tiempo restante: $_remaining s',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            FilledButton.icon(
+                              onPressed: _togglePause,
+                              icon: const Icon(Icons.play_arrow),
+                              label: const Text('Reanudar'),
+                            ),
+                            const SizedBox(width: 16),
+                            OutlinedButton.icon(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                side: const BorderSide(
+                                    color: Colors.white54),
+                              ),
+                              onPressed: () =>
+                                  _finishTest(stoppedManually: true),
+                              icon: const Icon(Icons.stop),
+                              label: const Text('Terminar'),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

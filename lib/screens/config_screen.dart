@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
+import '../constants/app_constants.dart';
 import '../models/test_config.dart';
+import '../models/test_presets.dart';
+import '../services/config_storage.dart';
 
-// Selectores existentes
 import '../widgets/config/side_selector.dart';
 import '../widgets/config/symbol_selector.dart';
 import '../widgets/config/speed_selector.dart';
 import '../widgets/config/movement_selector.dart';
 import '../widgets/config/distance_selector.dart';
-
-// Nuevos selectores
 import '../widgets/config/fixation_selector.dart';
 import '../widgets/config/background_selector.dart';
 import '../widgets/config/stimulus_color_selector.dart';
 
-// Pantalla del test
 import 'dynamic_periphery_test.dart';
 
 class ConfigScreen extends StatefulWidget {
@@ -24,25 +23,27 @@ class ConfigScreen extends StatefulWidget {
 }
 
 class _ConfigScreenState extends State<ConfigScreen> {
-  TestConfig config = const TestConfig(
-    lado: Lado.aleatorio,
-    categoria: SimboloCategoria.formas,
-    forma: null, // Aleatoria por defecto
-    velocidad: Velocidad.media,
-    movimiento: Movimiento.aleatorio,
-    duracionSegundos: 60,
-    tamanoPorc: 15,
-    tamanoAleatorio: true,
-    distanciaPct: 80,
-    distanciaModo: DistanciaModo.aleatorio,
-    fijacion: Fijacion.punto,
-    fondo: Fondo.oscuro,
-    fondoDistractor: true,
-    fondoDistractorAnimado: true,
-    estimuloColor: EstimuloColor.aleatorio,
-  );
+  TestConfig config = TestPresets.standard;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedConfig();
+  }
+
+  Future<void> _loadSavedConfig() async {
+    final saved = await ConfigStorage.loadConfig();
+    if (mounted) {
+      setState(() {
+        if (saved != null) config = saved;
+        _isLoading = false;
+      });
+    }
+  }
 
   void _startTest() {
+    ConfigStorage.saveConfig(config);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -53,12 +54,26 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(title: const Text('Test de estimulación periférica')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
+            // Presets
+            _PresetsRow(
+              onPresetSelected: (preset) => setState(() {
+                config = preset;
+              }),
+            ),
+            const Divider(height: 24),
+
             // Lado
             SideSelector(
               value: config.lado,
@@ -196,6 +211,46 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
 // ---- Widgets internos ----
 
+class _PresetsRow extends StatelessWidget {
+  final ValueChanged<TestConfig> onPresetSelected;
+
+  const _PresetsRow({required this.onPresetSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Presets',
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: TestPresets.all.map((preset) {
+            return ActionChip(
+              avatar: Icon(preset.icon, size: 18),
+              label: Text(preset.name),
+              tooltip: preset.description,
+              onPressed: () => onPresetSelected(preset.config),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Selecciona un preset o personaliza cada opción abajo.',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+}
+
 class _DurationCard extends StatelessWidget {
   final int value;
   final ValueChanged<int> onChanged;
@@ -214,8 +269,8 @@ class _DurationCard extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600)),
             Slider(
               value: value.toDouble(),
-              min: 10,
-              max: 300,
+              min: AppConstants.minDurationSeconds.toDouble(),
+              max: AppConstants.maxDurationSeconds.toDouble(),
               divisions: 29,
               label: '$value s',
               onChanged: (v) => onChanged(v.round()),
@@ -241,10 +296,10 @@ class _SizeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const double minPct = 5;
-    const double maxPct = 35;
     final double normalized =
-        ((value - minPct) / (maxPct - minPct)).clamp(0.0, 1.0);
+        ((value - AppConstants.minSizePercent) /
+                (AppConstants.maxSizePercent - AppConstants.minSizePercent))
+            .clamp(0.0, 1.0);
 
     return Card(
       elevation: 1,
@@ -257,8 +312,8 @@ class _SizeCard extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.w600)),
             Slider(
               value: value,
-              min: minPct,
-              max: maxPct,
+              min: AppConstants.minSizePercent,
+              max: AppConstants.maxSizePercent,
               divisions: 30,
               label: '${(normalized * 100).round()}%',
               onChanged: isRandom ? null : onChanged,
@@ -278,4 +333,3 @@ class _SizeCard extends StatelessWidget {
     );
   }
 }
-

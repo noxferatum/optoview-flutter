@@ -21,7 +21,6 @@ class CenterFixation extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Borde o sombra para dar contraste
           _buildFixation(borde, isShadow: true),
           _buildFixation(colorPrincipal),
         ],
@@ -57,7 +56,7 @@ class CenterFixation extends StatelessWidget {
                   ? []
                   : [
                       BoxShadow(
-                        color: color.withOpacity(0.6),
+                        color: color.withValues(alpha: 0.6),
                         blurRadius: 4,
                         spreadRadius: 2,
                       )

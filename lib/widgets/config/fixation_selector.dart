@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/test_config.dart';
+import 'section_card.dart';
 
 class FixationSelector extends StatelessWidget {
   final Fijacion value;
@@ -13,64 +14,34 @@ class FixationSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              'Punto de fijación',
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            SegmentedButton<Fijacion>(
-              segments: [
-                ButtonSegment(
-                  value: Fijacion.cara,
-                  label: _FixationLabel(
-                    icon: Icons.face,
-                    text: 'Cara',
-                  ),
-                ),
-                ButtonSegment(
-                  value: Fijacion.ojo,
-                  label: _FixationLabel(
-                    icon: Icons.remove_red_eye,
-                    text: 'Ojo',
-                  ),
-                ),
-                ButtonSegment(
-                  value: Fijacion.punto,
-                  label: _FixationLabel(
-                    icon: Icons.circle,
-                    text: 'Punto',
-                  ),
-                ),
-                ButtonSegment(
-                  value: Fijacion.trebol,
-                  label: _FixationLabel(
-                    icon: Icons.filter_vintage,
-                    text: 'Trébol',
-                  ),
-                ),
-                ButtonSegment(
-                  value: Fijacion.cruz,
-                  label: _FixationLabel(
-                    icon: Icons.add,
-                    text: 'Cruz',
-                  ),
-                ),
-              ],
-              selected: {value},
-              onSelectionChanged: (s) => onChanged(s.first),
-            ),
-          ],
-        ),
+    return SectionCard(
+      title: 'Punto de fijación',
+      child: SegmentedButton<Fijacion>(
+        segments: [
+          ButtonSegment(
+            value: Fijacion.cara,
+            label: _FixationLabel(icon: Icons.face, text: 'Cara'),
+          ),
+          ButtonSegment(
+            value: Fijacion.ojo,
+            label: _FixationLabel(icon: Icons.remove_red_eye, text: 'Ojo'),
+          ),
+          ButtonSegment(
+            value: Fijacion.punto,
+            label: _FixationLabel(icon: Icons.circle, text: 'Punto'),
+          ),
+          ButtonSegment(
+            value: Fijacion.trebol,
+            label:
+                _FixationLabel(icon: Icons.filter_vintage, text: 'Trébol'),
+          ),
+          ButtonSegment(
+            value: Fijacion.cruz,
+            label: _FixationLabel(icon: Icons.add, text: 'Cruz'),
+          ),
+        ],
+        selected: {value},
+        onSelectionChanged: (s) => onChanged(s.first),
       ),
     );
   }
