@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'config_screen.dart';
+import 'localization_config_screen.dart';
 
 class TestMenuScreen extends StatelessWidget {
   const TestMenuScreen({super.key});
@@ -22,17 +23,15 @@ class TestMenuScreen extends StatelessWidget {
       ),
       _TestInfo(
         title: 'Localización periférica',
-        subtitle: 'Entrenamiento próximo.',
+        subtitle: 'Entrena la localización periférica.',
         gradient: const [Color(0xFF7B5BFF), Color(0xFFD16EF5)],
         icon: Icons.my_location,
         imageAsset: 'assets/images/location_peripheal.png',
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'El Test de Localización Periférica estará disponible próximamente.',
-              ),
-            ),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const LocalizationConfigScreen()),
           );
         },
       ),
