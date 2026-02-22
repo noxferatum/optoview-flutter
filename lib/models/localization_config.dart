@@ -46,7 +46,6 @@ class LocalizationConfig {
   final double tamanoPorc;
   final double distanciaPct;
   final DistanciaModo distanciaModo;
-  final Fijacion fijacion;
   final Fondo fondo;
   final bool fondoDistractor;
   final bool fondoDistractorAnimado;
@@ -67,7 +66,6 @@ class LocalizationConfig {
     required this.tamanoPorc,
     required this.distanciaPct,
     required this.distanciaModo,
-    required this.fijacion,
     required this.fondo,
     required this.fondoDistractor,
     this.fondoDistractorAnimado = false,
@@ -88,7 +86,6 @@ class LocalizationConfig {
     double? tamanoPorc,
     double? distanciaPct,
     DistanciaModo? distanciaModo,
-    Fijacion? fijacion,
     Fondo? fondo,
     bool? fondoDistractor,
     bool? fondoDistractorAnimado,
@@ -107,7 +104,6 @@ class LocalizationConfig {
       tamanoPorc: tamanoPorc ?? this.tamanoPorc,
       distanciaPct: distanciaPct ?? this.distanciaPct,
       distanciaModo: distanciaModo ?? this.distanciaModo,
-      fijacion: fijacion ?? this.fijacion,
       fondo: fondo ?? this.fondo,
       fondoDistractor: fondoDistractor ?? this.fondoDistractor,
       fondoDistractorAnimado:
@@ -143,7 +139,6 @@ class LocalizationConfig {
           : '${distanciaPct.toStringAsFixed(0)}%',
       'Tamaño': '${tamanoPorc.toStringAsFixed(0)}%',
       'Duración': '${duracionSegundos}s',
-      'Fijación': fijacion.label,
       'Fondo': fondoDesc,
       'Centro': centroFijo ? 'Fijo' : 'Cambiante',
       'Feedback': feedbackVisual ? 'Sí' : 'No',

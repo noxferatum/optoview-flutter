@@ -26,7 +26,7 @@ abstract final class LocalizationPresets {
     tamanoPorc: 25,
     distanciaPct: 60,
     distanciaModo: DistanciaModo.fijo,
-    fijacion: Fijacion.punto,
+
     fondo: Fondo.oscuro,
     fondoDistractor: false,
     modo: LocalizationMode.tocarTodos,
@@ -45,7 +45,7 @@ abstract final class LocalizationPresets {
     tamanoPorc: 15,
     distanciaPct: 80,
     distanciaModo: DistanciaModo.aleatorio,
-    fijacion: Fijacion.punto,
+
     fondo: Fondo.oscuro,
     fondoDistractor: false,
     modo: LocalizationMode.igualarCentro,
@@ -64,7 +64,7 @@ abstract final class LocalizationPresets {
     tamanoPorc: 10,
     distanciaPct: 90,
     distanciaModo: DistanciaModo.aleatorio,
-    fijacion: Fijacion.punto,
+
     fondo: Fondo.oscuro,
     fondoDistractor: true,
     fondoDistractorAnimado: true,

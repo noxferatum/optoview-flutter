@@ -8,7 +8,6 @@ import '../widgets/config/side_selector.dart';
 import '../widgets/config/symbol_selector.dart';
 import '../widgets/config/speed_selector.dart';
 import '../widgets/config/distance_selector.dart';
-import '../widgets/config/fixation_selector.dart';
 import '../widgets/config/background_selector.dart';
 import '../widgets/config/section_card.dart';
 
@@ -241,15 +240,6 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
             ),
 
             const Divider(height: 32),
-
-            // Punto de fijación
-            FixationSelector(
-              value: config.fijacion,
-              onChanged: (v) => setState(() {
-                config = config.copyWith(fijacion: v);
-              }),
-            ),
-            const SizedBox(height: 16),
 
             // Fondo
             BackgroundSelector(

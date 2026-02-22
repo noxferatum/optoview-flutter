@@ -6,7 +6,6 @@ import '../constants/app_constants.dart';
 import '../models/test_config.dart';
 import '../models/localization_config.dart';
 import '../models/localization_result.dart';
-import '../widgets/center_fixation.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
 import 'localization_results_screen.dart';
@@ -175,6 +174,29 @@ class _LocalizationTestState extends State<LocalizationTest>
     return options[_rand.nextInt(options.length)];
   }
 
+  /// Elige un color que no esté en la lista de excluidos (para distractores únicos)
+  EstimuloColor _pickUniqueColor(List<EstimuloColor> exclude) {
+    final available = EstimuloColorTheme.solidColors
+        .where((c) => !exclude.contains(c))
+        .toList();
+    if (available.isEmpty) {
+      // Si no quedan colores únicos, al menos diferente al centro
+      return _pickDifferentColor(_centerColorOption);
+    }
+    return available[_rand.nextInt(available.length)];
+  }
+
+  /// Elige una forma que no esté en la lista de excluidas (para distractores únicos)
+  Forma _pickUniqueForma(List<Forma> exclude) {
+    final available =
+        Forma.values.where((f) => !exclude.contains(f)).toList();
+    if (available.isEmpty) {
+      // Si no quedan formas únicas, al menos diferente al centro
+      return _pickDifferentForma(_centerForma ?? Forma.circulo);
+    }
+    return available[_rand.nextInt(available.length)];
+  }
+
   // --- Test lifecycle ---
 
   void _startTest() {
@@ -220,13 +242,23 @@ class _LocalizationTestState extends State<LocalizationTest>
 
     // Decidir cuántos targets vs distractores
     final stimuli = <_ActiveStimulus>[];
+    // Rastrear colores y formas ya usados por distractores para no repetir
+    final usedDistractorColors = <EstimuloColor>[];
+    final usedDistractorFormas = <Forma>[];
+
     for (int i = 0; i < positions.length; i++) {
       final isTarget = _decideIfTarget(i, positions.length);
       final stimulus = _createStimulus(
         positions[i],
         sizePx,
         isTarget: isTarget,
+        usedDistractorColors: usedDistractorColors,
+        usedDistractorFormas: usedDistractorFormas,
       );
+      if (!isTarget) {
+        usedDistractorColors.add(stimulus.colorOption);
+        if (stimulus.forma != null) usedDistractorFormas.add(stimulus.forma!);
+      }
       stimuli.add(stimulus);
       _totalStimuliShown++;
     }
@@ -249,17 +281,21 @@ class _LocalizationTestState extends State<LocalizationTest>
     final modo = widget.config.modo;
     if (modo == LocalizationMode.tocarTodos) return true;
 
-    // Al menos 1 target, el resto puede ser distractor
-    if (total == 1) return true;
-    if (index == 0) return true; // primer estímulo siempre target
-    // 40% probabilidad de ser distractor para los demás
-    return _rand.nextDouble() > 0.4;
+    if (total == 1) {
+      // Con 1 estímulo: 50% target, 50% distractor para que sea un reto
+      return _rand.nextBool();
+    }
+
+    // Con múltiples: exactamente 1 target, el resto distractores
+    return index == 0;
   }
 
   _ActiveStimulus _createStimulus(
     Offset position,
     double sizePx, {
     required bool isTarget,
+    required List<EstimuloColor> usedDistractorColors,
+    required List<Forma> usedDistractorFormas,
   }) {
     final id = _nextStimulusId++;
     final modo = widget.config.modo;
@@ -274,33 +310,42 @@ class _LocalizationTestState extends State<LocalizationTest>
       text = _centerText;
       colorOption = _centerColorOption;
     } else {
-      // Distractor: depende del modo
+      // Distractor: depende del modo, SIEMPRE diferente a otros distractores
+      final excludeColors = [_centerColorOption, ...usedDistractorColors];
+      final excludeFormas = [
+        if (_centerForma != null) _centerForma!,
+        ...usedDistractorFormas,
+      ];
+
       switch (modo) {
         case LocalizationMode.igualarCentro:
-          // Cambiar forma Y color
+          // Cambiar forma Y color (cada distractor diferente entre sí)
           if (widget.config.categoria == SimboloCategoria.formas) {
-            forma = _pickDifferentForma(_centerForma ?? Forma.circulo);
+            forma = _pickUniqueForma(excludeFormas);
             text = null;
           } else {
             forma = null;
             text = _generateDifferentText();
           }
-          colorOption = _pickDifferentColor(_centerColorOption);
+          colorOption = _pickUniqueColor(excludeColors);
           break;
         case LocalizationMode.mismoColor:
-          // Mismo tipo de estímulo pero diferente color
-          forma = _centerForma;
-          text = _centerText;
-          colorOption = _pickDifferentColor(_centerColorOption);
-          break;
-        case LocalizationMode.mismaForma:
-          // Misma forma pero diferente color
+          // Distractor = distinto color; misma forma para confundir
           if (widget.config.categoria == SimboloCategoria.formas) {
             forma = _centerForma;
           } else {
             text = _centerText;
           }
-          colorOption = _pickDifferentColor(_centerColorOption);
+          colorOption = _pickUniqueColor(excludeColors);
+          break;
+        case LocalizationMode.mismaForma:
+          // Distractor = distinta forma; color variado para confundir
+          if (widget.config.categoria == SimboloCategoria.formas) {
+            forma = _pickUniqueForma(excludeFormas);
+          } else {
+            text = _generateDifferentText();
+          }
+          colorOption = _pickUniqueColor(excludeColors);
           break;
         case LocalizationMode.tocarTodos:
           // No debería llegar aquí
@@ -643,7 +688,8 @@ class _LocalizationTestState extends State<LocalizationTest>
   @override
   Widget build(BuildContext context) {
     final sz = MediaQuery.of(context).size;
-    final centerSizePx = _resolveStimulusSize(sz) * 0.8;
+    // El centro de referencia es más grande que los periféricos para ser claro
+    final centerSizePx = _resolveStimulusSize(sz) * 1.3;
 
     return Scaffold(
       body: BackgroundPattern(
@@ -652,23 +698,23 @@ class _LocalizationTestState extends State<LocalizationTest>
         animado: widget.config.fondoDistractorAnimado,
         child: Stack(
           children: [
-            // Punto de fijación
-            CenterFixation(
-              tipo: widget.config.fijacion,
-              fondo: widget.config.fondo,
-            ),
-
-            // Estímulo de referencia central (debajo del punto de fijación)
-            if (widget.config.modo != LocalizationMode.tocarTodos)
-              Positioned(
-                left: sz.width / 2 - centerSizePx / 2,
-                top: sz.height / 2 + 40,
-                child: SizedBox(
-                  width: centerSizePx,
-                  height: centerSizePx,
-                  child: _buildCenterReference(centerSizePx),
+            // El centro SIEMPRE muestra el estímulo de referencia
+            // (forma + color) que el paciente debe buscar en la periferia.
+            Center(
+              child: Container(
+                width: centerSizePx,
+                height: centerSizePx,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 2,
+                  ),
                 ),
+                padding: const EdgeInsets.all(8),
+                child: _buildCenterReference(centerSizePx - 16),
               ),
+            ),
 
             // Estímulos activos
             if (!_isPaused)

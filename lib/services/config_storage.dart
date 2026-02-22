@@ -84,7 +84,6 @@ abstract final class ConfigStorage {
     await prefs.setDouble('${_locPrefix}distancia', config.distanciaPct);
     await prefs.setString(
         '${_locPrefix}distanciaModo', config.distanciaModo.name);
-    await prefs.setString('${_locPrefix}fijacion', config.fijacion.name);
     await prefs.setString('${_locPrefix}fondo', config.fondo.name);
     await prefs.setBool('${_locPrefix}fondoDistractor', config.fondoDistractor);
     await prefs.setBool(
@@ -121,8 +120,6 @@ abstract final class ConfigStorage {
         distanciaPct: prefs.getDouble('${_locPrefix}distancia')!,
         distanciaModo: DistanciaModo.values
             .byName(prefs.getString('${_locPrefix}distanciaModo')!),
-        fijacion: Fijacion.values
-            .byName(prefs.getString('${_locPrefix}fijacion')!),
         fondo:
             Fondo.values.byName(prefs.getString('${_locPrefix}fondo')!),
         fondoDistractor: prefs.getBool('${_locPrefix}fondoDistractor')!,
