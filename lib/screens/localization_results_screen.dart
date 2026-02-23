@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/localization_result.dart';
 import 'localization_test.dart';
 
@@ -9,17 +10,19 @@ class LocalizationResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final summary = result.config.summaryMap;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Resultados - Localización'),
+        title: Text(l.resultsLocTitle),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: SingleChildScrollView(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -38,8 +41,8 @@ class LocalizationResultsScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   result.completedNaturally
-                      ? 'Prueba completada'
-                      : 'Prueba detenida',
+                      ? l.resultsCompleted
+                      : l.resultsStopped,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -55,40 +58,40 @@ class LocalizationResultsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Precisión',
+                          l.accuracyTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 12),
                         _StatRow(
-                          label: 'Aciertos',
+                          label: l.accuracyCorrect,
                           value: '${result.correctTouches}',
                           valueColor: Colors.greenAccent,
                         ),
                         _StatRow(
-                          label: 'Errores',
+                          label: l.accuracyErrors,
                           value: '${result.incorrectTouches}',
                           valueColor: result.incorrectTouches > 0
                               ? Colors.redAccent
                               : null,
                         ),
                         _StatRow(
-                          label: 'Omisiones',
+                          label: l.accuracyMissed,
                           value: '${result.missedStimuli}',
                           valueColor: result.missedStimuli > 0
                               ? Colors.orangeAccent
                               : null,
                         ),
                         _StatRow(
-                          label: '% de acierto',
+                          label: l.accuracyPercent,
                           value: '${(result.accuracy * 100).toStringAsFixed(1)}%',
                           valueColor: result.accuracy >= 0.8
                               ? Colors.greenAccent
                               : Colors.orangeAccent,
                         ),
                         _StatRow(
-                          label: 'Estímulos mostrados',
+                          label: l.statsStimuliShown,
                           value: '${result.totalStimuliShown}',
                         ),
                       ],
@@ -107,25 +110,25 @@ class LocalizationResultsScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            'Tiempo de reacción',
+                            l.reactionTitle,
                             style: theme.textTheme.titleMedium?.copyWith(
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 12),
                           _StatRow(
-                            label: 'Promedio',
+                            label: l.reactionAvg,
                             value:
                                 '${result.avgReactionTimeMs.toStringAsFixed(0)} ms',
                           ),
                           _StatRow(
-                            label: 'Mejor',
+                            label: l.reactionBest,
                             value:
                                 '${result.bestReactionTimeMs.toStringAsFixed(0)} ms',
                             valueColor: Colors.greenAccent,
                           ),
                           _StatRow(
-                            label: 'Peor',
+                            label: l.reactionWorst,
                             value:
                                 '${result.worstReactionTimeMs.toStringAsFixed(0)} ms',
                           ),
@@ -144,23 +147,23 @@ class LocalizationResultsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Estadísticas',
+                          l.statsTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 12),
                         _StatRow(
-                          label: 'Duración real',
+                          label: l.statsActualDuration,
                           value: '${result.durationActualSeconds}s',
                         ),
                         _StatRow(
-                          label: 'Duración configurada',
+                          label: l.statsConfigDuration,
                           value: '${result.config.duracionSegundos}s',
                         ),
                         if (result.durationActualSeconds > 0)
                           _StatRow(
-                            label: 'Estímulos/minuto',
+                            label: l.statsStimuliPerMinute,
                             value: result.stimuliPerMinute
                                 .toStringAsFixed(1),
                           ),
@@ -179,7 +182,7 @@ class LocalizationResultsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Configuración usada',
+                          l.configUsedTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -210,7 +213,7 @@ class LocalizationResultsScreen extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.replay),
-                      label: const Text('Repetir prueba'),
+                      label: Text(l.resultsRepeat),
                     ),
                     const SizedBox(width: 16),
                     OutlinedButton.icon(
@@ -220,7 +223,7 @@ class LocalizationResultsScreen extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.home),
-                      label: const Text('Volver al menú'),
+                      label: Text(l.resultsHome),
                     ),
                   ],
                 ),
@@ -228,6 +231,7 @@ class LocalizationResultsScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

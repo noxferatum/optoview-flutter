@@ -1,20 +1,230 @@
 {
-  "menuTitle": "Menú OptoView",
+  "@@locale": "es",
+
+  "appTitle": "OptoView",
+
+  "menuTitle": "OptoViewApp - Menú",
+  "menuStart": "Iniciar",
+  "menuCredits": "Créditos",
+
+  "testMenuTitle": "Elige un ejercicio",
+  "testPeripheralTitle": "Estimulación periférica",
+  "testPeripheralSubtitle": "Entrena la percepción periférica dinámica.",
+  "testLocalizationTitle": "Localización periférica",
+  "testLocalizationSubtitle": "Entrena la localización periférica.",
+  "testComingSoonTitle": "Próximamente más",
+  "testComingSoonSubtitle": "Nuevos protocolos de evaluación.",
+  "testComingSoonSnackbar": "Estamos trabajando en más tests especializados.",
+
+  "configPeripheralTitle": "Test de estimulación periférica",
+  "configLocalizationTitle": "Test de localización periférica",
   "startTest": "Iniciar prueba",
-  "configTitle": "Configuración de prueba",
-  "selectSide": "Lado del estímulo",
-  "left": "Izquierda",
-  "right": "Derecha",
-  "both": "Ambos",
-  "selectSpeed": "Velocidad del estímulo",
-  "slow": "Lenta",
-  "medium": "Media",
-  "fast": "Rápida",
-  "selectSymbol": "Tipo de símbolo",
-  "symbolCircle": "Círculo",
-  "symbolLetter": "Letra",
-  "symbolFace": "Cara",
-  "runTest": "Ejecutar prueba",
-  "testCompleted": "Prueba completada",
-  "correctTaps": "Toques correctos"
+
+  "presetsTitle": "Presets",
+  "presetsHint": "Selecciona un preset o personaliza cada opción abajo.",
+  "presetStandard": "Estándar",
+  "presetStandardDesc": "Configuración equilibrada para uso general",
+  "presetEasy": "Fácil",
+  "presetEasyDesc": "Estímulos grandes y lentos, ideal para inicio",
+  "presetAdvanced": "Avanzado",
+  "presetAdvancedDesc": "Estímulos rápidos, pequeños y con distractores",
+  "presetLocStandardDesc": "Igualar centro, velocidad media",
+  "presetLocEasyDesc": "Tocar todos, lento, con feedback",
+  "presetLocAdvancedDesc": "Misma forma, rápido, sin feedback, 3 estímulos",
+
+  "sideTitle": "Lado de estimulación",
+  "sideLeft": "Izquierda",
+  "sideRight": "Derecha",
+  "sideTop": "Arriba",
+  "sideBottom": "Abajo",
+  "sideBoth": "Ambos",
+  "sideRandom": "Aleatorio",
+  "sideDescLeft": "Los estímulos aparecerán únicamente en el lado izquierdo de la pantalla.",
+  "sideDescRight": "Los estímulos aparecerán únicamente en el lado derecho de la pantalla.",
+  "sideDescTop": "Los estímulos aparecerán únicamente en la parte superior.",
+  "sideDescBottom": "Los estímulos aparecerán únicamente en la parte inferior.",
+  "sideDescBoth": "Los estímulos podrán aparecer en ambos lados.",
+  "sideDescRandom": "El lado de aparición de los estímulos será aleatorio en cada ciclo.",
+
+  "symbolTitle": "Tipo de estímulo",
+  "symbolLetters": "Letras",
+  "symbolNumbers": "Números",
+  "symbolShapes": "Formas",
+  "symbolFormTitle": "Forma (opcional)",
+  "symbolFormRandom": "Aleatoria",
+
+  "formaCircle": "Círculo",
+  "formaSquare": "Cuadrado",
+  "formaHeart": "Corazón",
+  "formaTriangle": "Triángulo",
+  "formaClover": "Trébol",
+
+  "colorTitle": "Color del estímulo",
+  "colorRed": "Rojo",
+  "colorGreen": "Verde",
+  "colorBlue": "Azul",
+  "colorYellow": "Amarillo",
+  "colorWhite": "Blanco",
+  "colorPurple": "Morado",
+  "colorBlack": "Negro",
+  "colorRandom": "Aleatorio",
+
+  "speedTitle": "Velocidad",
+  "speedSlow": "Lenta",
+  "speedMedium": "Media",
+  "speedFast": "Rápida",
+
+  "movementTitle": "Movimiento del estímulo",
+  "movementFixed": "Fijo",
+  "movementHorizontal": "Horizontal",
+  "movementVertical": "Vertical",
+  "movementRandom": "Aleatorio",
+  "movementDescFixed": "El estímulo permanece estático en su posición.",
+  "movementDescHorizontal": "El estímulo se desliza de izquierda a derecha o viceversa.",
+  "movementDescVertical": "El estímulo se desliza de arriba a abajo o viceversa.",
+  "movementDescRandom": "El estímulo cambia aleatoriamente entre desplazamiento horizontal y vertical.",
+
+  "distanceTitle": "Distancia al centro",
+  "distanceRandom": "Aleatoria",
+  "distanceRandomSubtitle": "Cambia aleatoriamente la distancia del estímulo",
+  "distanceFixed": "Fija",
+  "distanceCurrent": "Distancia actual: {pct}%",
+  "@distanceCurrent": {
+    "placeholders": {
+      "pct": { "type": "String" }
+    }
+  },
+
+  "durationTitle": "Duración (segundos)",
+  "durationLabel": "{value} s",
+  "@durationLabel": {
+    "placeholders": {
+      "value": { "type": "int" }
+    }
+  },
+
+  "sizeTitle": "Tamaño (%)",
+  "sizeRandomToggle": "Variar tamaño aleatoriamente",
+  "sizeRandomSubtitle": "Si se activa, cada estímulo ajustará su tamaño alrededor del valor configurado.",
+
+  "fixationTitle": "Punto de fijación",
+  "fixationFace": "Cara",
+  "fixationEye": "Ojo",
+  "fixationDot": "Punto",
+  "fixationClover": "Trébol",
+  "fixationCross": "Cruz",
+
+  "backgroundTitle": "Fondo y distractor",
+  "backgroundLight": "Claro",
+  "backgroundDark": "Oscuro",
+  "backgroundBlue": "Azul",
+  "backgroundDistractor": "Fondo distractor",
+  "backgroundDistractorSubtitle": "Añade un patrón suave de baja intensidad.",
+  "backgroundAnimate": "Animar distractor",
+  "backgroundAnimateSubtitle": "Activa un movimiento leve del patrón para aumentar la dificultad visual.",
+
+  "locModeTitle": "Modo de localización",
+  "locModeTouchAll": "Tocar todos",
+  "locModeMatchCenter": "Igualar centro",
+  "locModeSameColor": "Mismo color",
+  "locModeSameShape": "Misma forma",
+  "locModeTouchAllDesc": "Toca todos los estímulos que aparezcan",
+  "locModeMatchCenterDesc": "Solo toca los que coincidan con el centro",
+  "locModeSameColorDesc": "Solo toca los del mismo color que el centro",
+  "locModeSameShapeDesc": "Solo toca los de la misma forma que el centro",
+
+  "locInteractionTitle": "Opciones de interacción",
+  "locCenterFixed": "Centro fijo",
+  "locCenterFixedOn": "El estímulo central no cambia durante la prueba",
+  "locCenterFixedOff": "El estímulo central cambia cada ciclo",
+  "locFeedback": "Feedback visual",
+  "locFeedbackSubtitle": "Mostrar indicación visual al tocar (acierto/error)",
+  "locDisappearTitle": "Desaparición del estímulo",
+  "locDisappearByTime": "Por tiempo",
+  "locDisappearWaitTouch": "Esperar toque",
+  "locSimultaneousTitle": "Estímulos simultáneos",
+
+  "testTimeRemaining": "Tiempo restante: {seconds} s",
+  "@testTimeRemaining": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "testTimeAndHits": "Tiempo: {seconds} s  |  Aciertos: {hits}",
+  "@testTimeAndHits": {
+    "placeholders": {
+      "seconds": { "type": "int" },
+      "hits": { "type": "int" }
+    }
+  },
+  "testPause": "Pausar",
+  "testResume": "Reanudar",
+  "testStop": "Terminar",
+  "testPaused": "PRUEBA EN PAUSA",
+
+  "countdownReady": "¡Prepárate!",
+
+  "resultsTitle": "Resultados de la prueba",
+  "resultsLocTitle": "Resultados - Localización",
+  "resultsCompleted": "Prueba completada",
+  "resultsStopped": "Prueba detenida",
+
+  "statsTitle": "Estadísticas",
+  "statsActualDuration": "Duración real",
+  "statsConfigDuration": "Duración configurada",
+  "statsStimuliShown": "Estímulos mostrados",
+  "statsStimuliPerMinute": "Estímulos/minuto",
+
+  "accuracyTitle": "Precisión",
+  "accuracyCorrect": "Aciertos",
+  "accuracyErrors": "Errores",
+  "accuracyMissed": "Omisiones",
+  "accuracyPercent": "% de acierto",
+
+  "reactionTitle": "Tiempo de reacción",
+  "reactionAvg": "Promedio",
+  "reactionBest": "Mejor",
+  "reactionWorst": "Peor",
+
+  "configUsedTitle": "Configuración usada",
+
+  "resultsRepeat": "Repetir prueba",
+  "resultsHome": "Volver al menú",
+
+  "summaryKeySide": "Lado",
+  "summaryKeyStimulus": "Estímulo",
+  "summaryKeyColor": "Color",
+  "summaryKeySpeed": "Velocidad",
+  "summaryKeyMovement": "Movimiento",
+  "summaryKeyDistance": "Distancia",
+  "summaryKeySize": "Tamaño",
+  "summaryKeyDuration": "Duración",
+  "summaryKeyFixation": "Fijación",
+  "summaryKeyBackground": "Fondo",
+  "summaryKeyMode": "Modo",
+  "summaryKeyCenter": "Centro",
+  "summaryKeyFeedback": "Feedback",
+  "summaryKeyDisappear": "Desaparición",
+  "summaryKeySimultaneous": "Estímulos simultáneos",
+  "summaryDistRandom": "Aleatoria",
+  "summarySizeRandom": "~{pct}% (aleatorio)",
+  "@summarySizeRandom": {
+    "placeholders": {
+      "pct": { "type": "String" }
+    }
+  },
+  "summaryDistractorAnimated": " + Distractor animado",
+  "summaryDistractor": " + Distractor",
+  "summaryCenterFixed": "Fijo",
+  "summaryCenterChanging": "Cambiante",
+  "summaryYes": "Sí",
+  "summaryNo": "No",
+
+  "creditsTitle": "Créditos",
+  "creditsAppName": "Optoview",
+  "creditsDescription": "Esta aplicación ha sido desarrollada con la ayuda de la optometrista titulada experta en terapia visual\nEstefanía Rodríguez-Bobada Lillo.",
+  "creditsCompany": "Empresa",
+  "creditsYear": "Año",
+  "creditsVersion": "Versión",
+  "creditsBack": "Volver"
 }

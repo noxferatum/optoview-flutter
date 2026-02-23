@@ -1,13 +1,18 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../constants/app_constants.dart';
+import '../l10n/app_localizations.dart';
+import '../mixins/immersive_test_mixin.dart';
 import '../models/test_config.dart';
 import '../models/test_result.dart';
+import '../utils/stimulus_positioning.dart';
+import '../utils/stimulus_color_utils.dart';
 import '../widgets/center_fixation.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
+import '../widgets/test_ui/pause_overlay.dart';
+import '../widgets/test_ui/test_control_buttons.dart';
+import '../widgets/test_ui/test_timer_display.dart';
 import 'test_results_screen.dart';
 
 class DynamicPeripheryTest extends StatefulWidget {
@@ -18,20 +23,13 @@ class DynamicPeripheryTest extends StatefulWidget {
   State<DynamicPeripheryTest> createState() => _DynamicPeripheryTestState();
 }
 
-class _Range {
-  final double min;
-  final double max;
-  const _Range(this.min, this.max);
-}
-
 class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
-    with WidgetsBindingObserver, TickerProviderStateMixin {
+    with WidgetsBindingObserver, TickerProviderStateMixin, ImmersiveTestMixin {
   Timer? _stimulusTimer;
   Timer? _endTimer;
   Timer? _countdownTimer;
 
   bool _showStimulus = false;
-  String _stimulusSide = 'left';
   late int _remaining;
   AnimationController? _moveCtrl;
   double _currentTop = 0;
@@ -42,13 +40,18 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   EstimuloColor _currentColorOption = EstimuloColor.rojo;
   double _currentSizePx = 0;
   final _rand = Random();
+  late final StimulusPositioning _positioning;
 
   // Pausa
   bool _isPaused = false;
 
+  // Cuenta regresiva pre-test
+  int _preCountdown = 3;
+  bool _testStarted = false;
+
   // Conteo de estímulos
   int _stimuliShown = 0;
-  late final DateTime _startedAt;
+  DateTime _startedAt = DateTime.now();
 
   @override
   void initState() {
@@ -56,16 +59,16 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     WidgetsBinding.instance.addObserver(this);
     _remaining = widget.config.duracionSegundos.clamp(1, 3600);
     _currentColorOption = _resolveStimulusColorOption();
-    _startedAt = DateTime.now();
 
-    // Modo inmersivo y landscape
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    _positioning = StimulusPositioning(
+      random: _rand,
+      distanciaModo: widget.config.distanciaModo,
+      distanciaPct: widget.config.distanciaPct,
+    );
 
-    _startTest();
+    initImmersiveMode();
+
+    _runPreCountdown();
   }
 
   @override
@@ -73,13 +76,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     WidgetsBinding.instance.removeObserver(this);
     _cancelAllTimers();
     _disposeMoveCtrl();
-
-    // Restaurar UI del sistema
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-      overlays: SystemUiOverlay.values,
-    );
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    disposeImmersiveMode();
 
     super.dispose();
   }
@@ -97,6 +94,22 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       if (!_isPaused) _pauseTest();
     }
     // No auto-reanudar: el usuario debe tocar "Reanudar"
+  }
+
+  void _runPreCountdown() {
+    _preCountdown = 3;
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() {
+        _preCountdown--;
+        if (_preCountdown <= 0) {
+          t.cancel();
+          _testStarted = true;
+          _startedAt = DateTime.now();
+          _startTest();
+        }
+      });
+    });
   }
 
   void _startTest() {
@@ -117,15 +130,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
         Timer.periodic(Duration(milliseconds: period), (t) async {
       if (!mounted || _isPaused) return;
 
-      final lado = switch (widget.config.lado) {
-        Lado.izquierda => 'left',
-        Lado.derecha => 'right',
-        Lado.arriba => 'top',
-        Lado.abajo => 'bottom',
-        Lado.ambos => _rand.nextBool() ? 'left' : 'right',
-        Lado.aleatorio =>
-          ['left', 'right', 'top', 'bottom'][_rand.nextInt(4)],
-      };
+      final lado = _positioning.resolveSide(widget.config.lado);
 
       _chooseSymbolOnceForThisAppearance();
       _stimuliShown++;
@@ -164,14 +169,17 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
 
   Future<void> _showFixed(int onMs, String side) async {
     final sz = MediaQuery.of(context).size;
-    _currentSizePx = _resolveStimulusSize(sz);
+    _currentSizePx = _positioning.resolveStimulusSize(
+      sz,
+      widget.config.tamanoPorc,
+      tamanoAleatorio: widget.config.tamanoAleatorio,
+    );
     final sizePx = _currentSizePx;
-    final offset = _resolveTopLeftForSide(side, sz, sizePx);
+    final offset = _positioning.resolveTopLeftForSide(side, sz, sizePx);
     _currentLeft = offset.dx;
     _currentTop = offset.dy;
 
     setState(() {
-      _stimulusSide = side;
       _showStimulus = true;
     });
 
@@ -186,11 +194,15 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     Movimiento movimiento,
   ) async {
     final sz = MediaQuery.of(context).size;
-    _currentSizePx = _resolveStimulusSize(sz);
+    _currentSizePx = _positioning.resolveStimulusSize(
+      sz,
+      widget.config.tamanoPorc,
+      tamanoAleatorio: widget.config.tamanoAleatorio,
+    );
     final sizePx = _currentSizePx;
     final isVertical = movimiento == Movimiento.vertical;
     final forward = _rand.nextBool();
-    final baseOffset = _resolveTopLeftForSide(side, sz, sizePx);
+    final baseOffset = _positioning.resolveTopLeftForSide(side, sz, sizePx);
 
     _currentLeft = baseOffset.dx;
     _currentTop = baseOffset.dy;
@@ -206,7 +218,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     late Animation<double> anim;
 
     if (isVertical) {
-      final bounds = _verticalBoundsForSide(side, sz.height, sizePx);
+      final bounds =
+          _positioning.verticalBoundsForSide(side, sz.height, sizePx);
       final travel = min(120.0, (bounds.max - bounds.min) / 2);
       var topStart = max(bounds.min, baseOffset.dy - travel);
       var topEnd = min(bounds.max, baseOffset.dy + travel);
@@ -223,7 +236,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
           if (mounted) setState(() => _currentTop = anim.value);
         });
     } else {
-      final bounds = _horizontalBoundsForSide(side, sz.width, sizePx);
+      final bounds =
+          _positioning.horizontalBoundsForSide(side, sz.width, sizePx);
       final travel = min(120.0, (bounds.max - bounds.min) / 2);
       var leftStart = max(bounds.min, baseOffset.dx - travel);
       var leftEnd = min(bounds.max, baseOffset.dx + travel);
@@ -242,7 +256,6 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     }
 
     setState(() {
-      _stimulusSide = side;
       _showStimulus = true;
     });
 
@@ -313,179 +326,6 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     _countdownTimer?.cancel();
   }
 
-  Offset _resolveTopLeftForSide(
-      String side, Size screenSize, double sizePx) {
-    final centerOffset =
-        _generateCenterForSide(side, screenSize, sizePx);
-    final minLeft = AppConstants.edgeMargin;
-    final maxLeft = max(
-        minLeft, screenSize.width - sizePx - AppConstants.edgeMargin);
-    final minTop = AppConstants.edgeMargin;
-    final maxTop = max(
-        minTop, screenSize.height - sizePx - AppConstants.edgeMargin);
-
-    return Offset(
-      (centerOffset.dx - sizePx / 2).clamp(minLeft, maxLeft),
-      (centerOffset.dy - sizePx / 2).clamp(minTop, maxTop),
-    );
-  }
-
-  Offset _generateCenterForSide(
-      String side, Size screenSize, double sizePx) {
-    final center =
-        Offset(screenSize.width / 2, screenSize.height / 2);
-    final maxRadius = min(screenSize.width, screenSize.height) / 2 -
-        AppConstants.edgeMargin -
-        sizePx / 2;
-    if (maxRadius <= 0) return center;
-
-    final safeRadius = min(
-      maxRadius,
-      max(AppConstants.centerClearance, sizePx * 0.75),
-    );
-    final minPct = (safeRadius / maxRadius).clamp(0.0, 1.0);
-    double pct;
-
-    if (widget.config.distanciaModo == DistanciaModo.fijo) {
-      pct = (widget.config.distanciaPct / 100).clamp(minPct, 1.0);
-    } else {
-      pct = _randRange(minPct, 1.0);
-    }
-
-    final radius = maxRadius * pct;
-    final angle = _angleForSide(side);
-    final target = Offset(
-      center.dx + cos(angle) * radius,
-      center.dy + sin(angle) * radius,
-    );
-
-    final minX = AppConstants.edgeMargin + sizePx / 2;
-    final maxX =
-        screenSize.width - AppConstants.edgeMargin - sizePx / 2;
-    final minY = AppConstants.edgeMargin + sizePx / 2;
-    final maxY =
-        screenSize.height - AppConstants.edgeMargin - sizePx / 2;
-
-    return Offset(
-      target.dx.clamp(minX, maxX),
-      target.dy.clamp(minY, maxY),
-    );
-  }
-
-  _Range _horizontalBoundsForSide(
-    String side,
-    double width,
-    double sizePx,
-  ) {
-    final center = width / 2;
-    final gap = _centerGap(sizePx);
-    double minLeft = AppConstants.edgeMargin;
-    double maxLeft = width - sizePx - AppConstants.edgeMargin;
-
-    if (side == 'right') {
-      final limit = center + gap - sizePx / 2;
-      minLeft = max(minLeft, limit);
-    } else if (side == 'left') {
-      final limit = center - gap - sizePx / 2;
-      maxLeft = min(maxLeft, limit);
-    }
-
-    if (minLeft > maxLeft) {
-      final fallback = (minLeft + maxLeft) / 2;
-      minLeft = fallback;
-      maxLeft = fallback;
-    }
-
-    return _Range(minLeft, maxLeft);
-  }
-
-  _Range _verticalBoundsForSide(
-    String side,
-    double height,
-    double sizePx,
-  ) {
-    final center = height / 2;
-    final gap = _centerGap(sizePx);
-    double minTop = AppConstants.edgeMargin;
-    double maxTop = height - sizePx - AppConstants.edgeMargin;
-
-    if (side == 'bottom') {
-      final limit = center + gap - sizePx / 2;
-      minTop = max(minTop, limit);
-    } else if (side == 'top') {
-      final limit = center - gap - sizePx / 2;
-      maxTop = min(maxTop, limit);
-    }
-
-    if (minTop > maxTop) {
-      final fallback = (minTop + maxTop) / 2;
-      minTop = fallback;
-      maxTop = fallback;
-    }
-
-    return _Range(minTop, maxTop);
-  }
-
-  double _centerGap(double sizePx) =>
-      (sizePx / 2) + AppConstants.centerClearance;
-
-  double _angleForSide(String side) {
-    const double pad = 0.35;
-    double angle;
-
-    switch (side) {
-      case 'left':
-        angle = _randRange(pi / 2 + pad, (3 * pi / 2) - pad);
-        break;
-      case 'right':
-        angle = _randRange(-pi / 2 + pad, pi / 2 - pad);
-        break;
-      case 'top':
-        angle = _randRange(pad, pi - pad);
-        break;
-      case 'bottom':
-        angle = _randRange(pi + pad, (2 * pi) - pad);
-        break;
-      default:
-        angle = _randRange(0, 2 * pi);
-    }
-
-    return _normalizeAngle(angle);
-  }
-
-  double _randRange(double minValue, double maxValue) {
-    if (maxValue <= minValue) return minValue;
-    return minValue + _rand.nextDouble() * (maxValue - minValue);
-  }
-
-  double _normalizeAngle(double angle) {
-    final full = 2 * pi;
-    var normalized = angle;
-    while (normalized < 0) {
-      normalized += full;
-    }
-    while (normalized >= full) {
-      normalized -= full;
-    }
-    return normalized;
-  }
-
-  double _resolveStimulusSize(Size screenSize) {
-    final shortest = screenSize.shortestSide;
-    final basePct = widget.config.tamanoPorc;
-    final basePx = shortest * (basePct / 200);
-    if (!widget.config.tamanoAleatorio) return basePx;
-
-    final double minPct = (basePct * 0.7)
-        .clamp(AppConstants.minSizePercent, AppConstants.maxSizePercent);
-    final double maxPct = (basePct * 1.3)
-        .clamp(AppConstants.minSizePercent, AppConstants.maxSizePercent);
-    if ((maxPct - minPct).abs() < 0.1) return basePx;
-    final double pct =
-        minPct + _rand.nextDouble() * (maxPct - minPct);
-    return shortest * (pct / 200);
-  }
-
   double _layoutSizePx(Size sz) {
     if (_currentSizePx > 0) return _currentSizePx;
     return sz.shortestSide * (widget.config.tamanoPorc / 200);
@@ -499,26 +339,9 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     return palette[_rand.nextInt(palette.length)];
   }
 
-  Color? _outlineColorForStimulus() {
-    final fondo = widget.config.fondo;
-    switch (_currentColorOption) {
-      case EstimuloColor.negro:
-        if (fondo == Fondo.oscuro) return Colors.white;
-        break;
-      case EstimuloColor.blanco:
-        if (fondo == Fondo.claro) return Colors.black;
-        break;
-      case EstimuloColor.azul:
-        if (fondo == Fondo.azul) return Colors.black;
-        break;
-      default:
-        break;
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final mediaSize = MediaQuery.of(context).size;
     final sizePx = _layoutSizePx(mediaSize);
 
@@ -539,118 +362,37 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                 forma: _currentForma,
                 text: _currentText,
                 size: sizePx,
-                side: _stimulusSide,
                 top: _currentTop,
                 left: _currentLeft,
                 onTap: () {},
                 color: _currentColorOption.color,
-                outlineColor: _outlineColorForStimulus(),
+                outlineColor: outlineColorForStimulus(
+                    _currentColorOption, widget.config.fondo),
               ),
-            // Tiempo restante
-            Positioned(
-              top: 24,
-              left: 24,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Tiempo restante: $_remaining s',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
+            TestTimerDisplay(text: l.testTimeRemaining(_remaining)),
+            TestControlButtons(
+              isPaused: _isPaused,
+              onTogglePause: _togglePause,
+              onStop: () => _finishTest(stoppedManually: true),
             ),
-            // Botones de control
-            Positioned(
-              top: 24,
-              right: 24,
-              child: Row(
-                children: [
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.black45,
-                    ),
-                    onPressed: _togglePause,
-                    icon: Icon(
-                        _isPaused ? Icons.play_arrow : Icons.pause),
-                    label:
-                        Text(_isPaused ? 'Reanudar' : 'Pausar'),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.black45,
-                    ),
-                    onPressed: () =>
-                        _finishTest(stoppedManually: true),
-                    icon: const Icon(Icons.stop),
-                    label: const Text('Terminar'),
-                  ),
-                ],
-              ),
-            ),
-            // Overlay de pausa
             if (_isPaused)
+              PauseOverlay(
+                remainingSeconds: _remaining,
+                onResume: _togglePause,
+                onStop: () => _finishTest(stoppedManually: true),
+              ),
+            if (!_testStarted)
               Positioned.fill(
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.7),
+                  color: Colors.black.withValues(alpha: 0.8),
                   child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.pause_circle_filled,
-                          size: 80,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'PRUEBA EN PAUSA',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tiempo restante: $_remaining s',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            FilledButton.icon(
-                              onPressed: _togglePause,
-                              icon: const Icon(Icons.play_arrow),
-                              label: const Text('Reanudar'),
-                            ),
-                            const SizedBox(width: 16),
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                side: const BorderSide(
-                                    color: Colors.white54),
-                              ),
-                              onPressed: () =>
-                                  _finishTest(stoppedManually: true),
-                              icon: const Icon(Icons.stop),
-                              label: const Text('Terminar'),
-                            ),
-                          ],
-                        ),
-                      ],
+                    child: Text(
+                      '$_preCountdown',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 120,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

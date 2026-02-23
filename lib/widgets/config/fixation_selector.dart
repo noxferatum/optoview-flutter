@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/test_config.dart';
 import 'section_card.dart';
 
@@ -14,30 +15,31 @@ class FixationSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return SectionCard(
-      title: 'Punto de fijación',
+      title: l.fixationTitle,
       child: SegmentedButton<Fijacion>(
         segments: [
           ButtonSegment(
             value: Fijacion.cara,
-            label: _FixationLabel(icon: Icons.face, text: 'Cara'),
+            label: _FixationLabel(icon: Icons.face, text: l.fixationFace),
           ),
           ButtonSegment(
             value: Fijacion.ojo,
-            label: _FixationLabel(icon: Icons.remove_red_eye, text: 'Ojo'),
+            label: _FixationLabel(icon: Icons.remove_red_eye, text: l.fixationEye),
           ),
           ButtonSegment(
             value: Fijacion.punto,
-            label: _FixationLabel(icon: Icons.circle, text: 'Punto'),
+            label: _FixationLabel(icon: Icons.circle, text: l.fixationDot),
           ),
           ButtonSegment(
             value: Fijacion.trebol,
             label:
-                _FixationLabel(icon: Icons.filter_vintage, text: 'Trébol'),
+                _FixationLabel(icon: Icons.filter_vintage, text: l.fixationClover),
           ),
           ButtonSegment(
             value: Fijacion.cruz,
-            label: _FixationLabel(icon: Icons.add, text: 'Cruz'),
+            label: _FixationLabel(icon: Icons.add, text: l.fixationCross),
           ),
         ],
         selected: {value},

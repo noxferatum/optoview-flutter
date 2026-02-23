@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/test_config.dart';
 import 'section_card.dart';
 
@@ -22,16 +23,17 @@ class BackgroundSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return SectionCard(
-      title: 'Fondo y distractor',
+      title: l.backgroundTitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SegmentedButton<Fondo>(
-            segments: const [
-              ButtonSegment(value: Fondo.claro, label: Text('Claro')),
-              ButtonSegment(value: Fondo.oscuro, label: Text('Oscuro')),
-              ButtonSegment(value: Fondo.azul, label: Text('Azul')),
+            segments: [
+              ButtonSegment(value: Fondo.claro, label: Text(l.backgroundLight)),
+              ButtonSegment(value: Fondo.oscuro, label: Text(l.backgroundDark)),
+              ButtonSegment(value: Fondo.azul, label: Text(l.backgroundBlue)),
             ],
             selected: {fondo},
             onSelectionChanged: (s) => onFondoChanged(s.first),
@@ -40,19 +42,16 @@ class BackgroundSelector extends StatelessWidget {
           SwitchListTile(
             value: distractor,
             onChanged: onDistractorChanged,
-            title: const Text('Fondo distractor'),
-            subtitle:
-                const Text('Añade un patrón suave de baja intensidad.'),
+            title: Text(l.backgroundDistractor),
+            subtitle: Text(l.backgroundDistractorSubtitle),
           ),
           if (distractor) ...[
             const SizedBox(height: 8),
             SwitchListTile(
               value: animado,
               onChanged: onAnimadoChanged,
-              title: const Text('Animar distractor'),
-              subtitle: const Text(
-                'Activa un movimiento leve del patrón para aumentar la dificultad visual.',
-              ),
+              title: Text(l.backgroundAnimate),
+              subtitle: Text(l.backgroundAnimateSubtitle),
             ),
           ],
         ],

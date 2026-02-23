@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/test_config.dart';
 import 'section_card.dart';
 
@@ -18,19 +19,18 @@ class DistanceSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final isAleatoria = modo == DistanciaModo.aleatorio;
 
     return SectionCard(
-      title: 'Distancia al centro',
+      title: l.distanceTitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SwitchListTile(
             value: isAleatoria,
-            title: const Text('Aleatoria'),
-            subtitle: const Text(
-              'Cambia aleatoriamente la distancia del estímulo',
-            ),
+            title: Text(l.distanceRandom),
+            subtitle: Text(l.distanceRandomSubtitle),
             onChanged: (v) => onModoChanged(
               v ? DistanciaModo.aleatorio : DistanciaModo.fijo,
             ),
@@ -49,7 +49,7 @@ class DistanceSelector extends StatelessWidget {
                   onChanged: onDistChanged,
                 ),
                 Text(
-                  'Distancia actual: ${distanciaPct.toStringAsFixed(0)}%',
+                  l.distanceCurrent(distanciaPct.toStringAsFixed(0)),
                   style: const TextStyle(fontSize: 13),
                 ),
               ],

@@ -1,20 +1,7 @@
 import 'package:flutter/material.dart';
+import '../widgets/config/presets_row.dart';
 import 'test_config.dart';
 import 'localization_config.dart';
-
-class LocPresetInfo {
-  final String name;
-  final String description;
-  final IconData icon;
-  final LocalizationConfig config;
-
-  const LocPresetInfo({
-    required this.name,
-    required this.description,
-    required this.icon,
-    required this.config,
-  });
-}
 
 abstract final class LocalizationPresets {
   static const LocalizationConfig easy = LocalizationConfig(
@@ -75,20 +62,20 @@ abstract final class LocalizationPresets {
     stimuliSimultaneos: 3,
   );
 
-  static const List<LocPresetInfo> all = [
-    LocPresetInfo(
+  static const List<PresetEntry<LocalizationConfig>> all = [
+    PresetEntry(
       name: 'Estándar',
       description: 'Igualar centro, velocidad media',
       icon: Icons.tune,
       config: standard,
     ),
-    LocPresetInfo(
+    PresetEntry(
       name: 'Fácil',
       description: 'Tocar todos, lento, con feedback',
       icon: Icons.child_care,
       config: easy,
     ),
-    LocPresetInfo(
+    PresetEntry(
       name: 'Avanzado',
       description: 'Misma forma, rápido, sin feedback, 3 estímulos',
       icon: Icons.speed,

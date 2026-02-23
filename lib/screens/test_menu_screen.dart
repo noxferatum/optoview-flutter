@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'config_screen.dart';
 import 'localization_config_screen.dart';
 
@@ -7,10 +8,12 @@ class TestMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
     final tests = [
       _TestInfo(
-        title: 'Estimulación periférica',
-        subtitle: 'Entrena la percepción periférica dinámica.',
+        title: l.testPeripheralTitle,
+        subtitle: l.testPeripheralSubtitle,
         gradient: const [Color(0xFF5B72F2), Color(0xFF62C4FF)],
         icon: Icons.blur_circular,
         imageAsset: 'assets/images/test_peripheral.png',
@@ -22,8 +25,8 @@ class TestMenuScreen extends StatelessWidget {
         },
       ),
       _TestInfo(
-        title: 'Localización periférica',
-        subtitle: 'Entrena la localización periférica.',
+        title: l.testLocalizationTitle,
+        subtitle: l.testLocalizationSubtitle,
         gradient: const [Color(0xFF7B5BFF), Color(0xFFD16EF5)],
         icon: Icons.my_location,
         imageAsset: 'assets/images/location_peripheal.png',
@@ -36,14 +39,14 @@ class TestMenuScreen extends StatelessWidget {
         },
       ),
       _TestInfo(
-        title: 'Próximamente más',
-        subtitle: 'Nuevos protocolos de evaluación.',
+        title: l.testComingSoonTitle,
+        subtitle: l.testComingSoonSubtitle,
         gradient: const [Color(0xFF333A73), Color(0xFF5B6BC3)],
         icon: Icons.upcoming,
         onTap: () {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Estamos trabajando en más tests especializados.'),
+            SnackBar(
+              content: Text(l.testComingSoonSnackbar),
             ),
           );
         },
@@ -52,22 +55,29 @@ class TestMenuScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Elige un ejercicio'),
+        title: Text(l.testMenuTitle),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: GridView.builder(
-          itemCount: tests.length,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 0.95,
-          ),
-          itemBuilder: (context, index) {
-            final info = tests[index];
-            return _TestCard(info: info);
+      body: SafeArea(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: GridView.builder(
+                itemCount: tests.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 16,
+                  childAspectRatio: 0.95,
+                ),
+                itemBuilder: (context, index) {
+                  final info = tests[index];
+                  return _TestCard(info: info);
+                },
+              ),
+            );
           },
         ),
       ),
@@ -100,7 +110,10 @@ class _TestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return Semantics(
+      button: true,
+      label: '${info.title}: ${info.subtitle}',
+      child: Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: InkWell(
@@ -154,6 +167,7 @@ class _TestCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }

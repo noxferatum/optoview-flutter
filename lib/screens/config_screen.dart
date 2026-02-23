@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
+import '../l10n/app_localizations.dart';
 import '../models/test_config.dart';
 import '../models/test_presets.dart';
 import '../services/config_storage.dart';
@@ -12,6 +12,9 @@ import '../widgets/config/distance_selector.dart';
 import '../widgets/config/fixation_selector.dart';
 import '../widgets/config/background_selector.dart';
 import '../widgets/config/stimulus_color_selector.dart';
+import '../widgets/config/duration_card.dart';
+import '../widgets/config/size_card.dart';
+import '../widgets/config/presets_row.dart';
 
 import 'dynamic_periphery_test.dart';
 
@@ -54,6 +57,8 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -61,13 +66,15 @@ class _ConfigScreenState extends State<ConfigScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Test de estimulación periférica')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
-            // Presets
-            _PresetsRow(
+      appBar: AppBar(title: Text(l.configPeripheralTitle)),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: [
+              // Presets
+              PresetsRow<TestConfig>(
+              presets: TestPresets.all,
               onPresetSelected: (preset) => setState(() {
                 config = preset;
               }),
@@ -144,7 +151,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             const SizedBox(height: 16),
 
             // Duración
-            _DurationCard(
+            DurationCard(
               value: config.duracionSegundos,
               onChanged: (v) => setState(() {
                 config = config.copyWith(duracionSegundos: v);
@@ -153,7 +160,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             const SizedBox(height: 16),
 
             // Tamaño
-            _SizeCard(
+            SizeCard(
               value: config.tamanoPorc,
               isRandom: config.tamanoAleatorio,
               onChanged: (v) => setState(() {
@@ -199,135 +206,11 @@ class _ConfigScreenState extends State<ConfigScreen> {
               child: FilledButton.icon(
                 onPressed: _startTest,
                 icon: const Icon(Icons.play_arrow),
-                label: const Text('Iniciar prueba'),
+                label: Text(l.startTest),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---- Widgets internos ----
-
-class _PresetsRow extends StatelessWidget {
-  final ValueChanged<TestConfig> onPresetSelected;
-
-  const _PresetsRow({required this.onPresetSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Presets',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: TestPresets.all.map((preset) {
-            return ActionChip(
-              avatar: Icon(preset.icon, size: 18),
-              label: Text(preset.name),
-              tooltip: preset.description,
-              onPressed: () => onPresetSelected(preset.config),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Selecciona un preset o personaliza cada opción abajo.',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
-    );
-  }
-}
-
-class _DurationCard extends StatelessWidget {
-  final int value;
-  final ValueChanged<int> onChanged;
-  const _DurationCard({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Duración (segundos)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: value.toDouble(),
-              min: AppConstants.minDurationSeconds.toDouble(),
-              max: AppConstants.maxDurationSeconds.toDouble(),
-              divisions: 29,
-              label: '$value s',
-              onChanged: (v) => onChanged(v.round()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SizeCard extends StatelessWidget {
-  final double value;
-  final bool isRandom;
-  final ValueChanged<double> onChanged;
-  final ValueChanged<bool> onRandomChanged;
-  const _SizeCard({
-    required this.value,
-    required this.isRandom,
-    required this.onChanged,
-    required this.onRandomChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final double normalized =
-        ((value - AppConstants.minSizePercent) /
-                (AppConstants.maxSizePercent - AppConstants.minSizePercent))
-            .clamp(0.0, 1.0);
-
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Tamaño (%)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: value,
-              min: AppConstants.minSizePercent,
-              max: AppConstants.maxSizePercent,
-              divisions: 30,
-              label: '${(normalized * 100).round()}%',
-              onChanged: isRandom ? null : onChanged,
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: isRandom,
-              onChanged: onRandomChanged,
-              title: const Text('Variar tamaño aleatoriamente'),
-              subtitle: const Text(
-                'Si se activa, cada estímulo ajustará su tamaño alrededor del valor configurado.',
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

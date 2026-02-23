@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/test_config.dart';
 import 'section_card.dart';
 
@@ -20,24 +21,25 @@ class SymbolSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       children: [
         SectionCard(
-          title: 'Tipo de estímulo',
+          title: l.symbolTitle,
           child: SegmentedButton<SimboloCategoria>(
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: SimboloCategoria.letras,
-                label: _SegmentLabel(icon: Icons.translate, text: 'Letras'),
+                label: _IconLabel(icon: Icons.translate, text: l.symbolLetters),
               ),
               ButtonSegment(
                 value: SimboloCategoria.numeros,
-                label: _SegmentLabel(icon: Icons.pin, text: 'Números'),
+                label: _IconLabel(icon: Icons.pin, text: l.symbolNumbers),
               ),
               ButtonSegment(
                 value: SimboloCategoria.formas,
-                label: _SegmentLabel(
-                    icon: Icons.category_outlined, text: 'Formas'),
+                label: _IconLabel(
+                    icon: Icons.category_outlined, text: l.symbolShapes),
               ),
             ],
             selected: {categoria},
@@ -46,7 +48,7 @@ class SymbolSelector extends StatelessWidget {
         ),
         if (categoria == SimboloCategoria.formas)
           SectionCard(
-            title: 'Forma (opcional)',
+            title: l.symbolFormTitle,
             child: Wrap(
               spacing: 10,
               runSpacing: 8,
@@ -55,9 +57,9 @@ class SymbolSelector extends StatelessWidget {
                   final isSelected = f == forma;
                   return ChoiceChip(
                     key: ValueKey(f.name),
-                    label: _FormaLabel(
+                    label: _IconLabel(
                       icon: _iconForForma(f),
-                      text: f.label,
+                      text: _formaLabel(l, f),
                     ),
                     selected: isSelected,
                     onSelected: (selected) {
@@ -75,9 +77,9 @@ class SymbolSelector extends StatelessWidget {
                 }),
                 ChoiceChip(
                   key: const ValueKey('aleatoria'),
-                  label: const _FormaLabel(
+                  label: _IconLabel(
                     icon: Icons.all_inclusive,
-                    text: 'Aleatoria',
+                    text: l.symbolFormRandom,
                   ),
                   selected: forma == null,
                   onSelected: (selected) {
@@ -96,28 +98,18 @@ class SymbolSelector extends StatelessWidget {
   }
 }
 
-class _SegmentLabel extends StatelessWidget {
+String _formaLabel(AppLocalizations l, Forma f) => switch (f) {
+      Forma.circulo => l.formaCircle,
+      Forma.cuadrado => l.formaSquare,
+      Forma.corazon => l.formaHeart,
+      Forma.triangulo => l.formaTriangle,
+      Forma.trebol => l.formaClover,
+    };
+
+class _IconLabel extends StatelessWidget {
   final IconData icon;
   final String text;
-  const _SegmentLabel({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16),
-        const SizedBox(width: 6),
-        Text(text),
-      ],
-    );
-  }
-}
-
-class _FormaLabel extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _FormaLabel({required this.icon, required this.text});
+  const _IconLabel({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {

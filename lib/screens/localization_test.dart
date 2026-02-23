@@ -1,13 +1,18 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import '../constants/app_constants.dart';
+import '../l10n/app_localizations.dart';
+import '../mixins/immersive_test_mixin.dart';
 import '../models/test_config.dart';
 import '../models/localization_config.dart';
 import '../models/localization_result.dart';
+import '../utils/stimulus_positioning.dart';
+import '../utils/stimulus_color_utils.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
+import '../widgets/test_ui/pause_overlay.dart';
+import '../widgets/test_ui/test_control_buttons.dart';
+import '../widgets/test_ui/test_timer_display.dart';
 import 'localization_results_screen.dart';
 
 class LocalizationTest extends StatefulWidget {
@@ -61,7 +66,7 @@ class _FeedbackIndicator {
 }
 
 class _LocalizationTestState extends State<LocalizationTest>
-    with WidgetsBindingObserver, TickerProviderStateMixin {
+    with WidgetsBindingObserver, TickerProviderStateMixin, ImmersiveTestMixin {
   Timer? _stimulusTimer;
   Timer? _endTimer;
   Timer? _countdownTimer;
@@ -69,6 +74,10 @@ class _LocalizationTestState extends State<LocalizationTest>
 
   late int _remaining;
   bool _isPaused = false;
+
+  // Cuenta regresiva pre-test
+  int _preCountdown = 3;
+  bool _testStarted = false;
 
   // Estímulos activos en pantalla
   final List<_ActiveStimulus> _activeStimuli = [];
@@ -89,39 +98,35 @@ class _LocalizationTestState extends State<LocalizationTest>
   int _missedStimuli = 0;
   final List<double> _reactionTimesMs = [];
 
-  late final DateTime _startedAt;
+  DateTime _startedAt = DateTime.now();
   final _rand = Random();
+  late final StimulusPositioning _positioning;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _remaining = widget.config.duracionSegundos.clamp(1, 3600);
-    _startedAt = DateTime.now();
 
-    // Modo inmersivo y landscape
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight,
-    ]);
+    _positioning = StimulusPositioning(
+      random: _rand,
+      distanciaModo: widget.config.distanciaModo,
+      distanciaPct: widget.config.distanciaPct,
+    );
+
+    initImmersiveMode();
 
     // Generar estímulo central inicial
     _generateCenterStimulus();
 
-    _startTest();
+    _runPreCountdown();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _cancelAllTimers();
-
-    SystemChrome.setEnabledSystemUIMode(
-      SystemUiMode.edgeToEdge,
-      overlays: SystemUiOverlay.values,
-    );
-    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+    disposeImmersiveMode();
 
     super.dispose();
   }
@@ -180,7 +185,6 @@ class _LocalizationTestState extends State<LocalizationTest>
         .where((c) => !exclude.contains(c))
         .toList();
     if (available.isEmpty) {
-      // Si no quedan colores únicos, al menos diferente al centro
       return _pickDifferentColor(_centerColorOption);
     }
     return available[_rand.nextInt(available.length)];
@@ -191,13 +195,28 @@ class _LocalizationTestState extends State<LocalizationTest>
     final available =
         Forma.values.where((f) => !exclude.contains(f)).toList();
     if (available.isEmpty) {
-      // Si no quedan formas únicas, al menos diferente al centro
       return _pickDifferentForma(_centerForma ?? Forma.circulo);
     }
     return available[_rand.nextInt(available.length)];
   }
 
   // --- Test lifecycle ---
+
+  void _runPreCountdown() {
+    _preCountdown = 3;
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() {
+        _preCountdown--;
+        if (_preCountdown <= 0) {
+          t.cancel();
+          _testStarted = true;
+          _startedAt = DateTime.now();
+          _startTest();
+        }
+      });
+    });
+  }
 
   void _startTest() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
@@ -234,15 +253,15 @@ class _LocalizationTestState extends State<LocalizationTest>
     _removeExpiredStimuli();
 
     final sz = MediaQuery.of(context).size;
-    final sizePx = _resolveStimulusSize(sz);
+    final sizePx = _positioning.resolveStimulusSize(sz, widget.config.tamanoPorc);
     final count = widget.config.stimuliSimultaneos;
 
     // Generar posiciones sin solapamiento
-    final positions = _generateNonOverlappingPositions(count, sz, sizePx);
+    final positions = _positioning.generateNonOverlappingPositions(
+        count, sz, sizePx, widget.config.lado);
 
     // Decidir cuántos targets vs distractores
     final stimuli = <_ActiveStimulus>[];
-    // Rastrear colores y formas ya usados por distractores para no repetir
     final usedDistractorColors = <EstimuloColor>[];
     final usedDistractorFormas = <Forma>[];
 
@@ -282,7 +301,6 @@ class _LocalizationTestState extends State<LocalizationTest>
     if (modo == LocalizationMode.tocarTodos) return true;
 
     if (total == 1) {
-      // Con 1 estímulo: 50% target, 50% distractor para que sea un reto
       return _rand.nextBool();
     }
 
@@ -305,12 +323,10 @@ class _LocalizationTestState extends State<LocalizationTest>
     EstimuloColor colorOption;
 
     if (isTarget || modo == LocalizationMode.tocarTodos) {
-      // Target: mismas propiedades que el centro
       forma = _centerForma;
       text = _centerText;
       colorOption = _centerColorOption;
     } else {
-      // Distractor: depende del modo, SIEMPRE diferente a otros distractores
       final excludeColors = [_centerColorOption, ...usedDistractorColors];
       final excludeFormas = [
         if (_centerForma != null) _centerForma!,
@@ -319,7 +335,6 @@ class _LocalizationTestState extends State<LocalizationTest>
 
       switch (modo) {
         case LocalizationMode.igualarCentro:
-          // Cambiar forma Y color (cada distractor diferente entre sí)
           if (widget.config.categoria == SimboloCategoria.formas) {
             forma = _pickUniqueForma(excludeFormas);
             text = null;
@@ -330,7 +345,6 @@ class _LocalizationTestState extends State<LocalizationTest>
           colorOption = _pickUniqueColor(excludeColors);
           break;
         case LocalizationMode.mismoColor:
-          // Distractor = distinto color; misma forma para confundir
           if (widget.config.categoria == SimboloCategoria.formas) {
             forma = _centerForma;
           } else {
@@ -339,7 +353,6 @@ class _LocalizationTestState extends State<LocalizationTest>
           colorOption = _pickUniqueColor(excludeColors);
           break;
         case LocalizationMode.mismaForma:
-          // Distractor = distinta forma; color variado para confundir
           if (widget.config.categoria == SimboloCategoria.formas) {
             forma = _pickUniqueForma(excludeFormas);
           } else {
@@ -348,7 +361,6 @@ class _LocalizationTestState extends State<LocalizationTest>
           colorOption = _pickUniqueColor(excludeColors);
           break;
         case LocalizationMode.tocarTodos:
-          // No debería llegar aquí
           forma = _centerForma;
           text = _centerText;
           colorOption = _centerColorOption;
@@ -454,167 +466,6 @@ class _LocalizationTestState extends State<LocalizationTest>
     });
   }
 
-  // --- Posicionamiento (similar a dynamic_periphery_test) ---
-
-  List<Offset> _generateNonOverlappingPositions(
-      int count, Size screenSize, double sizePx) {
-    final positions = <Offset>[];
-    final minSep = sizePx * 1.5;
-    int attempts = 0;
-    const maxAttempts = 50;
-
-    while (positions.length < count && attempts < maxAttempts) {
-      attempts++;
-      final side = _resolveSide();
-      final center =
-          _generateCenterForSide(side, screenSize, sizePx);
-      final topLeft = Offset(
-        (center.dx - sizePx / 2).clamp(
-            AppConstants.edgeMargin,
-            max(AppConstants.edgeMargin,
-                screenSize.width - sizePx - AppConstants.edgeMargin)),
-        (center.dy - sizePx / 2).clamp(
-            AppConstants.edgeMargin,
-            max(AppConstants.edgeMargin,
-                screenSize.height - sizePx - AppConstants.edgeMargin)),
-      );
-
-      // Verificar no solapamiento
-      bool overlaps = false;
-      for (final existing in positions) {
-        final dist = (topLeft - existing).distance;
-        if (dist < minSep) {
-          overlaps = true;
-          break;
-        }
-      }
-      if (!overlaps) {
-        positions.add(topLeft);
-      }
-    }
-
-    // Si no se generaron suficientes, rellenar con el último válido
-    while (positions.length < count && positions.isNotEmpty) {
-      positions.add(positions.last);
-    }
-
-    return positions;
-  }
-
-  String _resolveSide() {
-    return switch (widget.config.lado) {
-      Lado.izquierda => 'left',
-      Lado.derecha => 'right',
-      Lado.arriba => 'top',
-      Lado.abajo => 'bottom',
-      Lado.ambos => _rand.nextBool() ? 'left' : 'right',
-      Lado.aleatorio =>
-        ['left', 'right', 'top', 'bottom'][_rand.nextInt(4)],
-    };
-  }
-
-  Offset _generateCenterForSide(
-      String side, Size screenSize, double sizePx) {
-    final center =
-        Offset(screenSize.width / 2, screenSize.height / 2);
-    final maxRadius = min(screenSize.width, screenSize.height) / 2 -
-        AppConstants.edgeMargin -
-        sizePx / 2;
-    if (maxRadius <= 0) return center;
-
-    final safeRadius = min(
-      maxRadius,
-      max(AppConstants.centerClearance, sizePx * 0.75),
-    );
-    final minPct = (safeRadius / maxRadius).clamp(0.0, 1.0);
-    double pct;
-
-    if (widget.config.distanciaModo == DistanciaModo.fijo) {
-      pct = (widget.config.distanciaPct / 100).clamp(minPct, 1.0);
-    } else {
-      pct = _randRange(minPct, 1.0);
-    }
-
-    final radius = maxRadius * pct;
-    final angle = _angleForSide(side);
-    final target = Offset(
-      center.dx + cos(angle) * radius,
-      center.dy + sin(angle) * radius,
-    );
-
-    final minX = AppConstants.edgeMargin + sizePx / 2;
-    final maxX =
-        screenSize.width - AppConstants.edgeMargin - sizePx / 2;
-    final minY = AppConstants.edgeMargin + sizePx / 2;
-    final maxY =
-        screenSize.height - AppConstants.edgeMargin - sizePx / 2;
-
-    return Offset(
-      target.dx.clamp(minX, maxX),
-      target.dy.clamp(minY, maxY),
-    );
-  }
-
-  double _angleForSide(String side) {
-    const double pad = 0.35;
-    double angle;
-
-    switch (side) {
-      case 'left':
-        angle = _randRange(pi / 2 + pad, (3 * pi / 2) - pad);
-        break;
-      case 'right':
-        angle = _randRange(-pi / 2 + pad, pi / 2 - pad);
-        break;
-      case 'top':
-        angle = _randRange(pad, pi - pad);
-        break;
-      case 'bottom':
-        angle = _randRange(pi + pad, (2 * pi) - pad);
-        break;
-      default:
-        angle = _randRange(0, 2 * pi);
-    }
-
-    return _normalizeAngle(angle);
-  }
-
-  double _randRange(double minValue, double maxValue) {
-    if (maxValue <= minValue) return minValue;
-    return minValue + _rand.nextDouble() * (maxValue - minValue);
-  }
-
-  double _normalizeAngle(double angle) {
-    final full = 2 * pi;
-    var normalized = angle;
-    while (normalized < 0) normalized += full;
-    while (normalized >= full) normalized -= full;
-    return normalized;
-  }
-
-  double _resolveStimulusSize(Size screenSize) {
-    final shortest = screenSize.shortestSide;
-    return shortest * (widget.config.tamanoPorc / 200);
-  }
-
-  Color? _outlineColorForStimulus(EstimuloColor colorOption) {
-    final fondo = widget.config.fondo;
-    switch (colorOption) {
-      case EstimuloColor.negro:
-        if (fondo == Fondo.oscuro) return Colors.white;
-        break;
-      case EstimuloColor.blanco:
-        if (fondo == Fondo.claro) return Colors.black;
-        break;
-      case EstimuloColor.azul:
-        if (fondo == Fondo.azul) return Colors.black;
-        break;
-      default:
-        break;
-    }
-    return null;
-  }
-
   // --- Pausa / Reanudación ---
 
   void _togglePause() {
@@ -687,9 +538,11 @@ class _LocalizationTestState extends State<LocalizationTest>
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final sz = MediaQuery.of(context).size;
-    // El centro de referencia es más grande que los periféricos para ser claro
-    final centerSizePx = _resolveStimulusSize(sz) * 1.3;
+    final centerSizePx = _positioning.resolveStimulusSize(
+            sz, widget.config.tamanoPorc) *
+        1.3;
 
     return Scaffold(
       body: BackgroundPattern(
@@ -699,7 +552,6 @@ class _LocalizationTestState extends State<LocalizationTest>
         child: Stack(
           children: [
             // El centro SIEMPRE muestra el estímulo de referencia
-            // (forma + color) que el paciente debe buscar en la periferia.
             Center(
               child: Container(
                 width: centerSizePx,
@@ -724,13 +576,12 @@ class _LocalizationTestState extends State<LocalizationTest>
                     forma: stimulus.forma,
                     text: stimulus.text,
                     size: stimulus.sizePx,
-                    side: 'left', // positioning is manual via top/left
                     top: stimulus.top,
                     left: stimulus.left,
                     onTap: () => _onStimulusTapped(stimulus),
                     color: stimulus.colorOption.color,
-                    outlineColor:
-                        _outlineColorForStimulus(stimulus.colorOption),
+                    outlineColor: outlineColorForStimulus(
+                        stimulus.colorOption, widget.config.fondo),
                   )),
 
             // Indicadores de feedback
@@ -759,113 +610,32 @@ class _LocalizationTestState extends State<LocalizationTest>
                   ),
                 )),
 
-            // Tiempo restante
-            Positioned(
-              top: 24,
-              left: 24,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'Tiempo: $_remaining s  |  Aciertos: $_correctTouches',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
+            TestTimerDisplay(
+              text: l.testTimeAndHits(_remaining, _correctTouches),
             ),
-
-            // Botones de control
-            Positioned(
-              top: 24,
-              right: 24,
-              child: Row(
-                children: [
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.black45,
-                    ),
-                    onPressed: _togglePause,
-                    icon: Icon(
-                        _isPaused ? Icons.play_arrow : Icons.pause),
-                    label:
-                        Text(_isPaused ? 'Reanudar' : 'Pausar'),
-                  ),
-                  const SizedBox(width: 8),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: Colors.black45,
-                    ),
-                    onPressed: () =>
-                        _finishTest(stoppedManually: true),
-                    icon: const Icon(Icons.stop),
-                    label: const Text('Terminar'),
-                  ),
-                ],
-              ),
+            TestControlButtons(
+              isPaused: _isPaused,
+              onTogglePause: _togglePause,
+              onStop: () => _finishTest(stoppedManually: true),
             ),
-
-            // Overlay de pausa
             if (_isPaused)
+              PauseOverlay(
+                remainingSeconds: _remaining,
+                onResume: _togglePause,
+                onStop: () => _finishTest(stoppedManually: true),
+              ),
+            if (!_testStarted)
               Positioned.fill(
                 child: Container(
-                  color: Colors.black.withValues(alpha: 0.7),
+                  color: Colors.black.withValues(alpha: 0.8),
                   child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.pause_circle_filled,
-                          size: 80,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'PRUEBA EN PAUSA',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Tiempo restante: $_remaining s',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            FilledButton.icon(
-                              onPressed: _togglePause,
-                              icon: const Icon(Icons.play_arrow),
-                              label: const Text('Reanudar'),
-                            ),
-                            const SizedBox(width: 16),
-                            OutlinedButton.icon(
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                side: const BorderSide(
-                                    color: Colors.white54),
-                              ),
-                              onPressed: () =>
-                                  _finishTest(stoppedManually: true),
-                              icon: const Icon(Icons.stop),
-                              label: const Text('Terminar'),
-                            ),
-                          ],
-                        ),
-                      ],
+                    child: Text(
+                      '$_preCountdown',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 120,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),

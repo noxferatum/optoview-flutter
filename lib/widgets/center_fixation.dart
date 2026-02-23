@@ -29,7 +29,7 @@ class CenterFixation extends StatelessWidget {
   }
 
   Widget _buildFixation(Color color, {bool isShadow = false}) {
-    final double mainSize = 64;
+    const double mainSize = 64.0;
     final double shadowOffset = isShadow ? 2.0 : 0.0;
 
     switch (tipo) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/test_result.dart';
 import 'dynamic_periphery_test.dart';
 
@@ -9,17 +10,19 @@ class TestResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
     final summary = result.config.summaryMap;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Resultados de la prueba'),
+        title: Text(l.resultsTitle),
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      body: Center(
-        child: SingleChildScrollView(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 600),
@@ -38,8 +41,8 @@ class TestResultsScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   result.completedNaturally
-                      ? 'Prueba completada'
-                      : 'Prueba detenida',
+                      ? l.resultsCompleted
+                      : l.resultsStopped,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -55,27 +58,27 @@ class TestResultsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Estadísticas',
+                          l.statsTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 12),
                         _StatRow(
-                          label: 'Duración real',
+                          label: l.statsActualDuration,
                           value: '${result.durationActualSeconds}s',
                         ),
                         _StatRow(
-                          label: 'Duración configurada',
+                          label: l.statsConfigDuration,
                           value: '${result.config.duracionSegundos}s',
                         ),
                         _StatRow(
-                          label: 'Estímulos mostrados',
+                          label: l.statsStimuliShown,
                           value: '${result.totalStimuliShown}',
                         ),
                         if (result.durationActualSeconds > 0)
                           _StatRow(
-                            label: 'Estímulos/minuto',
+                            label: l.statsStimuliPerMinute,
                             value: result.stimuliPerMinute.toStringAsFixed(1),
                           ),
                       ],
@@ -93,7 +96,7 @@ class TestResultsScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Text(
-                          'Configuración usada',
+                          l.configUsedTitle,
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                           ),
@@ -123,7 +126,7 @@ class TestResultsScreen extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.replay),
-                      label: const Text('Repetir prueba'),
+                      label: Text(l.resultsRepeat),
                     ),
                     const SizedBox(width: 16),
                     OutlinedButton.icon(
@@ -134,7 +137,7 @@ class TestResultsScreen extends StatelessWidget {
                         );
                       },
                       icon: const Icon(Icons.home),
-                      label: const Text('Volver al menú'),
+                      label: Text(l.resultsHome),
                     ),
                   ],
                 ),
@@ -142,6 +145,7 @@ class TestResultsScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
       ),
     );
   }

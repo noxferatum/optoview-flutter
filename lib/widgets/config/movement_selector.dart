@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/test_config.dart';
 import 'section_card.dart';
 
@@ -14,27 +15,28 @@ class MovementSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return SectionCard(
-      title: 'Movimiento del estímulo',
+      title: l.movementTitle,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SegmentedButton<Movimiento>(
-            segments: const [
-              ButtonSegment(value: Movimiento.fijo, label: Text('Fijo')),
+            segments: [
+              ButtonSegment(value: Movimiento.fijo, label: Text(l.movementFixed)),
               ButtonSegment(
-                  value: Movimiento.horizontal, label: Text('Horizontal')),
+                  value: Movimiento.horizontal, label: Text(l.movementHorizontal)),
               ButtonSegment(
-                  value: Movimiento.vertical, label: Text('Vertical')),
+                  value: Movimiento.vertical, label: Text(l.movementVertical)),
               ButtonSegment(
-                  value: Movimiento.aleatorio, label: Text('Aleatorio')),
+                  value: Movimiento.aleatorio, label: Text(l.movementRandom)),
             ],
             selected: {value},
             onSelectionChanged: (s) => onChanged(s.first),
           ),
           const SizedBox(height: 12),
           Text(
-            _descripcionMovimiento(value),
+            _descripcionMovimiento(l, value),
             style: Theme.of(context).textTheme.bodySmall,
           ),
         ],
@@ -42,13 +44,10 @@ class MovementSelector extends StatelessWidget {
     );
   }
 
-  String _descripcionMovimiento(Movimiento m) => switch (m) {
-        Movimiento.fijo => 'El estímulo permanece estático en su posición.',
-        Movimiento.horizontal =>
-          'El estímulo se desliza de izquierda a derecha o viceversa.',
-        Movimiento.vertical =>
-          'El estímulo se desliza de arriba a abajo o viceversa.',
-        Movimiento.aleatorio =>
-          'El estímulo cambia aleatoriamente entre desplazamiento horizontal y vertical.',
+  String _descripcionMovimiento(AppLocalizations l, Movimiento m) => switch (m) {
+        Movimiento.fijo => l.movementDescFixed,
+        Movimiento.horizontal => l.movementDescHorizontal,
+        Movimiento.vertical => l.movementDescVertical,
+        Movimiento.aleatorio => l.movementDescRandom,
       };
 }

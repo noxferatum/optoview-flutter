@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../constants/app_constants.dart';
+import '../l10n/app_localizations.dart';
 import '../models/localization_config.dart';
 import '../models/localization_presets.dart';
 import '../services/config_storage.dart';
@@ -10,6 +10,9 @@ import '../widgets/config/speed_selector.dart';
 import '../widgets/config/distance_selector.dart';
 import '../widgets/config/background_selector.dart';
 import '../widgets/config/section_card.dart';
+import '../widgets/config/duration_card.dart';
+import '../widgets/config/size_card.dart';
+import '../widgets/config/presets_row.dart';
 
 import 'localization_test.dart';
 
@@ -51,8 +54,32 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
     );
   }
 
+  String _locModeLabel(AppLocalizations l, LocalizationMode mode) =>
+      switch (mode) {
+        LocalizationMode.tocarTodos => l.locModeTouchAll,
+        LocalizationMode.igualarCentro => l.locModeMatchCenter,
+        LocalizationMode.mismoColor => l.locModeSameColor,
+        LocalizationMode.mismaForma => l.locModeSameShape,
+      };
+
+  String _locModeDescription(AppLocalizations l, LocalizationMode mode) =>
+      switch (mode) {
+        LocalizationMode.tocarTodos => l.locModeTouchAllDesc,
+        LocalizationMode.igualarCentro => l.locModeMatchCenterDesc,
+        LocalizationMode.mismoColor => l.locModeSameColorDesc,
+        LocalizationMode.mismaForma => l.locModeSameShapeDesc,
+      };
+
+  String _disappearLabel(AppLocalizations l, DisappearMode mode) =>
+      switch (mode) {
+        DisappearMode.porTiempo => l.locDisappearByTime,
+        DisappearMode.esperarToque => l.locDisappearWaitTouch,
+      };
+
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
     if (_isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -60,13 +87,15 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Test de localización periférica')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
+      appBar: AppBar(title: Text(l.configLocalizationTitle)),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
           children: [
             // Presets
-            _PresetsRow(
+            PresetsRow<LocalizationConfig>(
+              presets: LocalizationPresets.all,
               onPresetSelected: (preset) => setState(() {
                 config = preset;
               }),
@@ -75,7 +104,7 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
 
             // Modo de localización
             SectionCard(
-              title: 'Modo de localización',
+              title: l.locModeTitle,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -83,7 +112,7 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
                     segments: LocalizationMode.values
                         .map((m) => ButtonSegment(
                               value: m,
-                              label: Text(m.label),
+                              label: Text(_locModeLabel(l, m)),
                             ))
                         .toList(),
                     selected: {config.modo},
@@ -93,7 +122,7 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    config.modo.description,
+                    _locModeDescription(l, config.modo),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -103,7 +132,7 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
 
             // Opciones de localización
             SectionCard(
-              title: 'Opciones de interacción',
+              title: l.locInteractionTitle,
               child: Column(
                 children: [
                   SwitchListTile(
@@ -112,11 +141,11 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
                     onChanged: (v) => setState(() {
                       config = config.copyWith(centroFijo: v);
                     }),
-                    title: const Text('Centro fijo'),
+                    title: Text(l.locCenterFixed),
                     subtitle: Text(
                       config.centroFijo
-                          ? 'El estímulo central no cambia durante la prueba'
-                          : 'El estímulo central cambia cada ciclo',
+                          ? l.locCenterFixedOn
+                          : l.locCenterFixedOff,
                     ),
                   ),
                   SwitchListTile(
@@ -125,24 +154,22 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
                     onChanged: (v) => setState(() {
                       config = config.copyWith(feedbackVisual: v);
                     }),
-                    title: const Text('Feedback visual'),
-                    subtitle: const Text(
-                      'Mostrar indicación visual al tocar (acierto/error)',
-                    ),
+                    title: Text(l.locFeedback),
+                    subtitle: Text(l.locFeedbackSubtitle),
                   ),
                   const Divider(),
                   const SizedBox(height: 8),
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Desaparición del estímulo',
-                        style: TextStyle(fontWeight: FontWeight.w500)),
+                    child: Text(l.locDisappearTitle,
+                        style: const TextStyle(fontWeight: FontWeight.w500)),
                   ),
                   const SizedBox(height: 8),
                   SegmentedButton<DisappearMode>(
                     segments: DisappearMode.values
                         .map((m) => ButtonSegment(
                               value: m,
-                              label: Text(m.label),
+                              label: Text(_disappearLabel(l, m)),
                             ))
                         .toList(),
                     selected: {config.desaparicion},
@@ -151,10 +178,10 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
                     }),
                   ),
                   const SizedBox(height: 12),
-                  const Align(
+                  Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Estímulos simultáneos',
-                        style: TextStyle(fontWeight: FontWeight.w500)),
+                    child: Text(l.locSimultaneousTitle,
+                        style: const TextStyle(fontWeight: FontWeight.w500)),
                   ),
                   Slider(
                     value: config.stimuliSimultaneos.toDouble(),
@@ -223,7 +250,7 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
             const SizedBox(height: 16),
 
             // Duración
-            _DurationCard(
+            DurationCard(
               value: config.duracionSegundos,
               onChanged: (v) => setState(() {
                 config = config.copyWith(duracionSegundos: v);
@@ -232,7 +259,7 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
             const SizedBox(height: 16),
 
             // Tamaño
-            _SizeCard(
+            SizeCard(
               value: config.tamanoPorc,
               onChanged: (v) => setState(() {
                 config = config.copyWith(tamanoPorc: v);
@@ -265,119 +292,11 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
               child: FilledButton.icon(
                 onPressed: _startTest,
                 icon: const Icon(Icons.play_arrow),
-                label: const Text('Iniciar prueba'),
+                label: Text(l.startTest),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ---- Widgets internos ----
-
-class _PresetsRow extends StatelessWidget {
-  final ValueChanged<LocalizationConfig> onPresetSelected;
-
-  const _PresetsRow({required this.onPresetSelected});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Presets',
-          style: Theme.of(context)
-              .textTheme
-              .titleMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: LocalizationPresets.all.map((preset) {
-            return ActionChip(
-              avatar: Icon(preset.icon, size: 18),
-              label: Text(preset.name),
-              tooltip: preset.description,
-              onPressed: () => onPresetSelected(preset.config),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Selecciona un preset o personaliza cada opción abajo.',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
-      ],
-    );
-  }
-}
-
-class _DurationCard extends StatelessWidget {
-  final int value;
-  final ValueChanged<int> onChanged;
-  const _DurationCard({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Duración (segundos)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: value.toDouble(),
-              min: AppConstants.minDurationSeconds.toDouble(),
-              max: AppConstants.maxDurationSeconds.toDouble(),
-              divisions: 29,
-              label: '$value s',
-              onChanged: (v) => onChanged(v.round()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SizeCard extends StatelessWidget {
-  final double value;
-  final ValueChanged<double> onChanged;
-  const _SizeCard({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    final double normalized =
-        ((value - AppConstants.minSizePercent) /
-                (AppConstants.maxSizePercent - AppConstants.minSizePercent))
-            .clamp(0.0, 1.0);
-
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Tamaño (%)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: value,
-              min: AppConstants.minSizePercent,
-              max: AppConstants.maxSizePercent,
-              divisions: 30,
-              label: '${(normalized * 100).round()}%',
-              onChanged: onChanged,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

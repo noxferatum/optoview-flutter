@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/test_config.dart';
 import 'section_card.dart';
 
@@ -14,13 +15,14 @@ class SpeedSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return SectionCard(
-      title: 'Velocidad',
+      title: l.speedTitle,
       child: SegmentedButton<Velocidad>(
-        segments: const [
-          ButtonSegment(value: Velocidad.lenta, label: Text('Lenta')),
-          ButtonSegment(value: Velocidad.media, label: Text('Media')),
-          ButtonSegment(value: Velocidad.rapida, label: Text('Rápida')),
+        segments: [
+          ButtonSegment(value: Velocidad.lenta, label: Text(l.speedSlow)),
+          ButtonSegment(value: Velocidad.media, label: Text(l.speedMedium)),
+          ButtonSegment(value: Velocidad.rapida, label: Text(l.speedFast)),
         ],
         selected: {value},
         onSelectionChanged: (s) => onChanged(s.first),

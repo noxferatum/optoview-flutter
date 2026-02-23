@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../l10n/app_localizations.dart';
 
 class CreditsScreen extends StatefulWidget {
   const CreditsScreen({super.key});
@@ -28,15 +29,17 @@ class _CreditsScreenState extends State<CreditsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Créditos'),
+        title: Text(l.creditsTitle),
         centerTitle: true,
       ),
-      body: Center(
-        child: SingleChildScrollView(
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 700),
@@ -52,7 +55,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
                 const SizedBox(height: 24),
                 // Título
                 Text(
-                  'Optoview',
+                  l.creditsAppName,
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
@@ -61,9 +64,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
                 const SizedBox(height: 12),
                 // Texto descriptivo
                 Text(
-                  'Esta aplicación ha sido desarrollada con la ayuda de la '
-                  'optometrista titulada experta en terapia visual\n'
-                  'Estefanía Rodríguez-Bobada Lillo.',
+                  l.creditsDescription,
                   style: theme.textTheme.bodyLarge,
                   textAlign: TextAlign.center,
                 ),
@@ -72,30 +73,31 @@ class _CreditsScreenState extends State<CreditsScreen> {
                 const SizedBox(height: 16),
                 _InfoRow(
                   icon: Icons.apartment,
-                  label: 'Empresa',
+                  label: l.creditsCompany,
                   value: 'Optoview',
                 ),
                 _InfoRow(
                   icon: Icons.calendar_today,
-                  label: 'Año',
+                  label: l.creditsYear,
                   value: DateTime.now().year.toString(),
                 ),
                 if (_version.isNotEmpty)
                   _InfoRow(
                     icon: Icons.settings,
-                    label: 'Versión',
+                    label: l.creditsVersion,
                     value: '$_version (build $_buildNumber)',
                   ),
                 const SizedBox(height: 32),
                 FilledButton.icon(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.arrow_back),
-                  label: const Text('Volver'),
+                  label: Text(l.creditsBack),
                 ),
               ],
             ),
           ),
         ),
+      ),
       ),
     );
   }
