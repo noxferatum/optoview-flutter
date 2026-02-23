@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../models/test_config.dart';
+import '../models/test_presets.dart';
+import '../services/config_storage.dart';
 
-// Selectores existentes
 import '../widgets/config/side_selector.dart';
 import '../widgets/config/symbol_selector.dart';
 import '../widgets/config/speed_selector.dart';
 import '../widgets/config/movement_selector.dart';
 import '../widgets/config/distance_selector.dart';
-
-// Nuevos selectores
 import '../widgets/config/fixation_selector.dart';
 import '../widgets/config/background_selector.dart';
 import '../widgets/config/stimulus_color_selector.dart';
+import '../widgets/config/duration_card.dart';
+import '../widgets/config/size_card.dart';
+import '../widgets/config/presets_row.dart';
 
-// Pantalla del test
 import 'dynamic_periphery_test.dart';
 
 class ConfigScreen extends StatefulWidget {
@@ -24,25 +26,27 @@ class ConfigScreen extends StatefulWidget {
 }
 
 class _ConfigScreenState extends State<ConfigScreen> {
-  TestConfig config = const TestConfig(
-    lado: Lado.aleatorio,
-    categoria: SimboloCategoria.formas,
-    forma: null, // Aleatoria por defecto
-    velocidad: Velocidad.media,
-    movimiento: Movimiento.aleatorio,
-    duracionSegundos: 60,
-    tamanoPorc: 15,
-    tamanoAleatorio: true,
-    distanciaPct: 80,
-    distanciaModo: DistanciaModo.aleatorio,
-    fijacion: Fijacion.punto,
-    fondo: Fondo.oscuro,
-    fondoDistractor: true,
-    fondoDistractorAnimado: true,
-    estimuloColor: EstimuloColor.aleatorio,
-  );
+  TestConfig config = TestPresets.standard;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedConfig();
+  }
+
+  Future<void> _loadSavedConfig() async {
+    final saved = await ConfigStorage.loadConfig();
+    if (mounted) {
+      setState(() {
+        if (saved != null) config = saved;
+        _isLoading = false;
+      });
+    }
+  }
 
   void _startTest() {
+    ConfigStorage.saveConfig(config);
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -53,12 +57,30 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Test de estimulación periférica')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: ListView(
-          children: [
+      appBar: AppBar(title: Text(l.configPeripheralTitle)),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: [
+              // Presets
+              PresetsRow<TestConfig>(
+              presets: TestPresets.all,
+              onPresetSelected: (preset) => setState(() {
+                config = preset;
+              }),
+            ),
+            const Divider(height: 24),
+
             // Lado
             SideSelector(
               value: config.lado,
@@ -129,7 +151,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             const SizedBox(height: 16),
 
             // Duración
-            _DurationCard(
+            DurationCard(
               value: config.duracionSegundos,
               onChanged: (v) => setState(() {
                 config = config.copyWith(duracionSegundos: v);
@@ -138,7 +160,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
             const SizedBox(height: 16),
 
             // Tamaño
-            _SizeCard(
+            SizeCard(
               value: config.tamanoPorc,
               isRandom: config.tamanoAleatorio,
               onChanged: (v) => setState(() {
@@ -184,98 +206,13 @@ class _ConfigScreenState extends State<ConfigScreen> {
               child: FilledButton.icon(
                 onPressed: _startTest,
                 icon: const Icon(Icons.play_arrow),
-                label: const Text('Iniciar prueba'),
+                label: Text(l.startTest),
               ),
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
-
-// ---- Widgets internos ----
-
-class _DurationCard extends StatelessWidget {
-  final int value;
-  final ValueChanged<int> onChanged;
-  const _DurationCard({required this.value, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Duración (segundos)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: value.toDouble(),
-              min: 10,
-              max: 300,
-              divisions: 29,
-              label: '$value s',
-              onChanged: (v) => onChanged(v.round()),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SizeCard extends StatelessWidget {
-  final double value;
-  final bool isRandom;
-  final ValueChanged<double> onChanged;
-  final ValueChanged<bool> onRandomChanged;
-  const _SizeCard({
-    required this.value,
-    required this.isRandom,
-    required this.onChanged,
-    required this.onRandomChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const double minPct = 5;
-    const double maxPct = 35;
-    final double normalized =
-        ((value - minPct) / (maxPct - minPct)).clamp(0.0, 1.0);
-
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('Tamaño (%)',
-                style: TextStyle(fontWeight: FontWeight.w600)),
-            Slider(
-              value: value,
-              min: minPct,
-              max: maxPct,
-              divisions: 30,
-              label: '${(normalized * 100).round()}%',
-              onChanged: isRandom ? null : onChanged,
-            ),
-            SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              value: isRandom,
-              onChanged: onRandomChanged,
-              title: const Text('Variar tamaño aleatoriamente'),
-              subtitle: const Text(
-                'Si se activa, cada estímulo ajustará su tamaño alrededor del valor configurado.',
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-

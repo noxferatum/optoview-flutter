@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/test_config.dart';
+import 'section_card.dart';
 
 class SymbolSelector extends StatelessWidget {
   final SimboloCategoria categoria;
-  final Forma? forma; // null = aleatoria
+  final Forma? forma;
   final ValueChanged<SimboloCategoria> onCategoriaChanged;
   final ValueChanged<Forma?> onFormaChanged;
   final VoidCallback onFormaClear;
@@ -19,32 +21,25 @@ class SymbolSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
     return Column(
       children: [
-        _SectionCard(
-          title: 'Tipo de estímulo',
+        SectionCard(
+          title: l.symbolTitle,
           child: SegmentedButton<SimboloCategoria>(
-            segments: const [
+            segments: [
               ButtonSegment(
                 value: SimboloCategoria.letras,
-                label: _SegmentLabel(
-                  icon: Icons.translate,
-                  text: 'Letras',
-                ),
+                label: _IconLabel(icon: Icons.translate, text: l.symbolLetters),
               ),
               ButtonSegment(
                 value: SimboloCategoria.numeros,
-                label: _SegmentLabel(
-                  icon: Icons.pin,
-                  text: 'Números',
-                ),
+                label: _IconLabel(icon: Icons.pin, text: l.symbolNumbers),
               ),
               ButtonSegment(
                 value: SimboloCategoria.formas,
-                label: _SegmentLabel(
-                  icon: Icons.category_outlined,
-                  text: 'Formas',
-                ),
+                label: _IconLabel(
+                    icon: Icons.category_outlined, text: l.symbolShapes),
               ),
             ],
             selected: {categoria},
@@ -52,8 +47,8 @@ class SymbolSelector extends StatelessWidget {
           ),
         ),
         if (categoria == SimboloCategoria.formas)
-          _SectionCard(
-            title: 'Forma (opcional)',
+          SectionCard(
+            title: l.symbolFormTitle,
             child: Wrap(
               spacing: 10,
               runSpacing: 8,
@@ -62,9 +57,9 @@ class SymbolSelector extends StatelessWidget {
                   final isSelected = f == forma;
                   return ChoiceChip(
                     key: ValueKey(f.name),
-                    label: _FormaLabel(
+                    label: _IconLabel(
                       icon: _iconForForma(f),
-                      text: _labelForma(f),
+                      text: _formaLabel(l, f),
                     ),
                     selected: isSelected,
                     onSelected: (selected) {
@@ -77,25 +72,23 @@ class SymbolSelector extends StatelessWidget {
                     selectedColor: Theme.of(context)
                         .colorScheme
                         .primary
-                        .withOpacity(0.25),
+                        .withValues(alpha: 0.25),
                   );
                 }),
                 ChoiceChip(
                   key: const ValueKey('aleatoria'),
-                  label: const _FormaLabel(
+                  label: _IconLabel(
                     icon: Icons.all_inclusive,
-                    text: 'Aleatoria',
+                    text: l.symbolFormRandom,
                   ),
                   selected: forma == null,
                   onSelected: (selected) {
-                    if (selected) {
-                      onFormaChanged(null);
-                    }
+                    if (selected) onFormaChanged(null);
                   },
                   selectedColor: Theme.of(context)
                       .colorScheme
                       .primary
-                      .withOpacity(0.25),
+                      .withValues(alpha: 0.25),
                 ),
               ],
             ),
@@ -103,56 +96,20 @@ class SymbolSelector extends StatelessWidget {
       ],
     );
   }
-
-  String _labelForma(Forma f) {
-    switch (f) {
-      case Forma.circulo:
-        return 'Círculo';
-      case Forma.cuadrado:
-        return 'Cuadrado';
-      case Forma.corazon:
-        return 'Corazón';
-      case Forma.triangulo:
-        return 'Triángulo';
-      case Forma.trebol:
-        return 'Trébol';
-    }
-  }
 }
 
-class _SectionCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-  const _SectionCard({required this.title, required this.child});
+String _formaLabel(AppLocalizations l, Forma f) => switch (f) {
+      Forma.circulo => l.formaCircle,
+      Forma.cuadrado => l.formaSquare,
+      Forma.corazon => l.formaHeart,
+      Forma.triangulo => l.formaTriangle,
+      Forma.trebol => l.formaClover,
+    };
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      elevation: 1,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              title,
-              style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            child,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SegmentLabel extends StatelessWidget {
+class _IconLabel extends StatelessWidget {
   final IconData icon;
   final String text;
-  const _SegmentLabel({required this.icon, required this.text});
+  const _IconLabel({required this.icon, required this.text});
 
   @override
   Widget build(BuildContext context) {
@@ -167,35 +124,10 @@ class _SegmentLabel extends StatelessWidget {
   }
 }
 
-class _FormaLabel extends StatelessWidget {
-  final IconData icon;
-  final String text;
-  const _FormaLabel({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16),
-        const SizedBox(width: 6),
-        Text(text),
-      ],
-    );
-  }
-}
-
-IconData _iconForForma(Forma forma) {
-  switch (forma) {
-    case Forma.circulo:
-      return Icons.circle;
-    case Forma.cuadrado:
-      return Icons.check_box_outline_blank;
-    case Forma.corazon:
-      return Icons.favorite_border;
-    case Forma.triangulo:
-      return Icons.change_history; // triangle icon
-    case Forma.trebol:
-      return Icons.filter_vintage;
-  }
-}
+IconData _iconForForma(Forma forma) => switch (forma) {
+      Forma.circulo => Icons.circle,
+      Forma.cuadrado => Icons.check_box_outline_blank,
+      Forma.corazon => Icons.favorite_border,
+      Forma.triangulo => Icons.change_history,
+      Forma.trebol => Icons.filter_vintage,
+    };

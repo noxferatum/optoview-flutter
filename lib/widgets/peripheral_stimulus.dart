@@ -6,7 +6,6 @@ class PeripheralStimulus extends StatelessWidget {
   final Forma? forma;
   final String? text;
   final double size;
-  final String side; // left, right, top, bottom
   final double top;
   final double left;
   final VoidCallback onTap;
@@ -19,7 +18,6 @@ class PeripheralStimulus extends StatelessWidget {
     this.forma,
     this.text,
     required this.size,
-    required this.side,
     required this.top,
     required this.left,
     required this.onTap,
@@ -30,32 +28,10 @@ class PeripheralStimulus extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Widget content = _buildStimulus(outlineColor);
-    final screen = MediaQuery.of(context).size;
-
-    // Calculamos posición según lado, pero si el test controla `top`/`left`, los usamos directamente
-    double? posTop = top;
-    double? posLeft = left;
-    double? posRight;
-
-    switch (side) {
-      case 'left':
-        posLeft = left == 0 ? 40 : left;
-        break;
-      case 'right':
-        posLeft = screen.width - size - 40;
-        break;
-      case 'top':
-        posTop = 50;
-        break;
-      case 'bottom':
-        posTop = screen.height - size - 100;
-        break;
-    }
 
     return Positioned(
-      top: posTop,
-      left: posLeft,
-      right: posRight,
+      top: top,
+      left: left,
       child: GestureDetector(
         onTap: onTap,
         child: SizedBox(width: size, height: size, child: content),
