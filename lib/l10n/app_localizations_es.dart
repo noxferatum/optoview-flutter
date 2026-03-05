@@ -491,6 +491,24 @@ class AppLocalizationsEs extends AppLocalizations {
   String get summaryKeySimultaneous => 'Estímulos simultáneos';
 
   @override
+  String get summaryKeyInteraction => 'Interacción';
+
+  @override
+  String get summaryKeyVisualization => 'Visualización';
+
+  @override
+  String get summaryKeyDirection => 'Dirección';
+
+  @override
+  String get summaryKeyRings => 'Anillos';
+
+  @override
+  String get summaryKeyLettersPerRing => 'Letras/anillo';
+
+  @override
+  String get summaryKeyRandomLetters => 'Letras aleatorias';
+
+  @override
   String get summaryDistRandom => 'Aleatoria';
 
   @override
@@ -515,6 +533,119 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get summaryNo => 'No';
+
+  @override
+  String get testMacdonaldTitle => 'Carta MacDonald';
+
+  @override
+  String get testMacdonaldSubtitle => 'Entrena la visión periférica con letras en anillos.';
+
+  @override
+  String get configMacdonaldTitle => 'Test Carta MacDonald';
+
+  @override
+  String get macInteractionTitle => 'Modo de interacción';
+
+  @override
+  String get macInteractionTouch => 'Tocar letras';
+
+  @override
+  String get macInteractionTouchDesc => 'Toca cada letra conforme la veas';
+
+  @override
+  String get macInteractionTimed => 'Lectura con tiempo';
+
+  @override
+  String get macInteractionTimedDesc => 'Lee en voz alta con cronómetro';
+
+  @override
+  String get macInteractionSequential => 'Lectura secuencial';
+
+  @override
+  String get macInteractionSequentialDesc => 'La app resalta letras una a una, tú las lees';
+
+  @override
+  String get macVisualizationTitle => 'Modo de visualización';
+
+  @override
+  String get macVisualizationComplete => 'Completa';
+
+  @override
+  String get macVisualizationCompleteDesc => 'Todas las letras visibles desde el inicio';
+
+  @override
+  String get macVisualizationProgressive => 'Progresiva';
+
+  @override
+  String get macVisualizationProgressiveDesc => 'Las letras aparecen una a una';
+
+  @override
+  String get macVisualizationByRings => 'Por anillos';
+
+  @override
+  String get macVisualizationByRingsDesc => 'Las letras aparecen anillo por anillo';
+
+  @override
+  String get macDirectionTitle => 'Dirección de lectura';
+
+  @override
+  String get macDirectionCenterOut => 'Centro → Afuera';
+
+  @override
+  String get macDirectionOutCenter => 'Afuera → Centro';
+
+  @override
+  String get macDirectionClockwise => 'Horario';
+
+  @override
+  String get macDirectionCounterClockwise => 'Antihorario';
+
+  @override
+  String get macRingsTitle => 'Número de anillos';
+
+  @override
+  String get macLettersPerRingTitle => 'Letras por anillo (primer anillo)';
+
+  @override
+  String get macRandomLetters => 'Letras aleatorias';
+
+  @override
+  String get macRandomLettersSubtitle => 'Si se desactiva, se usa la secuencia A-Z';
+
+  @override
+  String get macRevealSpeedTitle => 'Velocidad de revelado';
+
+  @override
+  String get resultsMacTitle => 'Resultados - Carta MacDonald';
+
+  @override
+  String get macStatsRingsCompleted => 'Anillos completados';
+
+  @override
+  String get macStatsTimePerRing => 'Tiempo por anillo';
+
+  @override
+  String get macStatsLettersShown => 'Letras mostradas';
+
+  @override
+  String get macStatsAvgPerRing => 'Promedio por anillo';
+
+  @override
+  String get presetMacStandardDesc => 'Por anillos, lectura con tiempo';
+
+  @override
+  String get presetMacEasyDesc => 'Tocar letras, todo visible, lento';
+
+  @override
+  String get presetMacAdvancedDesc => 'Secuencial, progresiva, rápido';
+
+  @override
+  String get macNextRing => 'Siguiente anillo';
+
+  @override
+  String macRingLabel(int number) {
+    return 'Anillo $number';
+  }
 
   @override
   String get creditsTitle => 'Créditos';

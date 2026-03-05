@@ -1043,6 +1043,42 @@ abstract class AppLocalizations {
   /// **'Simultaneous stimuli'**
   String get summaryKeySimultaneous;
 
+  /// No description provided for @summaryKeyInteraction.
+  ///
+  /// In en, this message translates to:
+  /// **'Interaction'**
+  String get summaryKeyInteraction;
+
+  /// No description provided for @summaryKeyVisualization.
+  ///
+  /// In en, this message translates to:
+  /// **'Visualization'**
+  String get summaryKeyVisualization;
+
+  /// No description provided for @summaryKeyDirection.
+  ///
+  /// In en, this message translates to:
+  /// **'Direction'**
+  String get summaryKeyDirection;
+
+  /// No description provided for @summaryKeyRings.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings'**
+  String get summaryKeyRings;
+
+  /// No description provided for @summaryKeyLettersPerRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters/ring'**
+  String get summaryKeyLettersPerRing;
+
+  /// No description provided for @summaryKeyRandomLetters.
+  ///
+  /// In en, this message translates to:
+  /// **'Random letters'**
+  String get summaryKeyRandomLetters;
+
   /// No description provided for @summaryDistRandom.
   ///
   /// In en, this message translates to:
@@ -1090,6 +1126,228 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get summaryNo;
+
+  /// No description provided for @testMacdonaldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDonald Chart'**
+  String get testMacdonaldTitle;
+
+  /// No description provided for @testMacdonaldSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Train peripheral vision with ring letters.'**
+  String get testMacdonaldSubtitle;
+
+  /// No description provided for @configMacdonaldTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDonald Chart Test'**
+  String get configMacdonaldTitle;
+
+  /// No description provided for @macInteractionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Interaction mode'**
+  String get macInteractionTitle;
+
+  /// No description provided for @macInteractionTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch letters'**
+  String get macInteractionTouch;
+
+  /// No description provided for @macInteractionTouchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch each letter as you see it'**
+  String get macInteractionTouchDesc;
+
+  /// No description provided for @macInteractionTimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Timed reading'**
+  String get macInteractionTimed;
+
+  /// No description provided for @macInteractionTimedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Read aloud with a timer'**
+  String get macInteractionTimedDesc;
+
+  /// No description provided for @macInteractionSequential.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequential reading'**
+  String get macInteractionSequential;
+
+  /// No description provided for @macInteractionSequentialDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The app highlights letters one by one, you read them'**
+  String get macInteractionSequentialDesc;
+
+  /// No description provided for @macVisualizationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visualization mode'**
+  String get macVisualizationTitle;
+
+  /// No description provided for @macVisualizationComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete'**
+  String get macVisualizationComplete;
+
+  /// No description provided for @macVisualizationCompleteDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'All letters visible from the start'**
+  String get macVisualizationCompleteDesc;
+
+  /// No description provided for @macVisualizationProgressive.
+  ///
+  /// In en, this message translates to:
+  /// **'Progressive'**
+  String get macVisualizationProgressive;
+
+  /// No description provided for @macVisualizationProgressiveDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters appear one by one'**
+  String get macVisualizationProgressiveDesc;
+
+  /// No description provided for @macVisualizationByRings.
+  ///
+  /// In en, this message translates to:
+  /// **'By rings'**
+  String get macVisualizationByRings;
+
+  /// No description provided for @macVisualizationByRingsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters appear ring by ring'**
+  String get macVisualizationByRingsDesc;
+
+  /// No description provided for @macDirectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading direction'**
+  String get macDirectionTitle;
+
+  /// No description provided for @macDirectionCenterOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Center → Out'**
+  String get macDirectionCenterOut;
+
+  /// No description provided for @macDirectionOutCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Out → Center'**
+  String get macDirectionOutCenter;
+
+  /// No description provided for @macDirectionClockwise.
+  ///
+  /// In en, this message translates to:
+  /// **'Clockwise'**
+  String get macDirectionClockwise;
+
+  /// No description provided for @macDirectionCounterClockwise.
+  ///
+  /// In en, this message translates to:
+  /// **'Counter-clockwise'**
+  String get macDirectionCounterClockwise;
+
+  /// No description provided for @macRingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of rings'**
+  String get macRingsTitle;
+
+  /// No description provided for @macLettersPerRingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters per ring (first ring)'**
+  String get macLettersPerRingTitle;
+
+  /// No description provided for @macRandomLetters.
+  ///
+  /// In en, this message translates to:
+  /// **'Random letters'**
+  String get macRandomLetters;
+
+  /// No description provided for @macRandomLettersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If disabled, uses the A-Z sequence'**
+  String get macRandomLettersSubtitle;
+
+  /// No description provided for @macRevealSpeedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reveal speed'**
+  String get macRevealSpeedTitle;
+
+  /// No description provided for @resultsMacTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Results - MacDonald Chart'**
+  String get resultsMacTitle;
+
+  /// No description provided for @macStatsRingsCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Rings completed'**
+  String get macStatsRingsCompleted;
+
+  /// No description provided for @macStatsTimePerRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Time per ring'**
+  String get macStatsTimePerRing;
+
+  /// No description provided for @macStatsLettersShown.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters shown'**
+  String get macStatsLettersShown;
+
+  /// No description provided for @macStatsAvgPerRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Average per ring'**
+  String get macStatsAvgPerRing;
+
+  /// No description provided for @presetMacStandardDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'By rings, timed reading'**
+  String get presetMacStandardDesc;
+
+  /// No description provided for @presetMacEasyDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch letters, all visible, slow'**
+  String get presetMacEasyDesc;
+
+  /// No description provided for @presetMacAdvancedDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Sequential, progressive, fast'**
+  String get presetMacAdvancedDesc;
+
+  /// No description provided for @macNextRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Next ring'**
+  String get macNextRing;
+
+  /// No description provided for @macRingLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Ring {number}'**
+  String macRingLabel(int number);
 
   /// No description provided for @creditsTitle.
   ///

@@ -206,6 +206,12 @@
   "summaryKeyFeedback": "Feedback",
   "summaryKeyDisappear": "Disappearance",
   "summaryKeySimultaneous": "Simultaneous stimuli",
+  "summaryKeyInteraction": "Interaction",
+  "summaryKeyVisualization": "Visualization",
+  "summaryKeyDirection": "Direction",
+  "summaryKeyRings": "Rings",
+  "summaryKeyLettersPerRing": "Letters/ring",
+  "summaryKeyRandomLetters": "Random letters",
   "summaryDistRandom": "Random",
   "summarySizeRandom": "~{pct}% (random)",
   "@summarySizeRandom": {
@@ -219,6 +225,57 @@
   "summaryCenterChanging": "Changing",
   "summaryYes": "Yes",
   "summaryNo": "No",
+
+  "testMacdonaldTitle": "MacDonald Chart",
+  "testMacdonaldSubtitle": "Train peripheral vision with ring letters.",
+
+  "configMacdonaldTitle": "MacDonald Chart Test",
+
+  "macInteractionTitle": "Interaction mode",
+  "macInteractionTouch": "Touch letters",
+  "macInteractionTouchDesc": "Touch each letter as you see it",
+  "macInteractionTimed": "Timed reading",
+  "macInteractionTimedDesc": "Read aloud with a timer",
+  "macInteractionSequential": "Sequential reading",
+  "macInteractionSequentialDesc": "The app highlights letters one by one, you read them",
+
+  "macVisualizationTitle": "Visualization mode",
+  "macVisualizationComplete": "Complete",
+  "macVisualizationCompleteDesc": "All letters visible from the start",
+  "macVisualizationProgressive": "Progressive",
+  "macVisualizationProgressiveDesc": "Letters appear one by one",
+  "macVisualizationByRings": "By rings",
+  "macVisualizationByRingsDesc": "Letters appear ring by ring",
+
+  "macDirectionTitle": "Reading direction",
+  "macDirectionCenterOut": "Center → Out",
+  "macDirectionOutCenter": "Out → Center",
+  "macDirectionClockwise": "Clockwise",
+  "macDirectionCounterClockwise": "Counter-clockwise",
+
+  "macRingsTitle": "Number of rings",
+  "macLettersPerRingTitle": "Letters per ring (first ring)",
+  "macRandomLetters": "Random letters",
+  "macRandomLettersSubtitle": "If disabled, uses the A-Z sequence",
+  "macRevealSpeedTitle": "Reveal speed",
+
+  "resultsMacTitle": "Results - MacDonald Chart",
+  "macStatsRingsCompleted": "Rings completed",
+  "macStatsTimePerRing": "Time per ring",
+  "macStatsLettersShown": "Letters shown",
+  "macStatsAvgPerRing": "Average per ring",
+
+  "presetMacStandardDesc": "By rings, timed reading",
+  "presetMacEasyDesc": "Touch letters, all visible, slow",
+  "presetMacAdvancedDesc": "Sequential, progressive, fast",
+
+  "macNextRing": "Next ring",
+  "macRingLabel": "Ring {number}",
+  "@macRingLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
 
   "creditsTitle": "Credits",
   "creditsAppName": "Optoview",

@@ -491,6 +491,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get summaryKeySimultaneous => 'Simultaneous stimuli';
 
   @override
+  String get summaryKeyInteraction => 'Interaction';
+
+  @override
+  String get summaryKeyVisualization => 'Visualization';
+
+  @override
+  String get summaryKeyDirection => 'Direction';
+
+  @override
+  String get summaryKeyRings => 'Rings';
+
+  @override
+  String get summaryKeyLettersPerRing => 'Letters/ring';
+
+  @override
+  String get summaryKeyRandomLetters => 'Random letters';
+
+  @override
   String get summaryDistRandom => 'Random';
 
   @override
@@ -515,6 +533,119 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get summaryNo => 'No';
+
+  @override
+  String get testMacdonaldTitle => 'MacDonald Chart';
+
+  @override
+  String get testMacdonaldSubtitle => 'Train peripheral vision with ring letters.';
+
+  @override
+  String get configMacdonaldTitle => 'MacDonald Chart Test';
+
+  @override
+  String get macInteractionTitle => 'Interaction mode';
+
+  @override
+  String get macInteractionTouch => 'Touch letters';
+
+  @override
+  String get macInteractionTouchDesc => 'Touch each letter as you see it';
+
+  @override
+  String get macInteractionTimed => 'Timed reading';
+
+  @override
+  String get macInteractionTimedDesc => 'Read aloud with a timer';
+
+  @override
+  String get macInteractionSequential => 'Sequential reading';
+
+  @override
+  String get macInteractionSequentialDesc => 'The app highlights letters one by one, you read them';
+
+  @override
+  String get macVisualizationTitle => 'Visualization mode';
+
+  @override
+  String get macVisualizationComplete => 'Complete';
+
+  @override
+  String get macVisualizationCompleteDesc => 'All letters visible from the start';
+
+  @override
+  String get macVisualizationProgressive => 'Progressive';
+
+  @override
+  String get macVisualizationProgressiveDesc => 'Letters appear one by one';
+
+  @override
+  String get macVisualizationByRings => 'By rings';
+
+  @override
+  String get macVisualizationByRingsDesc => 'Letters appear ring by ring';
+
+  @override
+  String get macDirectionTitle => 'Reading direction';
+
+  @override
+  String get macDirectionCenterOut => 'Center → Out';
+
+  @override
+  String get macDirectionOutCenter => 'Out → Center';
+
+  @override
+  String get macDirectionClockwise => 'Clockwise';
+
+  @override
+  String get macDirectionCounterClockwise => 'Counter-clockwise';
+
+  @override
+  String get macRingsTitle => 'Number of rings';
+
+  @override
+  String get macLettersPerRingTitle => 'Letters per ring (first ring)';
+
+  @override
+  String get macRandomLetters => 'Random letters';
+
+  @override
+  String get macRandomLettersSubtitle => 'If disabled, uses the A-Z sequence';
+
+  @override
+  String get macRevealSpeedTitle => 'Reveal speed';
+
+  @override
+  String get resultsMacTitle => 'Results - MacDonald Chart';
+
+  @override
+  String get macStatsRingsCompleted => 'Rings completed';
+
+  @override
+  String get macStatsTimePerRing => 'Time per ring';
+
+  @override
+  String get macStatsLettersShown => 'Letters shown';
+
+  @override
+  String get macStatsAvgPerRing => 'Average per ring';
+
+  @override
+  String get presetMacStandardDesc => 'By rings, timed reading';
+
+  @override
+  String get presetMacEasyDesc => 'Touch letters, all visible, slow';
+
+  @override
+  String get presetMacAdvancedDesc => 'Sequential, progressive, fast';
+
+  @override
+  String get macNextRing => 'Next ring';
+
+  @override
+  String macRingLabel(int number) {
+    return 'Ring $number';
+  }
 
   @override
   String get creditsTitle => 'Credits';

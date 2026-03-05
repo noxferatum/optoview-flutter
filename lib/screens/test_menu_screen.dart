@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'config_screen.dart';
 import 'localization_config_screen.dart';
+import 'macdonald_config_screen.dart';
 
 class TestMenuScreen extends StatelessWidget {
   const TestMenuScreen({super.key});
@@ -39,15 +40,15 @@ class TestMenuScreen extends StatelessWidget {
         },
       ),
       _TestInfo(
-        title: l.testComingSoonTitle,
-        subtitle: l.testComingSoonSubtitle,
-        gradient: const [Color(0xFF333A73), Color(0xFF5B6BC3)],
-        icon: Icons.upcoming,
+        title: l.testMacdonaldTitle,
+        subtitle: l.testMacdonaldSubtitle,
+        gradient: const [Color(0xFF2E7D32), Color(0xFF66BB6A)],
+        icon: Icons.grid_view_rounded,
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l.testComingSoonSnackbar),
-            ),
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const MacDonaldConfigScreen()),
           );
         },
       ),

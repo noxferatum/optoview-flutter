@@ -206,6 +206,12 @@
   "summaryKeyFeedback": "Feedback",
   "summaryKeyDisappear": "Desaparición",
   "summaryKeySimultaneous": "Estímulos simultáneos",
+  "summaryKeyInteraction": "Interacción",
+  "summaryKeyVisualization": "Visualización",
+  "summaryKeyDirection": "Dirección",
+  "summaryKeyRings": "Anillos",
+  "summaryKeyLettersPerRing": "Letras/anillo",
+  "summaryKeyRandomLetters": "Letras aleatorias",
   "summaryDistRandom": "Aleatoria",
   "summarySizeRandom": "~{pct}% (aleatorio)",
   "@summarySizeRandom": {
@@ -219,6 +225,57 @@
   "summaryCenterChanging": "Cambiante",
   "summaryYes": "Sí",
   "summaryNo": "No",
+
+  "testMacdonaldTitle": "Carta MacDonald",
+  "testMacdonaldSubtitle": "Entrena la visión periférica con letras en anillos.",
+
+  "configMacdonaldTitle": "Test Carta MacDonald",
+
+  "macInteractionTitle": "Modo de interacción",
+  "macInteractionTouch": "Tocar letras",
+  "macInteractionTouchDesc": "Toca cada letra conforme la veas",
+  "macInteractionTimed": "Lectura con tiempo",
+  "macInteractionTimedDesc": "Lee en voz alta con cronómetro",
+  "macInteractionSequential": "Lectura secuencial",
+  "macInteractionSequentialDesc": "La app resalta letras una a una, tú las lees",
+
+  "macVisualizationTitle": "Modo de visualización",
+  "macVisualizationComplete": "Completa",
+  "macVisualizationCompleteDesc": "Todas las letras visibles desde el inicio",
+  "macVisualizationProgressive": "Progresiva",
+  "macVisualizationProgressiveDesc": "Las letras aparecen una a una",
+  "macVisualizationByRings": "Por anillos",
+  "macVisualizationByRingsDesc": "Las letras aparecen anillo por anillo",
+
+  "macDirectionTitle": "Dirección de lectura",
+  "macDirectionCenterOut": "Centro → Afuera",
+  "macDirectionOutCenter": "Afuera → Centro",
+  "macDirectionClockwise": "Horario",
+  "macDirectionCounterClockwise": "Antihorario",
+
+  "macRingsTitle": "Número de anillos",
+  "macLettersPerRingTitle": "Letras por anillo (primer anillo)",
+  "macRandomLetters": "Letras aleatorias",
+  "macRandomLettersSubtitle": "Si se desactiva, se usa la secuencia A-Z",
+  "macRevealSpeedTitle": "Velocidad de revelado",
+
+  "resultsMacTitle": "Resultados - Carta MacDonald",
+  "macStatsRingsCompleted": "Anillos completados",
+  "macStatsTimePerRing": "Tiempo por anillo",
+  "macStatsLettersShown": "Letras mostradas",
+  "macStatsAvgPerRing": "Promedio por anillo",
+
+  "presetMacStandardDesc": "Por anillos, lectura con tiempo",
+  "presetMacEasyDesc": "Tocar letras, todo visible, lento",
+  "presetMacAdvancedDesc": "Secuencial, progresiva, rápido",
+
+  "macNextRing": "Siguiente anillo",
+  "macRingLabel": "Anillo {number}",
+  "@macRingLabel": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
 
   "creditsTitle": "Créditos",
   "creditsAppName": "Optoview",

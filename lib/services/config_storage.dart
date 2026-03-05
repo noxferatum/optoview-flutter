@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/test_config.dart';
 import '../models/localization_config.dart';
+import '../models/macdonald_config.dart';
 
 abstract final class ConfigStorage {
   static const _prefix = 'last_config_';
@@ -133,6 +134,60 @@ abstract final class ConfigStorage {
             .byName(prefs.getString('${_locPrefix}desaparicion')!),
         stimuliSimultaneos:
             prefs.getInt('${_locPrefix}stimuliSimultaneos') ?? 1,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // --- MacDonald Test Config ---
+
+  static const _macPrefix = 'last_mac_config_';
+
+  static Future<void> saveMacDonaldConfig(MacDonaldConfig config) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('${_macPrefix}interaccion', config.interaccion.name);
+    await prefs.setString(
+        '${_macPrefix}visualizacion', config.visualizacion.name);
+    await prefs.setString('${_macPrefix}direccion', config.direccion.name);
+    await prefs.setInt('${_macPrefix}numAnillos', config.numAnillos);
+    await prefs.setInt('${_macPrefix}letrasPorAnillo', config.letrasPorAnillo);
+    await prefs.setInt('${_macPrefix}duracion', config.duracionSegundos);
+    await prefs.setString('${_macPrefix}fondo', config.fondo.name);
+    await prefs.setString('${_macPrefix}fijacion', config.fijacion.name);
+    await prefs.setString('${_macPrefix}colorLetras', config.colorLetras.name);
+    await prefs.setDouble('${_macPrefix}tamanoBase', config.tamanoBase);
+    await prefs.setString(
+        '${_macPrefix}velocidadRevelado', config.velocidadRevelado.name);
+    await prefs.setBool(
+        '${_macPrefix}letrasAleatorias', config.letrasAleatorias);
+  }
+
+  static Future<MacDonaldConfig?> loadMacDonaldConfig() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey('${_macPrefix}interaccion')) return null;
+
+    try {
+      return MacDonaldConfig(
+        interaccion: MacInteraccion.values
+            .byName(prefs.getString('${_macPrefix}interaccion')!),
+        visualizacion: MacVisualizacion.values
+            .byName(prefs.getString('${_macPrefix}visualizacion')!),
+        direccion: MacDireccion.values
+            .byName(prefs.getString('${_macPrefix}direccion')!),
+        numAnillos: prefs.getInt('${_macPrefix}numAnillos')!,
+        letrasPorAnillo: prefs.getInt('${_macPrefix}letrasPorAnillo')!,
+        duracionSegundos: prefs.getInt('${_macPrefix}duracion')!,
+        fondo: Fondo.values.byName(prefs.getString('${_macPrefix}fondo')!),
+        fijacion:
+            Fijacion.values.byName(prefs.getString('${_macPrefix}fijacion')!),
+        colorLetras: EstimuloColor.values
+            .byName(prefs.getString('${_macPrefix}colorLetras')!),
+        tamanoBase: prefs.getDouble('${_macPrefix}tamanoBase')!,
+        velocidadRevelado: Velocidad.values
+            .byName(prefs.getString('${_macPrefix}velocidadRevelado')!),
+        letrasAleatorias:
+            prefs.getBool('${_macPrefix}letrasAleatorias') ?? true,
       );
     } catch (_) {
       return null;
