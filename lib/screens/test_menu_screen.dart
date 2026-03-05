@@ -44,6 +44,7 @@ class TestMenuScreen extends StatelessWidget {
         subtitle: l.testMacdonaldSubtitle,
         gradient: const [Color(0xFF2E7D32), Color(0xFF66BB6A)],
         icon: Icons.grid_view_rounded,
+        imageAsset: 'assets/images/macdonald_chart.png',
         onTap: () {
           Navigator.push(
             context,
