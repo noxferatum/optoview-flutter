@@ -15,7 +15,8 @@ import 'macdonald_results_screen.dart';
 
 class MacDonaldTest extends StatefulWidget {
   final MacDonaldConfig config;
-  const MacDonaldTest({super.key, required this.config});
+  final String patientName;
+  const MacDonaldTest({super.key, required this.config, required this.patientName});
 
   @override
   State<MacDonaldTest> createState() => _MacDonaldTestState();
@@ -625,6 +626,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
 
     final result = MacDonaldResult(
       config: widget.config,
+      patientName: widget.patientName,
       completedNaturally: !stoppedManually,
       durationActualSeconds: actualDuration,
       startedAt: _startedAt,

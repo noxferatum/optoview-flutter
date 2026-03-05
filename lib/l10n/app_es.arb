@@ -282,6 +282,26 @@
     }
   },
 
+  "patientName": "Nombre del paciente",
+  "patientNameHint": "Introduce el nombre del paciente",
+
+  "menuHistory": "Historial",
+
+  "historyTitle": "Historial de resultados",
+  "historyEmpty": "Aún no hay resultados guardados.",
+  "historyClearAll": "Borrar todo",
+  "historyClearAllTitle": "Eliminar todos los resultados",
+  "historyClearAllMessage": "Se eliminarán todos los resultados guardados de forma permanente. Esta acción no se puede deshacer.",
+  "historyClearAllConfirm": "Eliminar todo",
+  "historyCancel": "Cancelar",
+  "historyDelete": "Eliminar",
+  "historyDeleteTitle": "Eliminar resultado",
+  "historyDeleteMessage": "¿Seguro que quieres eliminar este resultado?",
+  "historyDetailTitle": "Detalles del resultado",
+  "historyTestPeripheral": "Estimulación periférica",
+  "historyTestLocalization": "Localización periférica",
+  "historyTestMacdonald": "Carta MacDonald",
+
   "creditsTitle": "Créditos",
   "creditsAppName": "Optoview",
   "creditsDescription": "Esta aplicación ha sido desarrollada con la ayuda de la optometrista titulada experta en terapia visual\nEstefanía Rodríguez-Bobada Lillo.",

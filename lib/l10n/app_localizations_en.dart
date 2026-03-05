@@ -660,6 +660,57 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get patientName => 'Patient name';
+
+  @override
+  String get patientNameHint => 'Enter the patient\'s name';
+
+  @override
+  String get menuHistory => 'History';
+
+  @override
+  String get historyTitle => 'Results history';
+
+  @override
+  String get historyEmpty => 'No saved results yet.';
+
+  @override
+  String get historyClearAll => 'Clear all';
+
+  @override
+  String get historyClearAllTitle => 'Delete all results';
+
+  @override
+  String get historyClearAllMessage => 'This will permanently delete all saved results. This action cannot be undone.';
+
+  @override
+  String get historyClearAllConfirm => 'Delete all';
+
+  @override
+  String get historyCancel => 'Cancel';
+
+  @override
+  String get historyDelete => 'Delete';
+
+  @override
+  String get historyDeleteTitle => 'Delete result';
+
+  @override
+  String get historyDeleteMessage => 'Are you sure you want to delete this result?';
+
+  @override
+  String get historyDetailTitle => 'Result details';
+
+  @override
+  String get historyTestPeripheral => 'Peripheral stimulation';
+
+  @override
+  String get historyTestLocalization => 'Peripheral localization';
+
+  @override
+  String get historyTestMacdonald => 'MacDonald Chart';
+
+  @override
   String get creditsTitle => 'Credits';
 
   @override

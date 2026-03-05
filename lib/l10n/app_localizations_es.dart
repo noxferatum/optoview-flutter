@@ -660,6 +660,57 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get patientName => 'Nombre del paciente';
+
+  @override
+  String get patientNameHint => 'Introduce el nombre del paciente';
+
+  @override
+  String get menuHistory => 'Historial';
+
+  @override
+  String get historyTitle => 'Historial de resultados';
+
+  @override
+  String get historyEmpty => 'Aún no hay resultados guardados.';
+
+  @override
+  String get historyClearAll => 'Borrar todo';
+
+  @override
+  String get historyClearAllTitle => 'Eliminar todos los resultados';
+
+  @override
+  String get historyClearAllMessage => 'Se eliminarán todos los resultados guardados de forma permanente. Esta acción no se puede deshacer.';
+
+  @override
+  String get historyClearAllConfirm => 'Eliminar todo';
+
+  @override
+  String get historyCancel => 'Cancelar';
+
+  @override
+  String get historyDelete => 'Eliminar';
+
+  @override
+  String get historyDeleteTitle => 'Eliminar resultado';
+
+  @override
+  String get historyDeleteMessage => '¿Seguro que quieres eliminar este resultado?';
+
+  @override
+  String get historyDetailTitle => 'Detalles del resultado';
+
+  @override
+  String get historyTestPeripheral => 'Estimulación periférica';
+
+  @override
+  String get historyTestLocalization => 'Localización periférica';
+
+  @override
+  String get historyTestMacdonald => 'Carta MacDonald';
+
+  @override
   String get creditsTitle => 'Créditos';
 
   @override

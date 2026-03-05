@@ -1373,6 +1373,108 @@ abstract class AppLocalizations {
   /// **'Ring {number}'**
   String macRingLabel(int number);
 
+  /// No description provided for @patientName.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient name'**
+  String get patientName;
+
+  /// No description provided for @patientNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the patient\'s name'**
+  String get patientNameHint;
+
+  /// No description provided for @menuHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get menuHistory;
+
+  /// No description provided for @historyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Results history'**
+  String get historyTitle;
+
+  /// No description provided for @historyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No saved results yet.'**
+  String get historyEmpty;
+
+  /// No description provided for @historyClearAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all'**
+  String get historyClearAll;
+
+  /// No description provided for @historyClearAllTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all results'**
+  String get historyClearAllTitle;
+
+  /// No description provided for @historyClearAllMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'This will permanently delete all saved results. This action cannot be undone.'**
+  String get historyClearAllMessage;
+
+  /// No description provided for @historyClearAllConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete all'**
+  String get historyClearAllConfirm;
+
+  /// No description provided for @historyCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get historyCancel;
+
+  /// No description provided for @historyDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get historyDelete;
+
+  /// No description provided for @historyDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete result'**
+  String get historyDeleteTitle;
+
+  /// No description provided for @historyDeleteMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this result?'**
+  String get historyDeleteMessage;
+
+  /// No description provided for @historyDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Result details'**
+  String get historyDetailTitle;
+
+  /// No description provided for @historyTestPeripheral.
+  ///
+  /// In en, this message translates to:
+  /// **'Peripheral stimulation'**
+  String get historyTestPeripheral;
+
+  /// No description provided for @historyTestLocalization.
+  ///
+  /// In en, this message translates to:
+  /// **'Peripheral localization'**
+  String get historyTestLocalization;
+
+  /// No description provided for @historyTestMacdonald.
+  ///
+  /// In en, this message translates to:
+  /// **'MacDonald Chart'**
+  String get historyTestMacdonald;
+
   /// No description provided for @creditsTitle.
   ///
   /// In en, this message translates to:

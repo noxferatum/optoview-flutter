@@ -18,7 +18,8 @@ import 'localization_results_screen.dart';
 
 class LocalizationTest extends StatefulWidget {
   final LocalizationConfig config;
-  const LocalizationTest({super.key, required this.config});
+  final String patientName;
+  const LocalizationTest({super.key, required this.config, required this.patientName});
 
   @override
   State<LocalizationTest> createState() => _LocalizationTestState();
@@ -511,6 +512,7 @@ class _LocalizationTestState extends State<LocalizationTest>
 
     final result = LocalizationResult(
       config: widget.config,
+      patientName: widget.patientName,
       totalStimuliShown: _totalStimuliShown,
       correctTouches: _correctTouches,
       incorrectTouches: _incorrectTouches,

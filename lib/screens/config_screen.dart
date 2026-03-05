@@ -28,6 +28,7 @@ class ConfigScreen extends StatefulWidget {
 class _ConfigScreenState extends State<ConfigScreen> {
   TestConfig config = TestPresets.standard;
   bool _isLoading = true;
+  final _patientController = TextEditingController();
 
   @override
   void initState() {
@@ -35,11 +36,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
     _loadSavedConfig();
   }
 
+  @override
+  void dispose() {
+    _patientController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadSavedConfig() async {
     final saved = await ConfigStorage.loadConfig();
+    final name = await ConfigStorage.loadPatientName();
     if (mounted) {
       setState(() {
         if (saved != null) config = saved;
+        _patientController.text = name;
         _isLoading = false;
       });
     }
@@ -47,10 +56,14 @@ class _ConfigScreenState extends State<ConfigScreen> {
 
   void _startTest() {
     ConfigStorage.saveConfig(config);
+    ConfigStorage.savePatientName(_patientController.text.trim());
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => DynamicPeripheryTest(config: config),
+        builder: (_) => DynamicPeripheryTest(
+          config: config,
+          patientName: _patientController.text.trim(),
+        ),
       ),
     );
   }
@@ -72,6 +85,19 @@ class _ConfigScreenState extends State<ConfigScreen> {
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
+              // Nombre del paciente
+              TextField(
+                controller: _patientController,
+                decoration: InputDecoration(
+                  labelText: l.patientName,
+                  hintText: l.patientNameHint,
+                  prefixIcon: const Icon(Icons.person),
+                  border: const OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 16),
+
               // Presets
               PresetsRow<TestConfig>(
               presets: TestPresets.all,

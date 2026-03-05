@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'credits_screen.dart';
+import 'history_screen.dart';
 import 'test_menu_screen.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -46,6 +47,24 @@ class MenuScreen extends StatelessWidget {
                   foregroundColor: colorScheme.onPrimary,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Semantics(
+              button: true,
+              label: l.menuHistory,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                  );
+                },
+                icon: const Icon(Icons.history),
+                label: Text(l.menuHistory),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 ),
               ),
             ),

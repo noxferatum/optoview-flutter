@@ -1,21 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/macdonald_config.dart';
 import '../models/macdonald_result.dart';
+import '../models/saved_result.dart';
+import '../services/results_storage.dart';
 import 'macdonald_test.dart';
 
-class MacDonaldResultsScreen extends StatelessWidget {
+class MacDonaldResultsScreen extends StatefulWidget {
   final MacDonaldResult result;
 
   const MacDonaldResultsScreen({super.key, required this.result});
 
   @override
+  State<MacDonaldResultsScreen> createState() =>
+      _MacDonaldResultsScreenState();
+}
+
+class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final l = AppLocalizations.of(context)!;
+      final saved = SavedResult.fromMacDonaldResult(widget.result, l);
+      ResultsStorage.save(saved);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final result = widget.result;
     final summary = result.config.localizedSummary(l);
     final isTouchMode =
         result.config.interaccion == MacInteraccion.tocarLetras;
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
       appBar: AppBar(
@@ -49,6 +70,25 @@ class MacDonaldResultsScreen extends StatelessWidget {
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
+                  ),
+                  if (result.patientName.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.person, size: 18),
+                        const SizedBox(width: 4),
+                        Text(
+                          result.patientName,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Text(
+                    dateFmt.format(result.startedAt),
+                    style: theme.textTheme.bodySmall,
                   ),
                   const SizedBox(height: 24),
 
@@ -247,6 +287,7 @@ class MacDonaldResultsScreen extends StatelessWidget {
                             MaterialPageRoute(
                               builder: (_) => MacDonaldTest(
                                 config: result.config,
+                                patientName: result.patientName,
                               ),
                             ),
                           );

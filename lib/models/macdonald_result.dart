@@ -4,6 +4,7 @@ import 'macdonald_config.dart';
 @immutable
 class MacDonaldResult {
   final MacDonaldConfig config;
+  final String patientName;
   final bool completedNaturally;
   final int durationActualSeconds;
   final DateTime startedAt;
@@ -18,6 +19,7 @@ class MacDonaldResult {
 
   const MacDonaldResult({
     required this.config,
+    required this.patientName,
     required this.completedNaturally,
     required this.durationActualSeconds,
     required this.startedAt,

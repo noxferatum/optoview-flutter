@@ -4,6 +4,7 @@ import 'test_config.dart';
 @immutable
 class TestResult {
   final TestConfig config;
+  final String patientName;
   final int totalStimuliShown;
   final int durationActualSeconds;
   final bool completedNaturally;
@@ -12,6 +13,7 @@ class TestResult {
 
   const TestResult({
     required this.config,
+    required this.patientName,
     required this.totalStimuliShown,
     required this.durationActualSeconds,
     required this.completedNaturally,

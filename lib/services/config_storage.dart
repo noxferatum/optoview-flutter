@@ -144,6 +144,26 @@ abstract final class ConfigStorage {
     }
   }
 
+  // --- Patient Name ---
+
+  static const _patientKey = 'last_patient_name';
+
+  static Future<void> savePatientName(String name) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_patientKey, name);
+    } catch (_) {}
+  }
+
+  static Future<String> loadPatientName() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString(_patientKey) ?? '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   // --- MacDonald Test Config ---
 
   static const _macPrefix = 'last_mac_config_';

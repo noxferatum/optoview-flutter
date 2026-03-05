@@ -4,6 +4,7 @@ import 'localization_config.dart';
 @immutable
 class LocalizationResult {
   final LocalizationConfig config;
+  final String patientName;
   final int totalStimuliShown;
   final int correctTouches;
   final int incorrectTouches;
@@ -16,6 +17,7 @@ class LocalizationResult {
 
   const LocalizationResult({
     required this.config,
+    required this.patientName,
     required this.totalStimuliShown,
     required this.correctTouches,
     required this.incorrectTouches,

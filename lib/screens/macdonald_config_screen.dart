@@ -25,6 +25,7 @@ class MacDonaldConfigScreen extends StatefulWidget {
 class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
   MacDonaldConfig config = MacDonaldPresets.standard;
   bool _isLoading = true;
+  final _patientController = TextEditingController();
 
   @override
   void initState() {
@@ -32,11 +33,19 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
     _loadSavedConfig();
   }
 
+  @override
+  void dispose() {
+    _patientController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadSavedConfig() async {
     final saved = await ConfigStorage.loadMacDonaldConfig();
+    final name = await ConfigStorage.loadPatientName();
     if (mounted) {
       setState(() {
         if (saved != null) config = saved;
+        _patientController.text = name;
         _isLoading = false;
       });
     }
@@ -44,10 +53,14 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
 
   void _startTest() {
     ConfigStorage.saveMacDonaldConfig(config);
+    ConfigStorage.savePatientName(_patientController.text.trim());
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => MacDonaldTest(config: config),
+        builder: (_) => MacDonaldTest(
+          config: config,
+          patientName: _patientController.text.trim(),
+        ),
       ),
     );
   }
@@ -105,6 +118,19 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
           padding: const EdgeInsets.all(16),
           child: ListView(
             children: [
+              // Nombre del paciente
+              TextField(
+                controller: _patientController,
+                decoration: InputDecoration(
+                  labelText: l.patientName,
+                  hintText: l.patientNameHint,
+                  prefixIcon: const Icon(Icons.person),
+                  border: const OutlineInputBorder(),
+                ),
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 16),
+
               // Presets
               PresetsRow<MacDonaldConfig>(
                 presets: MacDonaldPresets.all(l),

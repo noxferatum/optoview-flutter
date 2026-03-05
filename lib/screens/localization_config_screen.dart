@@ -27,6 +27,7 @@ class LocalizationConfigScreen extends StatefulWidget {
 class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
   LocalizationConfig config = LocalizationPresets.standard;
   bool _isLoading = true;
+  final _patientController = TextEditingController();
 
   @override
   void initState() {
@@ -34,11 +35,19 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
     _loadSavedConfig();
   }
 
+  @override
+  void dispose() {
+    _patientController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadSavedConfig() async {
     final saved = await ConfigStorage.loadLocalizationConfig();
+    final name = await ConfigStorage.loadPatientName();
     if (mounted) {
       setState(() {
         if (saved != null) config = saved;
+        _patientController.text = name;
         _isLoading = false;
       });
     }
@@ -46,10 +55,14 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
 
   void _startTest() {
     ConfigStorage.saveLocalizationConfig(config);
+    ConfigStorage.savePatientName(_patientController.text.trim());
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => LocalizationTest(config: config),
+        builder: (_) => LocalizationTest(
+          config: config,
+          patientName: _patientController.text.trim(),
+        ),
       ),
     );
   }
@@ -93,6 +106,19 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
           padding: const EdgeInsets.all(16),
           child: ListView(
           children: [
+            // Nombre del paciente
+            TextField(
+              controller: _patientController,
+              decoration: InputDecoration(
+                labelText: l.patientName,
+                hintText: l.patientNameHint,
+                prefixIcon: const Icon(Icons.person),
+                border: const OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.words,
+            ),
+            const SizedBox(height: 16),
+
             // Presets
             PresetsRow<LocalizationConfig>(
               presets: LocalizationPresets.all,

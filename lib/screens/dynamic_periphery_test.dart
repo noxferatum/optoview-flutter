@@ -18,7 +18,8 @@ import 'test_results_screen.dart';
 
 class DynamicPeripheryTest extends StatefulWidget {
   final TestConfig config;
-  const DynamicPeripheryTest({super.key, required this.config});
+  final String patientName;
+  const DynamicPeripheryTest({super.key, required this.config, required this.patientName});
 
   @override
   State<DynamicPeripheryTest> createState() => _DynamicPeripheryTestState();
@@ -308,6 +309,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
 
     final result = TestResult(
       config: widget.config,
+      patientName: widget.patientName,
       totalStimuliShown: _stimuliShown,
       durationActualSeconds: actualDuration,
       completedNaturally: !stoppedManually,

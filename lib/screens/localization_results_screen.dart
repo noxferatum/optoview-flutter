@@ -1,18 +1,40 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
 import '../models/localization_result.dart';
+import '../models/saved_result.dart';
+import '../services/results_storage.dart';
 import 'localization_test.dart';
 
-class LocalizationResultsScreen extends StatelessWidget {
+class LocalizationResultsScreen extends StatefulWidget {
   final LocalizationResult result;
 
   const LocalizationResultsScreen({super.key, required this.result});
 
   @override
+  State<LocalizationResultsScreen> createState() =>
+      _LocalizationResultsScreenState();
+}
+
+class _LocalizationResultsScreenState
+    extends State<LocalizationResultsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final l = AppLocalizations.of(context)!;
+      final saved = SavedResult.fromLocalizationResult(widget.result, l);
+      ResultsStorage.save(saved);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
+    final result = widget.result;
     final summary = result.config.localizedSummary(l);
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
       appBar: AppBar(
@@ -46,6 +68,25 @@ class LocalizationResultsScreen extends StatelessWidget {
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
+                ),
+                if (result.patientName.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.person, size: 18),
+                      const SizedBox(width: 4),
+                      Text(
+                        result.patientName,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  dateFmt.format(result.startedAt),
+                  style: theme.textTheme.bodySmall,
                 ),
                 const SizedBox(height: 24),
 
@@ -208,6 +249,7 @@ class LocalizationResultsScreen extends StatelessWidget {
                           MaterialPageRoute(
                             builder: (_) => LocalizationTest(
                               config: result.config,
+                              patientName: result.patientName,
                             ),
                           ),
                         );
