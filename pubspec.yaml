@@ -27,7 +27,6 @@ flutter:
   uses-material-design: true
   generate: true
   assets:
-    - assets/images/smile.png
     - assets/images/logo.png
     - assets/images/test_peripheral.png
     - assets/images/location_peripheal.png
