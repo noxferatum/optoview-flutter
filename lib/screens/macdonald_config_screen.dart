@@ -188,6 +188,28 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
               ),
               const SizedBox(height: 16),
 
+              // Tipo de contenido
+              SectionCard(
+                title: l.macContentTitle,
+                child: SegmentedButton<MacContenido>(
+                  segments: [
+                    ButtonSegment(
+                      value: MacContenido.letras,
+                      label: Text(l.macContentLetters),
+                    ),
+                    ButtonSegment(
+                      value: MacContenido.numeros,
+                      label: Text(l.macContentNumbers),
+                    ),
+                  ],
+                  selected: {config.contenido},
+                  onSelectionChanged: (s) => setState(() {
+                    config = config.copyWith(contenido: s.first);
+                  }),
+                ),
+              ),
+              const SizedBox(height: 16),
+
               // Número de anillos
               SectionCard(
                 title: l.macRingsTitle,

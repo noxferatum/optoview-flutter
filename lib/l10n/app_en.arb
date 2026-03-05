@@ -253,6 +253,11 @@
   "macDirectionClockwise": "Clockwise",
   "macDirectionCounterClockwise": "Counter-clockwise",
 
+  "macContentTitle": "Content type",
+  "macContentLetters": "Letters",
+  "macContentNumbers": "Numbers",
+  "summaryKeyContent": "Content",
+
   "macRingsTitle": "Number of rings",
   "macLettersPerRingTitle": "Letters per ring (first ring)",
   "macRandomLetters": "Random letters",

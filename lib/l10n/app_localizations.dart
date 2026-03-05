@@ -1259,6 +1259,30 @@ abstract class AppLocalizations {
   /// **'Counter-clockwise'**
   String get macDirectionCounterClockwise;
 
+  /// No description provided for @macContentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Content type'**
+  String get macContentTitle;
+
+  /// No description provided for @macContentLetters.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters'**
+  String get macContentLetters;
+
+  /// No description provided for @macContentNumbers.
+  ///
+  /// In en, this message translates to:
+  /// **'Numbers'**
+  String get macContentNumbers;
+
+  /// No description provided for @summaryKeyContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get summaryKeyContent;
+
   /// No description provided for @macRingsTitle.
   ///
   /// In en, this message translates to:

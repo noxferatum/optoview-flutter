@@ -150,6 +150,7 @@ abstract final class ConfigStorage {
     await prefs.setString(
         '${_macPrefix}visualizacion', config.visualizacion.name);
     await prefs.setString('${_macPrefix}direccion', config.direccion.name);
+    await prefs.setString('${_macPrefix}contenido', config.contenido.name);
     await prefs.setInt('${_macPrefix}numAnillos', config.numAnillos);
     await prefs.setInt('${_macPrefix}letrasPorAnillo', config.letrasPorAnillo);
     await prefs.setInt('${_macPrefix}duracion', config.duracionSegundos);
@@ -175,6 +176,8 @@ abstract final class ConfigStorage {
             .byName(prefs.getString('${_macPrefix}visualizacion')!),
         direccion: MacDireccion.values
             .byName(prefs.getString('${_macPrefix}direccion')!),
+        contenido: MacContenido.values
+            .byName(prefs.getString('${_macPrefix}contenido') ?? 'letras'),
         numAnillos: prefs.getInt('${_macPrefix}numAnillos')!,
         letrasPorAnillo: prefs.getInt('${_macPrefix}letrasPorAnillo')!,
         duracionSegundos: prefs.getInt('${_macPrefix}duracion')!,

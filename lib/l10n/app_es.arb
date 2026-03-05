@@ -253,6 +253,11 @@
   "macDirectionClockwise": "Horario",
   "macDirectionCounterClockwise": "Antihorario",
 
+  "macContentTitle": "Tipo de contenido",
+  "macContentLetters": "Letras",
+  "macContentNumbers": "Números",
+  "summaryKeyContent": "Contenido",
+
   "macRingsTitle": "Número de anillos",
   "macLettersPerRingTitle": "Letras por anillo (primer anillo)",
   "macRandomLetters": "Letras aleatorias",

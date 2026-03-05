@@ -24,12 +24,19 @@ enum MacDireccion {
   antihorario;
 }
 
+/// Tipo de contenido en la carta
+enum MacContenido {
+  letras,
+  numeros;
+}
+
 /// Configuración completa del test Carta MacDonald
 @immutable
 class MacDonaldConfig {
   final MacInteraccion interaccion;
   final MacVisualizacion visualizacion;
   final MacDireccion direccion;
+  final MacContenido contenido;
   final int numAnillos;
   final int letrasPorAnillo;
   final int duracionSegundos;
@@ -44,6 +51,7 @@ class MacDonaldConfig {
     required this.interaccion,
     required this.visualizacion,
     required this.direccion,
+    this.contenido = MacContenido.letras,
     required this.numAnillos,
     required this.letrasPorAnillo,
     required this.duracionSegundos,
@@ -59,6 +67,7 @@ class MacDonaldConfig {
     MacInteraccion? interaccion,
     MacVisualizacion? visualizacion,
     MacDireccion? direccion,
+    MacContenido? contenido,
     int? numAnillos,
     int? letrasPorAnillo,
     int? duracionSegundos,
@@ -73,6 +82,7 @@ class MacDonaldConfig {
       interaccion: interaccion ?? this.interaccion,
       visualizacion: visualizacion ?? this.visualizacion,
       direccion: direccion ?? this.direccion,
+      contenido: contenido ?? this.contenido,
       numAnillos: numAnillos ?? this.numAnillos,
       letrasPorAnillo: letrasPorAnillo ?? this.letrasPorAnillo,
       duracionSegundos: duracionSegundos ?? this.duracionSegundos,
@@ -129,10 +139,15 @@ class MacDonaldConfig {
       EstimuloColor.negro => l.colorBlack,
       EstimuloColor.aleatorio => l.colorRandom,
     };
+    final contentLabel = switch (contenido) {
+      MacContenido.letras => l.macContentLetters,
+      MacContenido.numeros => l.macContentNumbers,
+    };
     return {
       l.summaryKeyInteraction: interLabel,
       l.summaryKeyVisualization: visLabel,
       l.summaryKeyDirection: dirLabel,
+      l.summaryKeyContent: contentLabel,
       l.summaryKeyRings: '$numAnillos',
       l.summaryKeyLettersPerRing: '$letrasPorAnillo',
       l.summaryKeyDuration: '${duracionSegundos}s',

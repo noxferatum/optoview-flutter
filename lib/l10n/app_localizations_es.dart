@@ -601,6 +601,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get macDirectionCounterClockwise => 'Antihorario';
 
   @override
+  String get macContentTitle => 'Tipo de contenido';
+
+  @override
+  String get macContentLetters => 'Letras';
+
+  @override
+  String get macContentNumbers => 'Números';
+
+  @override
+  String get summaryKeyContent => 'Contenido';
+
+  @override
   String get macRingsTitle => 'Número de anillos';
 
   @override

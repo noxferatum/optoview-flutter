@@ -130,7 +130,9 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     final numRings = widget.config.numAnillos;
     final baseLettersPerRing = widget.config.letrasPorAnillo;
 
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    final chars = widget.config.contenido == MacContenido.numeros
+        ? '0123456789'
+        : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     int letterIdx = 0;
 
     for (int ring = 0; ring < numRings; ring++) {
@@ -144,9 +146,9 @@ class _MacDonaldTestState extends State<MacDonaldTest>
 
         String letter;
         if (widget.config.letrasAleatorias) {
-          letter = letters[_rand.nextInt(letters.length)];
+          letter = chars[_rand.nextInt(chars.length)];
         } else {
-          letter = letters[letterIdx % letters.length];
+          letter = chars[letterIdx % chars.length];
           letterIdx++;
         }
 
