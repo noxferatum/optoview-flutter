@@ -5,11 +5,10 @@ import 'package:optoview_flutter/main.dart';
 
 void main() {
   testWidgets('Menu navigation flows to test selector', (tester) async {
-    final binding = TestWidgetsFlutterBinding.ensureInitialized();
-    binding.window.physicalSizeTestValue = const Size(1080, 1920);
-    binding.window.devicePixelRatioTestValue = 1.0;
-    addTearDown(binding.window.clearPhysicalSizeTestValue);
-    addTearDown(binding.window.clearDevicePixelRatioTestValue);
+    tester.view.physicalSize = const Size(1080, 1920);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
     // Ignore overflow errors from card layout at test screen size
     final originalOnError = FlutterError.onError;
