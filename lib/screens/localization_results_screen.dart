@@ -12,7 +12,7 @@ class LocalizationResultsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final summary = result.config.summaryMap;
+    final summary = result.config.localizedSummary(l);
 
     return Scaffold(
       appBar: AppBar(
@@ -218,9 +218,8 @@ class LocalizationResultsScreen extends StatelessWidget {
                     const SizedBox(width: 16),
                     OutlinedButton.icon(
                       onPressed: () {
-                        Navigator.of(context).popUntil(
-                          (route) => route.isFirst,
-                        );
+                        var count = 0;
+                        Navigator.of(context).popUntil((_) => count++ >= 2);
                       },
                       icon: const Icon(Icons.home),
                       label: Text(l.resultsHome),

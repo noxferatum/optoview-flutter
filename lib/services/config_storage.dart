@@ -7,26 +7,28 @@ abstract final class ConfigStorage {
   static const _prefix = 'last_config_';
 
   static Future<void> saveConfig(TestConfig config) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('${_prefix}lado', config.lado.name);
-    await prefs.setString('${_prefix}categoria', config.categoria.name);
-    await prefs.setString(
-        '${_prefix}forma', config.forma?.name ?? '_null');
-    await prefs.setString('${_prefix}velocidad', config.velocidad.name);
-    await prefs.setString('${_prefix}movimiento', config.movimiento.name);
-    await prefs.setInt('${_prefix}duracion', config.duracionSegundos);
-    await prefs.setDouble('${_prefix}tamano', config.tamanoPorc);
-    await prefs.setBool('${_prefix}tamanoAleatorio', config.tamanoAleatorio);
-    await prefs.setDouble('${_prefix}distancia', config.distanciaPct);
-    await prefs.setString(
-        '${_prefix}distanciaModo', config.distanciaModo.name);
-    await prefs.setString('${_prefix}fijacion', config.fijacion.name);
-    await prefs.setString('${_prefix}fondo', config.fondo.name);
-    await prefs.setBool('${_prefix}fondoDistractor', config.fondoDistractor);
-    await prefs.setBool(
-        '${_prefix}fondoDistractorAnimado', config.fondoDistractorAnimado);
-    await prefs.setString(
-        '${_prefix}estimuloColor', config.estimuloColor.name);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('${_prefix}lado', config.lado.name);
+      await prefs.setString('${_prefix}categoria', config.categoria.name);
+      await prefs.setString(
+          '${_prefix}forma', config.forma?.name ?? '_null');
+      await prefs.setString('${_prefix}velocidad', config.velocidad.name);
+      await prefs.setString('${_prefix}movimiento', config.movimiento.name);
+      await prefs.setInt('${_prefix}duracion', config.duracionSegundos);
+      await prefs.setDouble('${_prefix}tamano', config.tamanoPorc);
+      await prefs.setBool('${_prefix}tamanoAleatorio', config.tamanoAleatorio);
+      await prefs.setDouble('${_prefix}distancia', config.distanciaPct);
+      await prefs.setString(
+          '${_prefix}distanciaModo', config.distanciaModo.name);
+      await prefs.setString('${_prefix}fijacion', config.fijacion.name);
+      await prefs.setString('${_prefix}fondo', config.fondo.name);
+      await prefs.setBool('${_prefix}fondoDistractor', config.fondoDistractor);
+      await prefs.setBool(
+          '${_prefix}fondoDistractorAnimado', config.fondoDistractorAnimado);
+      await prefs.setString(
+          '${_prefix}estimuloColor', config.estimuloColor.name);
+    } catch (_) {}
   }
 
   static Future<TestConfig?> loadConfig() async {
@@ -74,28 +76,30 @@ abstract final class ConfigStorage {
   static const _locPrefix = 'last_loc_config_';
 
   static Future<void> saveLocalizationConfig(LocalizationConfig config) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('${_locPrefix}lado', config.lado.name);
-    await prefs.setString('${_locPrefix}categoria', config.categoria.name);
-    await prefs.setString(
-        '${_locPrefix}forma', config.forma?.name ?? '_null');
-    await prefs.setString('${_locPrefix}velocidad', config.velocidad.name);
-    await prefs.setInt('${_locPrefix}duracion', config.duracionSegundos);
-    await prefs.setDouble('${_locPrefix}tamano', config.tamanoPorc);
-    await prefs.setDouble('${_locPrefix}distancia', config.distanciaPct);
-    await prefs.setString(
-        '${_locPrefix}distanciaModo', config.distanciaModo.name);
-    await prefs.setString('${_locPrefix}fondo', config.fondo.name);
-    await prefs.setBool('${_locPrefix}fondoDistractor', config.fondoDistractor);
-    await prefs.setBool(
-        '${_locPrefix}fondoDistractorAnimado', config.fondoDistractorAnimado);
-    await prefs.setString('${_locPrefix}modo', config.modo.name);
-    await prefs.setBool('${_locPrefix}centroFijo', config.centroFijo);
-    await prefs.setBool('${_locPrefix}feedbackVisual', config.feedbackVisual);
-    await prefs.setString(
-        '${_locPrefix}desaparicion', config.desaparicion.name);
-    await prefs.setInt(
-        '${_locPrefix}stimuliSimultaneos', config.stimuliSimultaneos);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('${_locPrefix}lado', config.lado.name);
+      await prefs.setString('${_locPrefix}categoria', config.categoria.name);
+      await prefs.setString(
+          '${_locPrefix}forma', config.forma?.name ?? '_null');
+      await prefs.setString('${_locPrefix}velocidad', config.velocidad.name);
+      await prefs.setInt('${_locPrefix}duracion', config.duracionSegundos);
+      await prefs.setDouble('${_locPrefix}tamano', config.tamanoPorc);
+      await prefs.setDouble('${_locPrefix}distancia', config.distanciaPct);
+      await prefs.setString(
+          '${_locPrefix}distanciaModo', config.distanciaModo.name);
+      await prefs.setString('${_locPrefix}fondo', config.fondo.name);
+      await prefs.setBool('${_locPrefix}fondoDistractor', config.fondoDistractor);
+      await prefs.setBool(
+          '${_locPrefix}fondoDistractorAnimado', config.fondoDistractorAnimado);
+      await prefs.setString('${_locPrefix}modo', config.modo.name);
+      await prefs.setBool('${_locPrefix}centroFijo', config.centroFijo);
+      await prefs.setBool('${_locPrefix}feedbackVisual', config.feedbackVisual);
+      await prefs.setString(
+          '${_locPrefix}desaparicion', config.desaparicion.name);
+      await prefs.setInt(
+          '${_locPrefix}stimuliSimultaneos', config.stimuliSimultaneos);
+    } catch (_) {}
   }
 
   static Future<LocalizationConfig?> loadLocalizationConfig() async {
@@ -145,23 +149,25 @@ abstract final class ConfigStorage {
   static const _macPrefix = 'last_mac_config_';
 
   static Future<void> saveMacDonaldConfig(MacDonaldConfig config) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('${_macPrefix}interaccion', config.interaccion.name);
-    await prefs.setString(
-        '${_macPrefix}visualizacion', config.visualizacion.name);
-    await prefs.setString('${_macPrefix}direccion', config.direccion.name);
-    await prefs.setString('${_macPrefix}contenido', config.contenido.name);
-    await prefs.setInt('${_macPrefix}numAnillos', config.numAnillos);
-    await prefs.setInt('${_macPrefix}letrasPorAnillo', config.letrasPorAnillo);
-    await prefs.setInt('${_macPrefix}duracion', config.duracionSegundos);
-    await prefs.setString('${_macPrefix}fondo', config.fondo.name);
-    await prefs.setString('${_macPrefix}fijacion', config.fijacion.name);
-    await prefs.setString('${_macPrefix}colorLetras', config.colorLetras.name);
-    await prefs.setDouble('${_macPrefix}tamanoBase', config.tamanoBase);
-    await prefs.setString(
-        '${_macPrefix}velocidadRevelado', config.velocidadRevelado.name);
-    await prefs.setBool(
-        '${_macPrefix}letrasAleatorias', config.letrasAleatorias);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('${_macPrefix}interaccion', config.interaccion.name);
+      await prefs.setString(
+          '${_macPrefix}visualizacion', config.visualizacion.name);
+      await prefs.setString('${_macPrefix}direccion', config.direccion.name);
+      await prefs.setString('${_macPrefix}contenido', config.contenido.name);
+      await prefs.setInt('${_macPrefix}numAnillos', config.numAnillos);
+      await prefs.setInt('${_macPrefix}letrasPorAnillo', config.letrasPorAnillo);
+      await prefs.setInt('${_macPrefix}duracion', config.duracionSegundos);
+      await prefs.setString('${_macPrefix}fondo', config.fondo.name);
+      await prefs.setString('${_macPrefix}fijacion', config.fijacion.name);
+      await prefs.setString('${_macPrefix}colorLetras', config.colorLetras.name);
+      await prefs.setDouble('${_macPrefix}tamanoBase', config.tamanoBase);
+      await prefs.setString(
+          '${_macPrefix}velocidadRevelado', config.velocidadRevelado.name);
+      await prefs.setBool(
+          '${_macPrefix}letrasAleatorias', config.letrasAleatorias);
+    } catch (_) {}
   }
 
   static Future<MacDonaldConfig?> loadMacDonaldConfig() async {

@@ -7,6 +7,7 @@ import '../models/test_config.dart';
 import '../models/localization_config.dart';
 import '../models/localization_result.dart';
 import '../utils/stimulus_positioning.dart';
+import '../constants/app_constants.dart';
 import '../utils/stimulus_color_utils.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
@@ -106,7 +107,8 @@ class _LocalizationTestState extends State<LocalizationTest>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _remaining = widget.config.duracionSegundos.clamp(1, 3600);
+    _remaining = widget.config.duracionSegundos.clamp(
+        AppConstants.minDurationSeconds, AppConstants.maxDurationSeconds);
 
     _positioning = StimulusPositioning(
       random: _rand,
@@ -529,9 +531,13 @@ class _LocalizationTestState extends State<LocalizationTest>
 
   void _cancelAllTimers() {
     _stimulusTimer?.cancel();
+    _stimulusTimer = null;
     _endTimer?.cancel();
+    _endTimer = null;
     _countdownTimer?.cancel();
+    _countdownTimer = null;
     _feedbackTimer?.cancel();
+    _feedbackTimer = null;
   }
 
   // --- UI ---

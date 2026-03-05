@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../mixins/immersive_test_mixin.dart';
+import '../constants/app_constants.dart';
 import '../models/test_config.dart';
 import '../models/macdonald_config.dart';
 import '../models/macdonald_result.dart';
@@ -87,7 +88,8 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _remaining = widget.config.duracionSegundos.clamp(1, 3600);
+    _remaining = widget.config.duracionSegundos.clamp(
+        AppConstants.minDurationSeconds, AppConstants.maxDurationSeconds);
 
     initImmersiveMode();
 
@@ -645,8 +647,11 @@ class _MacDonaldTestState extends State<MacDonaldTest>
 
   void _cancelAllTimers() {
     _endTimer?.cancel();
+    _endTimer = null;
     _countdownTimer?.cancel();
+    _countdownTimer = null;
     _revealTimer?.cancel();
+    _revealTimer = null;
   }
 
   // --- UI ---

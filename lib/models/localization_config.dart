@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'test_config.dart';
 
 /// Modo de juego del test de localización periférica
@@ -74,7 +75,7 @@ class LocalizationConfig {
     this.feedbackVisual = true,
     this.desaparicion = DisappearMode.porTiempo,
     this.stimuliSimultaneos = 1,
-  });
+  }) : assert(stimuliSimultaneos >= 1 && stimuliSimultaneos <= 4);
 
   LocalizationConfig copyWith({
     Lado? lado,
@@ -116,34 +117,74 @@ class LocalizationConfig {
     );
   }
 
-  /// Resumen legible de la configuración para pantalla de resultados
-  Map<String, String> get summaryMap {
+  /// Resumen localizado de la configuración para pantalla de resultados
+  Map<String, String> localizedSummary(AppLocalizations l) {
+    final modeLabel = switch (modo) {
+      LocalizationMode.tocarTodos => l.locModeTouchAll,
+      LocalizationMode.igualarCentro => l.locModeMatchCenter,
+      LocalizationMode.mismoColor => l.locModeSameColor,
+      LocalizationMode.mismaForma => l.locModeSameShape,
+    };
+    final ladoLabel = switch (lado) {
+      Lado.izquierda => l.sideLeft,
+      Lado.derecha => l.sideRight,
+      Lado.arriba => l.sideTop,
+      Lado.abajo => l.sideBottom,
+      Lado.ambos => l.sideBoth,
+      Lado.aleatorio => l.sideRandom,
+    };
+    final catLabel = switch (categoria) {
+      SimboloCategoria.letras => l.symbolLetters,
+      SimboloCategoria.numeros => l.symbolNumbers,
+      SimboloCategoria.formas => l.symbolShapes,
+    };
+    final formaLabel = switch (forma) {
+      Forma.circulo => l.formaCircle,
+      Forma.cuadrado => l.formaSquare,
+      Forma.corazon => l.formaHeart,
+      Forma.triangulo => l.formaTriangle,
+      Forma.trebol => l.formaClover,
+      null => l.symbolFormRandom,
+    };
     final stimulusDesc = categoria == SimboloCategoria.formas
-        ? '${categoria.label} (${forma?.label ?? "Aleatoria"})'
-        : categoria.label;
-
-    String fondoDesc = fondo.label;
+        ? '$catLabel ($formaLabel)'
+        : catLabel;
+    final speedLabel = switch (velocidad) {
+      Velocidad.lenta => l.speedSlow,
+      Velocidad.media => l.speedMedium,
+      Velocidad.rapida => l.speedFast,
+    };
+    final bgLabel = switch (fondo) {
+      Fondo.claro => l.backgroundLight,
+      Fondo.oscuro => l.backgroundDark,
+      Fondo.azul => l.backgroundBlue,
+    };
+    String fondoDesc = bgLabel;
     if (fondoDistractor) {
       fondoDesc += fondoDistractorAnimado
-          ? ' + Distractor animado'
-          : ' + Distractor';
+          ? l.summaryDistractorAnimated
+          : l.summaryDistractor;
     }
+    final disappearLabel = switch (desaparicion) {
+      DisappearMode.porTiempo => l.locDisappearByTime,
+      DisappearMode.esperarToque => l.locDisappearWaitTouch,
+    };
 
     return {
-      'Modo': modo.label,
-      'Lado': lado.label,
-      'Estímulo': stimulusDesc,
-      'Velocidad': velocidad.label,
-      'Distancia': distanciaModo == DistanciaModo.aleatorio
-          ? 'Aleatoria'
+      l.summaryKeyMode: modeLabel,
+      l.summaryKeySide: ladoLabel,
+      l.summaryKeyStimulus: stimulusDesc,
+      l.summaryKeySpeed: speedLabel,
+      l.summaryKeyDistance: distanciaModo == DistanciaModo.aleatorio
+          ? l.summaryDistRandom
           : '${distanciaPct.toStringAsFixed(0)}%',
-      'Tamaño': '${tamanoPorc.toStringAsFixed(0)}%',
-      'Duración': '${duracionSegundos}s',
-      'Fondo': fondoDesc,
-      'Centro': centroFijo ? 'Fijo' : 'Cambiante',
-      'Feedback': feedbackVisual ? 'Sí' : 'No',
-      'Desaparición': desaparicion.label,
-      'Estímulos simultáneos': '$stimuliSimultaneos',
+      l.summaryKeySize: '${tamanoPorc.toStringAsFixed(0)}%',
+      l.summaryKeyDuration: '${duracionSegundos}s',
+      l.summaryKeyBackground: fondoDesc,
+      l.summaryKeyCenter: centroFijo ? l.summaryCenterFixed : l.summaryCenterChanging,
+      l.summaryKeyFeedback: feedbackVisual ? l.summaryYes : l.summaryNo,
+      l.summaryKeyDisappear: disappearLabel,
+      l.summaryKeySimultaneous: '$stimuliSimultaneos',
     };
   }
 }

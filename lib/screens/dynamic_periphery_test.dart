@@ -6,6 +6,7 @@ import '../mixins/immersive_test_mixin.dart';
 import '../models/test_config.dart';
 import '../models/test_result.dart';
 import '../utils/stimulus_positioning.dart';
+import '../constants/app_constants.dart';
 import '../utils/stimulus_color_utils.dart';
 import '../widgets/center_fixation.dart';
 import '../widgets/peripheral_stimulus.dart';
@@ -57,7 +58,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _remaining = widget.config.duracionSegundos.clamp(1, 3600);
+    _remaining = widget.config.duracionSegundos.clamp(
+        AppConstants.minDurationSeconds, AppConstants.maxDurationSeconds);
     _currentColorOption = _resolveStimulusColorOption();
 
     _positioning = StimulusPositioning(
@@ -322,8 +324,11 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
 
   void _cancelAllTimers() {
     _stimulusTimer?.cancel();
+    _stimulusTimer = null;
     _endTimer?.cancel();
+    _endTimer = null;
     _countdownTimer?.cancel();
+    _countdownTimer = null;
   }
 
   double _layoutSizePx(Size sz) {

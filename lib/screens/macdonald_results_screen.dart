@@ -257,9 +257,8 @@ class MacDonaldResultsScreen extends StatelessWidget {
                       const SizedBox(width: 16),
                       OutlinedButton.icon(
                         onPressed: () {
-                          Navigator.of(context).popUntil(
-                            (route) => route.isFirst,
-                          );
+                          var count = 0;
+                          Navigator.of(context).popUntil((_) => count++ >= 2);
                         },
                         icon: const Icon(Icons.home),
                         label: Text(l.resultsHome),
