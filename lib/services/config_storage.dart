@@ -222,4 +222,24 @@ abstract final class ConfigStorage {
       return null;
     }
   }
+
+  // --- Instrucciones pre-test ---
+
+  static const _instructionsKey = 'show_instructions';
+
+  static Future<void> saveShowInstructions(bool show) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_instructionsKey, show);
+    } catch (_) {}
+  }
+
+  static Future<bool> loadShowInstructions() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getBool(_instructionsKey) ?? true;
+    } catch (_) {
+      return true;
+    }
+  }
 }

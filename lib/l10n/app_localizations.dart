@@ -1547,6 +1547,144 @@ abstract class AppLocalizations {
   /// **'Back'**
   String get creditsBack;
 
+  /// No description provided for @instructionsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Instructions'**
+  String get instructionsTitle;
+
+  /// No description provided for @instructionsStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get instructionsStart;
+
+  /// No description provided for @showInstructions.
+  ///
+  /// In en, this message translates to:
+  /// **'Show instructions'**
+  String get showInstructions;
+
+  /// No description provided for @showInstructionsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Display explanatory text before starting the test'**
+  String get showInstructionsSubtitle;
+
+  /// No description provided for @instructFixation.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your eyes on the central fixation point'**
+  String get instructFixation;
+
+  /// No description provided for @instructStimuliSide.
+  ///
+  /// In en, this message translates to:
+  /// **'Stimuli will appear on: {side}'**
+  String instructStimuliSide(String side);
+
+  /// No description provided for @instructStimuliType.
+  ///
+  /// In en, this message translates to:
+  /// **'Stimulus type: {type}'**
+  String instructStimuliType(String type);
+
+  /// No description provided for @instructSpeed.
+  ///
+  /// In en, this message translates to:
+  /// **'Speed: {speed}'**
+  String instructSpeed(String speed);
+
+  /// No description provided for @instructDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration: {duration} seconds'**
+  String instructDuration(int duration);
+
+  /// No description provided for @instructLocTouchAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch all stimuli that appear'**
+  String get instructLocTouchAll;
+
+  /// No description provided for @instructLocMatchCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch only stimuli that match the center'**
+  String get instructLocMatchCenter;
+
+  /// No description provided for @instructLocSameColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch only stimuli with the same color as the center'**
+  String get instructLocSameColor;
+
+  /// No description provided for @instructLocSameShape.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch only stimuli with the same shape as the center'**
+  String get instructLocSameShape;
+
+  /// No description provided for @instructLocFeedback.
+  ///
+  /// In en, this message translates to:
+  /// **'You will see visual feedback when you touch (correct/error)'**
+  String get instructLocFeedback;
+
+  /// No description provided for @instructLocSimultaneous.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} stimuli will appear at once'**
+  String instructLocSimultaneous(int count);
+
+  /// No description provided for @instructMacTouch.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch each letter in the order they appear'**
+  String get instructMacTouch;
+
+  /// No description provided for @instructMacTimed.
+  ///
+  /// In en, this message translates to:
+  /// **'Read the letters aloud as fast as you can'**
+  String get instructMacTimed;
+
+  /// No description provided for @instructMacSequential.
+  ///
+  /// In en, this message translates to:
+  /// **'Read each letter when it is highlighted on screen'**
+  String get instructMacSequential;
+
+  /// No description provided for @instructMacFieldDetection.
+  ///
+  /// In en, this message translates to:
+  /// **'Touch each letter before it disappears. They will appear at random positions'**
+  String get instructMacFieldDetection;
+
+  /// No description provided for @instructMacVisComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'All letters will be visible from the start'**
+  String get instructMacVisComplete;
+
+  /// No description provided for @instructMacVisProgressive.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters will appear one by one'**
+  String get instructMacVisProgressive;
+
+  /// No description provided for @instructMacVisByRings.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters will appear ring by ring'**
+  String get instructMacVisByRings;
+
+  /// No description provided for @instructMacContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Content: {content}'**
+  String instructMacContent(String content);
+
   /// No description provided for @exportPdf.
   ///
   /// In en, this message translates to:

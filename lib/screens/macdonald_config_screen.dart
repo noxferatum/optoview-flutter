@@ -25,6 +25,7 @@ class MacDonaldConfigScreen extends StatefulWidget {
 class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
   MacDonaldConfig config = MacDonaldPresets.standard;
   bool _isLoading = true;
+  bool _showInstructions = true;
   final _patientController = TextEditingController();
 
   @override
@@ -42,10 +43,12 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
   Future<void> _loadSavedConfig() async {
     final saved = await ConfigStorage.loadMacDonaldConfig();
     final name = await ConfigStorage.loadPatientName();
+    final showInstr = await ConfigStorage.loadShowInstructions();
     if (mounted) {
       setState(() {
         if (saved != null) config = saved;
         _patientController.text = name;
+        _showInstructions = showInstr;
         _isLoading = false;
       });
     }
@@ -130,6 +133,16 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
                   border: const OutlineInputBorder(),
                 ),
                 textCapitalization: TextCapitalization.words,
+              ),
+              SwitchListTile(
+                value: _showInstructions,
+                onChanged: (v) {
+                  setState(() => _showInstructions = v);
+                  ConfigStorage.saveShowInstructions(v);
+                },
+                title: Text(l.showInstructions),
+                subtitle: Text(l.showInstructionsSubtitle),
+                secondary: const Icon(Icons.info_outline),
               ),
               const SizedBox(height: 16),
 

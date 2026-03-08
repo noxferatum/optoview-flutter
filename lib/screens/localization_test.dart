@@ -13,7 +13,9 @@ import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
 import '../widgets/test_ui/pause_overlay.dart';
 import '../widgets/test_ui/test_control_buttons.dart';
+import '../widgets/test_ui/instruction_overlay.dart';
 import '../widgets/test_ui/test_timer_display.dart';
+import '../services/config_storage.dart';
 import 'localization_results_screen.dart';
 
 class LocalizationTest extends StatefulWidget {
@@ -77,7 +79,8 @@ class _LocalizationTestState extends State<LocalizationTest>
   late int _remaining;
   bool _isPaused = false;
 
-  // Cuenta regresiva pre-test
+  // Instrucciones y cuenta regresiva pre-test
+  bool _showingInstructions = false;
   int _preCountdown = 3;
   bool _testStarted = false;
 
@@ -122,7 +125,7 @@ class _LocalizationTestState extends State<LocalizationTest>
     // Generar estímulo central inicial
     _generateCenterStimulus();
 
-    _runPreCountdown();
+    _checkInstructions();
   }
 
   @override
@@ -201,6 +204,48 @@ class _LocalizationTestState extends State<LocalizationTest>
       return _pickDifferentForma(_centerForma ?? Forma.circulo);
     }
     return available[_rand.nextInt(available.length)];
+  }
+
+  Future<void> _checkInstructions() async {
+    final show = await ConfigStorage.loadShowInstructions();
+    if (!mounted) return;
+    if (show) {
+      setState(() => _showingInstructions = true);
+    } else {
+      _runPreCountdown();
+    }
+  }
+
+  void _dismissInstructions() {
+    setState(() => _showingInstructions = false);
+    _runPreCountdown();
+  }
+
+  List<String> _buildInstructions(AppLocalizations l) {
+    final c = widget.config;
+    final sideLabel = switch (c.lado) {
+      Lado.izquierda => l.sideLeft,
+      Lado.derecha => l.sideRight,
+      Lado.arriba => l.sideTop,
+      Lado.abajo => l.sideBottom,
+      Lado.ambos => l.sideBoth,
+      Lado.aleatorio => l.sideRandom,
+    };
+    final modeInstruction = switch (c.modo) {
+      LocalizationMode.tocarTodos => l.instructLocTouchAll,
+      LocalizationMode.igualarCentro => l.instructLocMatchCenter,
+      LocalizationMode.mismoColor => l.instructLocSameColor,
+      LocalizationMode.mismaForma => l.instructLocSameShape,
+    };
+    return [
+      l.instructFixation,
+      modeInstruction,
+      l.instructStimuliSide(sideLabel),
+      if (c.feedbackVisual) l.instructLocFeedback,
+      if (c.stimuliSimultaneos > 1)
+        l.instructLocSimultaneous(c.stimuliSimultaneos),
+      l.instructDuration(c.duracionSegundos),
+    ];
   }
 
   // --- Test lifecycle ---
@@ -632,7 +677,7 @@ class _LocalizationTestState extends State<LocalizationTest>
                 onResume: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
-            if (!_testStarted)
+            if (!_testStarted && !_showingInstructions)
               Positioned.fill(
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.8),
@@ -647,6 +692,12 @@ class _LocalizationTestState extends State<LocalizationTest>
                     ),
                   ),
                 ),
+              ),
+            if (_showingInstructions)
+              InstructionOverlay(
+                title: l.configLocalizationTitle,
+                instructions: _buildInstructions(l),
+                onStart: _dismissInstructions,
               ),
           ],
         ),

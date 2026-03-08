@@ -747,6 +747,87 @@ class AppLocalizationsEs extends AppLocalizations {
   String get creditsBack => 'Volver';
 
   @override
+  String get instructionsTitle => 'Instrucciones';
+
+  @override
+  String get instructionsStart => 'Empezar';
+
+  @override
+  String get showInstructions => 'Mostrar instrucciones';
+
+  @override
+  String get showInstructionsSubtitle => 'Muestra un texto explicativo antes de iniciar la prueba';
+
+  @override
+  String get instructFixation => 'Mantén la mirada en el punto de fijación central';
+
+  @override
+  String instructStimuliSide(String side) {
+    return 'Los estímulos aparecerán en: $side';
+  }
+
+  @override
+  String instructStimuliType(String type) {
+    return 'Tipo de estímulo: $type';
+  }
+
+  @override
+  String instructSpeed(String speed) {
+    return 'Velocidad: $speed';
+  }
+
+  @override
+  String instructDuration(int duration) {
+    return 'Duración: $duration segundos';
+  }
+
+  @override
+  String get instructLocTouchAll => 'Toca todos los estímulos que aparezcan';
+
+  @override
+  String get instructLocMatchCenter => 'Toca solo los que coincidan con el estímulo central';
+
+  @override
+  String get instructLocSameColor => 'Toca solo los del mismo color que el centro';
+
+  @override
+  String get instructLocSameShape => 'Toca solo los de la misma forma que el centro';
+
+  @override
+  String get instructLocFeedback => 'Verás un indicador visual de acierto o error al tocar';
+
+  @override
+  String instructLocSimultaneous(int count) {
+    return 'Aparecerán $count estímulos a la vez';
+  }
+
+  @override
+  String get instructMacTouch => 'Toca cada letra en el orden en que aparecen';
+
+  @override
+  String get instructMacTimed => 'Lee las letras en voz alta lo más rápido posible';
+
+  @override
+  String get instructMacSequential => 'Lee cada letra cuando se resalte en la pantalla';
+
+  @override
+  String get instructMacFieldDetection => 'Toca cada letra antes de que desaparezca. Aparecerán en posiciones aleatorias';
+
+  @override
+  String get instructMacVisComplete => 'Todas las letras serán visibles desde el inicio';
+
+  @override
+  String get instructMacVisProgressive => 'Las letras irán apareciendo una a una';
+
+  @override
+  String get instructMacVisByRings => 'Las letras aparecerán anillo por anillo';
+
+  @override
+  String instructMacContent(String content) {
+    return 'Contenido: $content';
+  }
+
+  @override
   String get exportPdf => 'PDF';
 
   @override

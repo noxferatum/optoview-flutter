@@ -13,7 +13,9 @@ import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
 import '../widgets/test_ui/pause_overlay.dart';
 import '../widgets/test_ui/test_control_buttons.dart';
+import '../widgets/test_ui/instruction_overlay.dart';
 import '../widgets/test_ui/test_timer_display.dart';
+import '../services/config_storage.dart';
 import 'test_results_screen.dart';
 
 class DynamicPeripheryTest extends StatefulWidget {
@@ -47,7 +49,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   // Pausa
   bool _isPaused = false;
 
-  // Cuenta regresiva pre-test
+  // Instrucciones y cuenta regresiva pre-test
+  bool _showingInstructions = false;
   int _preCountdown = 3;
   bool _testStarted = false;
 
@@ -71,7 +74,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
 
     initImmersiveMode();
 
-    _runPreCountdown();
+    _checkInstructions();
   }
 
   @override
@@ -97,6 +100,50 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
       if (!_isPaused) _pauseTest();
     }
     // No auto-reanudar: el usuario debe tocar "Reanudar"
+  }
+
+  Future<void> _checkInstructions() async {
+    final show = await ConfigStorage.loadShowInstructions();
+    if (!mounted) return;
+    if (show) {
+      setState(() => _showingInstructions = true);
+    } else {
+      _runPreCountdown();
+    }
+  }
+
+  void _dismissInstructions() {
+    setState(() => _showingInstructions = false);
+    _runPreCountdown();
+  }
+
+  List<String> _buildInstructions(AppLocalizations l) {
+    final c = widget.config;
+    final sideLabel = switch (c.lado) {
+      Lado.izquierda => l.sideLeft,
+      Lado.derecha => l.sideRight,
+      Lado.arriba => l.sideTop,
+      Lado.abajo => l.sideBottom,
+      Lado.ambos => l.sideBoth,
+      Lado.aleatorio => l.sideRandom,
+    };
+    final typeLabel = switch (c.categoria) {
+      SimboloCategoria.letras => l.symbolLetters,
+      SimboloCategoria.numeros => l.symbolNumbers,
+      SimboloCategoria.formas => l.symbolShapes,
+    };
+    final speedLabel = switch (c.velocidad) {
+      Velocidad.lenta => l.speedSlow,
+      Velocidad.media => l.speedMedium,
+      Velocidad.rapida => l.speedFast,
+    };
+    return [
+      l.instructFixation,
+      l.instructStimuliSide(sideLabel),
+      l.instructStimuliType(typeLabel),
+      l.instructSpeed(speedLabel),
+      l.instructDuration(c.duracionSegundos),
+    ];
   }
 
   void _runPreCountdown() {
@@ -388,7 +435,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                 onResume: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
-            if (!_testStarted)
+            if (!_testStarted && !_showingInstructions)
               Positioned.fill(
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.8),
@@ -403,6 +450,12 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                     ),
                   ),
                 ),
+              ),
+            if (_showingInstructions)
+              InstructionOverlay(
+                title: l.configPeripheralTitle,
+                instructions: _buildInstructions(l),
+                onStart: _dismissInstructions,
               ),
           ],
         ),

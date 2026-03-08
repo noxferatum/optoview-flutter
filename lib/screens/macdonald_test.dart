@@ -11,6 +11,8 @@ import '../widgets/center_fixation.dart';
 import '../widgets/test_ui/pause_overlay.dart';
 import '../widgets/test_ui/test_control_buttons.dart';
 import '../widgets/test_ui/test_timer_display.dart';
+import '../widgets/test_ui/instruction_overlay.dart';
+import '../services/config_storage.dart';
 import 'macdonald_results_screen.dart';
 
 class MacDonaldTest extends StatefulWidget {
@@ -55,7 +57,8 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   late int _remaining;
   bool _isPaused = false;
 
-  // Cuenta regresiva pre-test
+  // Instrucciones y cuenta regresiva pre-test
+  bool _showingInstructions = false;
   int _preCountdown = 3;
   bool _testStarted = false;
 
@@ -99,7 +102,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
 
     initImmersiveMode();
 
-    _runPreCountdown();
+    _checkInstructions();
   }
 
   @override
@@ -235,6 +238,49 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     }
 
     return indices;
+  }
+
+  // --- Instrucciones pre-test ---
+
+  Future<void> _checkInstructions() async {
+    final show = await ConfigStorage.loadShowInstructions();
+    if (!mounted) return;
+    if (show) {
+      setState(() => _showingInstructions = true);
+    } else {
+      _runPreCountdown();
+    }
+  }
+
+  void _dismissInstructions() {
+    setState(() => _showingInstructions = false);
+    _runPreCountdown();
+  }
+
+  List<String> _buildInstructions(AppLocalizations l) {
+    final c = widget.config;
+    final interactionInstruction = switch (c.interaccion) {
+      MacInteraccion.tocarLetras => l.instructMacTouch,
+      MacInteraccion.lecturaConTiempo => l.instructMacTimed,
+      MacInteraccion.lecturaSecuencial => l.instructMacSequential,
+      MacInteraccion.deteccionCampo => l.instructMacFieldDetection,
+    };
+    final contentLabel = c.contenido == MacContenido.numeros
+        ? l.macContentNumbers
+        : l.macContentLetters;
+    return [
+      l.instructFixation,
+      interactionInstruction,
+      if (c.interaccion != MacInteraccion.deteccionCampo) ...[
+        switch (c.visualizacion) {
+          MacVisualizacion.completa => l.instructMacVisComplete,
+          MacVisualizacion.progresiva => l.instructMacVisProgressive,
+          MacVisualizacion.porAnillos => l.instructMacVisByRings,
+        },
+      ],
+      l.instructMacContent(contentLabel),
+      l.instructDuration(c.duracionSegundos),
+    ];
   }
 
   // --- Pre-countdown ---
@@ -848,7 +894,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
               ),
 
             // Pre-test countdown
-            if (!_testStarted)
+            if (!_testStarted && !_showingInstructions)
               Positioned.fill(
                 child: Container(
                   color: Colors.black.withValues(alpha: 0.8),
@@ -863,6 +909,12 @@ class _MacDonaldTestState extends State<MacDonaldTest>
                     ),
                   ),
                 ),
+              ),
+            if (_showingInstructions)
+              InstructionOverlay(
+                title: l.configMacdonaldTitle,
+                instructions: _buildInstructions(l),
+                onStart: _dismissInstructions,
               ),
           ],
         ),
