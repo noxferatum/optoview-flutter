@@ -1187,6 +1187,18 @@ abstract class AppLocalizations {
   /// **'The app highlights letters one by one, you read them'**
   String get macInteractionSequentialDesc;
 
+  /// No description provided for @macInteractionFieldDetection.
+  ///
+  /// In en, this message translates to:
+  /// **'Field detection'**
+  String get macInteractionFieldDetection;
+
+  /// No description provided for @macInteractionFieldDetectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Letters appear one at a time at random positions. Touch each letter before it disappears'**
+  String get macInteractionFieldDetectionDesc;
+
   /// No description provided for @macVisualizationTitle.
   ///
   /// In en, this message translates to:
@@ -1361,6 +1373,24 @@ abstract class AppLocalizations {
   /// **'Sequential, progressive, fast'**
   String get presetMacAdvancedDesc;
 
+  /// No description provided for @presetMacFieldDetectionDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Visual field detection, touch letters'**
+  String get presetMacFieldDetectionDesc;
+
+  /// No description provided for @macHitMapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Hits map'**
+  String get macHitMapTitle;
+
+  /// No description provided for @macMissMapTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Misses map'**
+  String get macMissMapTitle;
+
   /// No description provided for @macNextRing.
   ///
   /// In en, this message translates to:
@@ -1516,6 +1546,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get creditsBack;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Excel'**
+  String get exportExcel;
+
+  /// No description provided for @exportCsv.
+  ///
+  /// In en, this message translates to:
+  /// **'CSV'**
+  String get exportCsv;
+
+  /// No description provided for @exportPatientSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Export summary'**
+  String get exportPatientSummary;
+
+  /// No description provided for @exportSelectPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a patient'**
+  String get exportSelectPatient;
+
+  /// No description provided for @exportReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'OptoView Report'**
+  String get exportReportTitle;
+
+  /// No description provided for @exportReportGenerated.
+  ///
+  /// In en, this message translates to:
+  /// **'Report generated on {date}'**
+  String exportReportGenerated(String date);
+
+  /// No description provided for @exportNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results to export'**
+  String get exportNoResults;
+
+  /// No description provided for @exportPatientReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient summary: {name}'**
+  String exportPatientReport(String name);
+
+  /// No description provided for @exportTestDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get exportTestDate;
+
+  /// No description provided for @exportTestType.
+  ///
+  /// In en, this message translates to:
+  /// **'Test type'**
+  String get exportTestType;
+
+  /// No description provided for @exportAccuracy.
+  ///
+  /// In en, this message translates to:
+  /// **'Accuracy'**
+  String get exportAccuracy;
+
+  /// No description provided for @exportDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration'**
+  String get exportDuration;
+
+  /// No description provided for @exportReactionTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction time'**
+  String get exportReactionTime;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

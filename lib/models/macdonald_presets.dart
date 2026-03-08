@@ -50,6 +50,21 @@ abstract final class MacDonaldPresets {
     letrasAleatorias: true,
   );
 
+  static const MacDonaldConfig fieldDetection = MacDonaldConfig(
+    interaccion: MacInteraccion.deteccionCampo,
+    visualizacion: MacVisualizacion.progresiva,
+    direccion: MacDireccion.centroAfuera,
+    numAnillos: 3,
+    letrasPorAnillo: 8,
+    duracionSegundos: 120,
+    fondo: Fondo.oscuro,
+    fijacion: Fijacion.punto,
+    colorLetras: EstimuloColor.blanco,
+    tamanoBase: 15,
+    velocidadRevelado: Velocidad.media,
+    letrasAleatorias: true,
+  );
+
   static List<PresetEntry<MacDonaldConfig>> all(AppLocalizations l) => [
     PresetEntry(
       name: l.presetStandard,
@@ -68,6 +83,12 @@ abstract final class MacDonaldPresets {
       description: l.presetMacAdvancedDesc,
       icon: Icons.speed,
       config: advanced,
+    ),
+    PresetEntry(
+      name: l.macInteractionFieldDetection,
+      description: l.presetMacFieldDetectionDesc,
+      icon: Icons.visibility,
+      config: fieldDetection,
     ),
   ];
 }

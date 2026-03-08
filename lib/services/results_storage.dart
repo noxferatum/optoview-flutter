@@ -1,26 +1,20 @@
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/saved_result.dart';
 
-/// Servicio de persistencia de resultados en archivo JSON local.
+/// Servicio de persistencia de resultados con SharedPreferences.
 abstract final class ResultsStorage {
-  static const _fileName = 'optoview_results.json';
-
-  static Future<File> _getFile() async {
-    final dir = await getApplicationDocumentsDirectory();
-    return File('${dir.path}/$_fileName');
-  }
+  static const _key = 'optoview_results';
 
   /// Carga todos los resultados guardados (más recientes primero).
   static Future<List<SavedResult>> loadAll() async {
     try {
-      final file = await _getFile();
-      if (!await file.exists()) return [];
-      final content = await file.readAsString();
-      final list = jsonDecode(content) as List<dynamic>;
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_key);
+      if (raw == null) return [];
+      final list = jsonDecode(raw) as List<dynamic>;
       return list
           .map((e) => SavedResult.fromJson(e as Map<String, dynamic>))
           .toList();
@@ -34,8 +28,11 @@ abstract final class ResultsStorage {
     try {
       final results = await loadAll();
       results.insert(0, result);
-      final file = await _getFile();
-      await file.writeAsString(jsonEncode(results.map((r) => r.toJson()).toList()));
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _key,
+        jsonEncode(results.map((r) => r.toJson()).toList()),
+      );
     } catch (_) {}
   }
 
@@ -44,16 +41,19 @@ abstract final class ResultsStorage {
     try {
       final results = await loadAll();
       results.removeWhere((r) => r.id == id);
-      final file = await _getFile();
-      await file.writeAsString(jsonEncode(results.map((r) => r.toJson()).toList()));
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        _key,
+        jsonEncode(results.map((r) => r.toJson()).toList()),
+      );
     } catch (_) {}
   }
 
   /// Elimina todos los resultados.
   static Future<void> deleteAll() async {
     try {
-      final file = await _getFile();
-      if (await file.exists()) await file.delete();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_key);
     } catch (_) {}
   }
 }

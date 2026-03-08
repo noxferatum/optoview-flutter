@@ -238,6 +238,8 @@
   "macInteractionTimedDesc": "Lee en voz alta con cronómetro",
   "macInteractionSequential": "Lectura secuencial",
   "macInteractionSequentialDesc": "La app resalta letras una a una, tú las lees",
+  "macInteractionFieldDetection": "Detección de campo",
+  "macInteractionFieldDetectionDesc": "Las letras aparecen una a una en posiciones aleatorias. Toca cada letra antes de que desaparezca",
 
   "macVisualizationTitle": "Modo de visualización",
   "macVisualizationComplete": "Completa",
@@ -273,6 +275,10 @@
   "presetMacStandardDesc": "Por anillos, lectura con tiempo",
   "presetMacEasyDesc": "Tocar letras, todo visible, lento",
   "presetMacAdvancedDesc": "Secuencial, progresiva, rápido",
+  "presetMacFieldDetectionDesc": "Detección de campo visual, toca letras",
+
+  "macHitMapTitle": "Mapa de aciertos",
+  "macMissMapTitle": "Mapa de fallos",
 
   "macNextRing": "Siguiente anillo",
   "macRingLabel": "Anillo {number}",
@@ -308,5 +314,30 @@
   "creditsCompany": "Empresa",
   "creditsYear": "Año",
   "creditsVersion": "Versión",
-  "creditsBack": "Volver"
+  "creditsBack": "Volver",
+
+  "exportPdf": "PDF",
+  "exportExcel": "Excel",
+  "exportCsv": "CSV",
+  "exportPatientSummary": "Exportar resumen",
+  "exportSelectPatient": "Selecciona un paciente",
+  "exportReportTitle": "Informe OptoView",
+  "exportReportGenerated": "Informe generado el {date}",
+  "@exportReportGenerated": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "exportNoResults": "No hay resultados para exportar",
+  "exportPatientReport": "Resumen del paciente: {name}",
+  "@exportPatientReport": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "exportTestDate": "Fecha",
+  "exportTestType": "Tipo de test",
+  "exportAccuracy": "Precisión",
+  "exportDuration": "Duración",
+  "exportReactionTime": "T. reacción"
 }

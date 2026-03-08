@@ -6,7 +6,8 @@ import 'test_config.dart';
 enum MacInteraccion {
   tocarLetras,
   lecturaConTiempo,
-  lecturaSecuencial;
+  lecturaSecuencial,
+  deteccionCampo;
 }
 
 /// Modo de visualización del test Carta MacDonald
@@ -100,6 +101,7 @@ class MacDonaldConfig {
       MacInteraccion.tocarLetras => l.macInteractionTouch,
       MacInteraccion.lecturaConTiempo => l.macInteractionTimed,
       MacInteraccion.lecturaSecuencial => l.macInteractionSequential,
+      MacInteraccion.deteccionCampo => l.macInteractionFieldDetection,
     };
     final visLabel = switch (visualizacion) {
       MacVisualizacion.completa => l.macVisualizationComplete,

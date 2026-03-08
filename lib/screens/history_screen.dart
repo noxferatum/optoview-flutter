@@ -1,7 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
+import '../models/macdonald_result.dart';
 import '../models/saved_result.dart';
+import '../services/export_service.dart';
 import '../services/results_storage.dart';
 
 class HistoryScreen extends StatefulWidget {
@@ -75,6 +79,98 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text(l.historyDelete),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showPatientSummaryExport(AppLocalizations l) {
+    // Group results by patient name
+    final patients = <String, List<SavedResult>>{};
+    for (final r in _results) {
+      final name = r.patientName.isNotEmpty ? r.patientName : '-';
+      patients.putIfAbsent(name, () => []).add(r);
+    }
+
+    if (patients.length == 1) {
+      // Only one patient (or no names) → show format picker directly
+      _showFormatPicker(patients.keys.first, patients.values.first, l);
+      return;
+    }
+
+    // Multiple patients → show patient selector
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => ListView(
+        shrinkWrap: true,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(l.exportSelectPatient,
+                style: Theme.of(context).textTheme.titleMedium),
+          ),
+          ...patients.entries.map(
+            (e) => ListTile(
+              leading: const Icon(Icons.person),
+              title: Text(e.key),
+              subtitle: Text('${e.value.length} resultados'),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showFormatPicker(e.key, e.value, l);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFormatPicker(
+      String patientName, List<SavedResult> results, AppLocalizations l) {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(l.exportPatientReport(patientName),
+                style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ExportService.exportPatientSummaryPdf(
+                        context, patientName, results, l);
+                  },
+                  icon: const Icon(Icons.picture_as_pdf),
+                  label: Text(l.exportPdf),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ExportService.exportPatientSummaryExcel(
+                        patientName, results, l);
+                  },
+                  icon: const Icon(Icons.table_chart),
+                  label: Text(l.exportExcel),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    ExportService.exportPatientSummaryCsv(
+                        patientName, results, l);
+                  },
+                  icon: const Icon(Icons.description),
+                  label: Text(l.exportCsv),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
@@ -199,6 +295,61 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
               ],
 
+              // Mapas de aciertos/fallos (MacDonald tocarLetras)
+              if (result.letterEvents != null &&
+                  result.letterEvents!.isNotEmpty) ...[
+                const Divider(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(l.macHitMapTitle,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: CustomPaint(
+                              painter: _HitMapPainter(
+                                events: result.letterEvents!
+                                    .where((e) => e.isHit)
+                                    .toList(),
+                                dotColor: Colors.greenAccent,
+                                numRings: result.anillosCompletados ?? 3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(l.macMissMapTitle,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600)),
+                          const SizedBox(height: 8),
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: CustomPaint(
+                              painter: _HitMapPainter(
+                                events: result.letterEvents!
+                                    .where((e) => !e.isHit)
+                                    .toList(),
+                                dotColor: Colors.redAccent,
+                                numRings: result.anillosCompletados ?? 3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
               // Config summary
               if (result.configSummary.isNotEmpty) ...[
                 const Divider(height: 24),
@@ -213,6 +364,29 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   (e) => _DetailRow(label: e.key, value: e.value),
                 ),
               ],
+
+              // Export buttons
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () => ExportService.exportResultPdf(context, result, l),
+                    icon: const Icon(Icons.picture_as_pdf, size: 18),
+                    label: Text(l.exportPdf),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => ExportService.exportResultExcel(result, l),
+                    icon: const Icon(Icons.table_chart, size: 18),
+                    label: Text(l.exportExcel),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => ExportService.exportResultCsv(result, l),
+                    icon: const Icon(Icons.description, size: 18),
+                    label: Text(l.exportCsv),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -260,6 +434,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         title: Text(l.historyTitle),
         actions: [
+          if (_results.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.summarize),
+              tooltip: l.exportPatientSummary,
+              onPressed: () => _showPatientSummaryExport(l),
+            ),
           if (_results.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.delete_sweep),
@@ -361,4 +541,62 @@ class _DetailRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _HitMapPainter extends CustomPainter {
+  final List<LetterEvent> events;
+  final Color dotColor;
+  final int numRings;
+
+  _HitMapPainter({
+    required this.events,
+    required this.dotColor,
+    required this.numRings,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = min(size.width, size.height) / 2 - 4;
+
+    final ringPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (int i = 1; i <= numRings; i++) {
+      final r = radius * i / numRings;
+      canvas.drawCircle(center, r, ringPaint);
+    }
+
+    final axisPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.2)
+      ..strokeWidth = 0.5;
+    canvas.drawLine(
+      Offset(center.dx - radius, center.dy),
+      Offset(center.dx + radius, center.dy),
+      axisPaint,
+    );
+    canvas.drawLine(
+      Offset(center.dx, center.dy - radius),
+      Offset(center.dx, center.dy + radius),
+      axisPaint,
+    );
+
+    final dotPaint = Paint()
+      ..color = dotColor
+      ..style = PaintingStyle.fill;
+
+    for (final e in events) {
+      final x = center.dx + e.dx * radius;
+      final y = center.dy + e.dy * radius;
+      canvas.drawCircle(Offset(x, y), 5, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _HitMapPainter oldDelegate) =>
+      oldDelegate.events != events ||
+      oldDelegate.dotColor != dotColor ||
+      oldDelegate.numRings != numRings;
 }

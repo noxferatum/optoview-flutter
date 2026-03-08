@@ -1,6 +1,40 @@
 import 'package:flutter/material.dart';
 import 'macdonald_config.dart';
 
+/// Evento de una letra en el chart: posición normalizada + acierto/fallo.
+@immutable
+class LetterEvent {
+  /// Posición X normalizada [-1, 1] respecto al centro del chart.
+  final double dx;
+
+  /// Posición Y normalizada [-1, 1] respecto al centro del chart.
+  final double dy;
+
+  final int ringIndex;
+  final bool isHit;
+
+  const LetterEvent({
+    required this.dx,
+    required this.dy,
+    required this.ringIndex,
+    required this.isHit,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'dx': dx,
+        'dy': dy,
+        'ringIndex': ringIndex,
+        'isHit': isHit,
+      };
+
+  factory LetterEvent.fromJson(Map<String, dynamic> json) => LetterEvent(
+        dx: (json['dx'] as num).toDouble(),
+        dy: (json['dy'] as num).toDouble(),
+        ringIndex: json['ringIndex'] as int,
+        isHit: json['isHit'] as bool,
+      );
+}
+
 @immutable
 class MacDonaldResult {
   final MacDonaldConfig config;
@@ -16,6 +50,7 @@ class MacDonaldResult {
   final List<double> reactionTimesMs;
   final int anillosCompletados;
   final List<double> tiempoPorAnillo;
+  final List<LetterEvent> letterEvents;
 
   const MacDonaldResult({
     required this.config,
@@ -31,6 +66,7 @@ class MacDonaldResult {
     required this.reactionTimesMs,
     required this.anillosCompletados,
     required this.tiempoPorAnillo,
+    this.letterEvents = const [],
   });
 
   double get accuracy {

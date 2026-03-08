@@ -24,6 +24,7 @@ class SavedResult {
   final double? stimuliPerMinute;
   final int? anillosCompletados;
   final List<double>? tiempoPorAnillo;
+  final List<LetterEvent>? letterEvents;
   final Map<String, String> configSummary;
 
   const SavedResult({
@@ -45,6 +46,7 @@ class SavedResult {
     this.stimuliPerMinute,
     this.anillosCompletados,
     this.tiempoPorAnillo,
+    this.letterEvents,
     required this.configSummary,
   });
 
@@ -116,6 +118,9 @@ class SavedResult {
       tiempoPorAnillo: result.tiempoPorAnillo.isNotEmpty
           ? List.unmodifiable(result.tiempoPorAnillo)
           : null,
+      letterEvents: result.letterEvents.isNotEmpty
+          ? List.unmodifiable(result.letterEvents)
+          : null,
       configSummary: result.config.localizedSummary(l),
     );
   }
@@ -142,6 +147,8 @@ class SavedResult {
         if (anillosCompletados != null)
           'anillosCompletados': anillosCompletados,
         if (tiempoPorAnillo != null) 'tiempoPorAnillo': tiempoPorAnillo,
+        if (letterEvents != null)
+          'letterEvents': letterEvents!.map((e) => e.toJson()).toList(),
         'configSummary': configSummary,
       };
 
@@ -165,6 +172,9 @@ class SavedResult {
         anillosCompletados: json['anillosCompletados'] as int?,
         tiempoPorAnillo: (json['tiempoPorAnillo'] as List<dynamic>?)
             ?.map((e) => (e as num).toDouble())
+            .toList(),
+        letterEvents: (json['letterEvents'] as List<dynamic>?)
+            ?.map((e) => LetterEvent.fromJson(e as Map<String, dynamic>))
             .toList(),
         configSummary:
             Map<String, String>.from(json['configSummary'] as Map),

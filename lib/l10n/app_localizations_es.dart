@@ -565,6 +565,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get macInteractionSequentialDesc => 'La app resalta letras una a una, tú las lees';
 
   @override
+  String get macInteractionFieldDetection => 'Detección de campo';
+
+  @override
+  String get macInteractionFieldDetectionDesc => 'Las letras aparecen una a una en posiciones aleatorias. Toca cada letra antes de que desaparezca';
+
+  @override
   String get macVisualizationTitle => 'Modo de visualización';
 
   @override
@@ -652,6 +658,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetMacAdvancedDesc => 'Secuencial, progresiva, rápido';
 
   @override
+  String get presetMacFieldDetectionDesc => 'Detección de campo visual, toca letras';
+
+  @override
+  String get macHitMapTitle => 'Mapa de aciertos';
+
+  @override
+  String get macMissMapTitle => 'Mapa de fallos';
+
+  @override
   String get macNextRing => 'Siguiente anillo';
 
   @override
@@ -730,4 +745,50 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get creditsBack => 'Volver';
+
+  @override
+  String get exportPdf => 'PDF';
+
+  @override
+  String get exportExcel => 'Excel';
+
+  @override
+  String get exportCsv => 'CSV';
+
+  @override
+  String get exportPatientSummary => 'Exportar resumen';
+
+  @override
+  String get exportSelectPatient => 'Selecciona un paciente';
+
+  @override
+  String get exportReportTitle => 'Informe OptoView';
+
+  @override
+  String exportReportGenerated(String date) {
+    return 'Informe generado el $date';
+  }
+
+  @override
+  String get exportNoResults => 'No hay resultados para exportar';
+
+  @override
+  String exportPatientReport(String name) {
+    return 'Resumen del paciente: $name';
+  }
+
+  @override
+  String get exportTestDate => 'Fecha';
+
+  @override
+  String get exportTestType => 'Tipo de test';
+
+  @override
+  String get exportAccuracy => 'Precisión';
+
+  @override
+  String get exportDuration => 'Duración';
+
+  @override
+  String get exportReactionTime => 'T. reacción';
 }

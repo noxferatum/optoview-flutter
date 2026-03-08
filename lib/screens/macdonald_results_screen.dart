@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
@@ -35,7 +37,10 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     final result = widget.result;
     final summary = result.config.localizedSummary(l);
     final isTouchMode =
-        result.config.interaccion == MacInteraccion.tocarLetras;
+        result.config.interaccion == MacInteraccion.tocarLetras ||
+        result.config.interaccion == MacInteraccion.deteccionCampo;
+    final isFieldDetection =
+        result.config.interaccion == MacInteraccion.deteccionCampo;
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
@@ -140,6 +145,78 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
                       ),
                     ),
                   if (isTouchMode) const SizedBox(height: 16),
+
+                  // Mapas de aciertos y fallos (solo detección de campo)
+                  if (isFieldDetection && result.letterEvents.isNotEmpty) ...[
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Card(
+                            elevation: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    l.macHitMapTitle,
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  AspectRatio(
+                                    aspectRatio: 1,
+                                    child: CustomPaint(
+                                      painter: _HitMapPainter(
+                                        events: result.letterEvents
+                                            .where((e) => e.isHit)
+                                            .toList(),
+                                        dotColor: Colors.greenAccent,
+                                        numRings: result.config.numAnillos,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Card(
+                            elevation: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    l.macMissMapTitle,
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  AspectRatio(
+                                    aspectRatio: 1,
+                                    child: CustomPaint(
+                                      painter: _HitMapPainter(
+                                        events: result.letterEvents
+                                            .where((e) => !e.isHit)
+                                            .toList(),
+                                        dotColor: Colors.redAccent,
+                                        numRings: result.config.numAnillos,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // Tiempos de reacción (solo modo tocar)
                   if (isTouchMode && result.reactionTimesMs.isNotEmpty)
@@ -346,4 +423,65 @@ class _StatRow extends StatelessWidget {
       ),
     );
   }
+}
+
+class _HitMapPainter extends CustomPainter {
+  final List<LetterEvent> events;
+  final Color dotColor;
+  final int numRings;
+
+  _HitMapPainter({
+    required this.events,
+    required this.dotColor,
+    required this.numRings,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = min(size.width, size.height) / 2 - 4;
+
+    // Anillos concéntricos
+    final ringPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.15)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (int i = 1; i <= numRings; i++) {
+      final r = radius * i / numRings;
+      canvas.drawCircle(center, r, ringPaint);
+    }
+
+    // Cruz central
+    final axisPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.2)
+      ..strokeWidth = 0.5;
+    canvas.drawLine(
+      Offset(center.dx - radius, center.dy),
+      Offset(center.dx + radius, center.dy),
+      axisPaint,
+    );
+    canvas.drawLine(
+      Offset(center.dx, center.dy - radius),
+      Offset(center.dx, center.dy + radius),
+      axisPaint,
+    );
+
+    // Puntos
+    final dotPaint = Paint()
+      ..color = dotColor
+      ..style = PaintingStyle.fill;
+
+    for (final e in events) {
+      final x = center.dx + e.dx * radius;
+      final y = center.dy + e.dy * radius;
+      canvas.drawCircle(Offset(x, y), 5, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _HitMapPainter oldDelegate) =>
+      oldDelegate.events != events ||
+      oldDelegate.dotColor != dotColor ||
+      oldDelegate.numRings != numRings;
 }

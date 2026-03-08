@@ -50,6 +50,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   Timer? _endTimer;
   Timer? _countdownTimer;
   Timer? _revealTimer;
+  Timer? _fieldLetterTimer;
 
   late int _remaining;
   bool _isPaused = false;
@@ -61,6 +62,10 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   // Letras de la carta
   final List<_ChartLetterData> _allLetters = [];
   Offset _chartCenter = Offset.zero;
+  double _maxRadius = 1;
+
+  // Eventos de posición para diagrama de puntos
+  final List<LetterEvent> _letterEvents = [];
 
   // Índice de la siguiente letra/anillo a revelar
   int _revealIndex = 0;
@@ -130,6 +135,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     final center = Offset(screenSize.width / 2, screenSize.height / 2);
     _chartCenter = center;
     final maxRadius = min(screenSize.width, screenSize.height) * 0.42;
+    _maxRadius = maxRadius;
     final numRings = widget.config.numAnillos;
     final baseLettersPerRing = widget.config.letrasPorAnillo;
 
@@ -156,7 +162,8 @@ class _MacDonaldTestState extends State<MacDonaldTest>
         }
 
         final isRevealed =
-            widget.config.visualizacion == MacVisualizacion.completa;
+            widget.config.visualizacion == MacVisualizacion.completa &&
+            widget.config.interaccion != MacInteraccion.deteccionCampo;
 
         _allLetters.add(_ChartLetterData(
           letter: letter,
@@ -170,9 +177,11 @@ class _MacDonaldTestState extends State<MacDonaldTest>
       }
     }
 
-    _totalLetrasShown = widget.config.visualizacion == MacVisualizacion.completa
-        ? _allLetters.length
-        : 0;
+    _totalLetrasShown =
+        (widget.config.visualizacion == MacVisualizacion.completa &&
+                widget.config.interaccion != MacInteraccion.deteccionCampo)
+            ? _allLetters.length
+            : 0;
 
     // Build reveal order based on direction
     _revealOrder = _buildRevealOrder();
@@ -280,6 +289,12 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     final vis = widget.config.visualizacion;
     final inter = widget.config.interaccion;
 
+    if (inter == MacInteraccion.deteccionCampo) {
+      _revealOrder.shuffle(_rand);
+      _startFieldDetection();
+      return;
+    }
+
     if (vis == MacVisualizacion.completa) {
       // All letters already revealed
       if (inter == MacInteraccion.lecturaSecuencial) {
@@ -291,6 +306,55 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     } else if (vis == MacVisualizacion.porAnillos) {
       _revealCurrentRing();
     }
+  }
+
+  void _startFieldDetection() {
+    _revealIndex = 0;
+    _revealNextFieldLetter();
+  }
+
+  void _revealNextFieldLetter() {
+    if (!mounted || _isPaused) return;
+    if (_revealIndex >= _revealOrder.length) {
+      _finishTest(stoppedManually: false);
+      return;
+    }
+
+    final idx = _revealOrder[_revealIndex];
+    setState(() {
+      _allLetters[idx].isRevealed = true;
+      _allLetters[idx].revealedAt = DateTime.now();
+      _totalLetrasShown++;
+
+      // Track ring transitions
+      if (_revealIndex > 0) {
+        final prevIdx = _revealOrder[_revealIndex - 1];
+        final prevRing = _allLetters[prevIdx].ringIndex;
+        if (_allLetters[idx].ringIndex != prevRing) {
+          _recordRingCompletion();
+        }
+      }
+    });
+
+    // Start disappear timer
+    final periodMs = widget.config.velocidadRevelado.milliseconds;
+    _fieldLetterTimer?.cancel();
+    _fieldLetterTimer = Timer(Duration(milliseconds: periodMs), () {
+      if (!mounted || _isPaused) return;
+      final letter = _allLetters[idx];
+      _missedLetras++;
+      _letterEvents.add(LetterEvent(
+        dx: (letter.position.dx - _chartCenter.dx) / _maxRadius,
+        dy: (letter.position.dy - _chartCenter.dy) / _maxRadius,
+        ringIndex: letter.ringIndex,
+        isHit: false,
+      ));
+      setState(() {
+        letter.isRevealed = false;
+      });
+      _revealIndex++;
+      _revealNextFieldLetter();
+    });
   }
 
   void _startProgressiveReveal() {
@@ -483,7 +547,40 @@ class _MacDonaldTestState extends State<MacDonaldTest>
 
   void _onLetterTapped(int letterIndex) {
     if (_isPaused) return;
-    if (widget.config.interaccion != MacInteraccion.tocarLetras) return;
+
+    final inter = widget.config.interaccion;
+
+    // Field detection mode: any visible letter can be touched
+    if (inter == MacInteraccion.deteccionCampo) {
+      final letter = _allLetters[letterIndex];
+      if (!letter.isRevealed) return;
+
+      _fieldLetterTimer?.cancel();
+      _fieldLetterTimer = null;
+
+      final reactionMs = letter.revealedAt != null
+          ? DateTime.now().difference(letter.revealedAt!).inMicroseconds / 1000.0
+          : 0.0;
+
+      _correctTouches++;
+      _reactionTimesMs.add(reactionMs);
+      _letterEvents.add(LetterEvent(
+        dx: (letter.position.dx - _chartCenter.dx) / _maxRadius,
+        dy: (letter.position.dy - _chartCenter.dy) / _maxRadius,
+        ringIndex: letter.ringIndex,
+        isHit: true,
+      ));
+
+      setState(() {
+        letter.isRevealed = false;
+      });
+
+      _revealIndex++;
+      _revealNextFieldLetter();
+      return;
+    }
+
+    if (inter != MacInteraccion.tocarLetras) return;
 
     final letter = _allLetters[letterIndex];
     if (!letter.isRevealed || letter.isCompleted) return;
@@ -575,6 +672,13 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     final vis = widget.config.visualizacion;
     final inter = widget.config.interaccion;
 
+    if (inter == MacInteraccion.deteccionCampo) {
+      if (_revealIndex < _revealOrder.length) {
+        _revealNextFieldLetter();
+      }
+      return;
+    }
+
     if (vis == MacVisualizacion.completa) {
       if (inter == MacInteraccion.lecturaSecuencial &&
           _highlightIndex < _revealOrder.length) {
@@ -604,7 +708,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     if (!mounted) return;
     _cancelAllTimers();
 
-    // Count unrevealed or untouched letters as missed (for touch mode)
+    // Count untouched letters as missed (for tocarLetras mode only)
     if (widget.config.interaccion == MacInteraccion.tocarLetras) {
       for (final l in _allLetters) {
         if (l.isRevealed && !l.isCompleted) {
@@ -638,6 +742,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
       reactionTimesMs: List.unmodifiable(_reactionTimesMs),
       anillosCompletados: _anillosCompletados,
       tiempoPorAnillo: List.unmodifiable(_tiempoPorAnillo),
+      letterEvents: List.unmodifiable(_letterEvents),
     );
 
     Navigator.of(context).pushReplacement(
@@ -654,6 +759,8 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     _countdownTimer = null;
     _revealTimer?.cancel();
     _revealTimer = null;
+    _fieldLetterTimer?.cancel();
+    _fieldLetterTimer = null;
   }
 
   // --- UI ---
@@ -693,8 +800,10 @@ class _MacDonaldTestState extends State<MacDonaldTest>
                     isHighlighted: letter.isHighlighted,
                     isCompleted: letter.isCompleted,
                     isDark: widget.config.fondo.isDark,
-                    onTap: widget.config.interaccion ==
-                            MacInteraccion.tocarLetras
+                    onTap: (widget.config.interaccion ==
+                                MacInteraccion.tocarLetras ||
+                            widget.config.interaccion ==
+                                MacInteraccion.deteccionCampo)
                         ? () => _onLetterTapped(idx)
                         : null,
                   ),

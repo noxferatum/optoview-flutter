@@ -238,6 +238,8 @@
   "macInteractionTimedDesc": "Read aloud with a timer",
   "macInteractionSequential": "Sequential reading",
   "macInteractionSequentialDesc": "The app highlights letters one by one, you read them",
+  "macInteractionFieldDetection": "Field detection",
+  "macInteractionFieldDetectionDesc": "Letters appear one at a time at random positions. Touch each letter before it disappears",
 
   "macVisualizationTitle": "Visualization mode",
   "macVisualizationComplete": "Complete",
@@ -273,6 +275,10 @@
   "presetMacStandardDesc": "By rings, timed reading",
   "presetMacEasyDesc": "Touch letters, all visible, slow",
   "presetMacAdvancedDesc": "Sequential, progressive, fast",
+  "presetMacFieldDetectionDesc": "Visual field detection, touch letters",
+
+  "macHitMapTitle": "Hits map",
+  "macMissMapTitle": "Misses map",
 
   "macNextRing": "Next ring",
   "macRingLabel": "Ring {number}",
@@ -308,5 +314,30 @@
   "creditsCompany": "Company",
   "creditsYear": "Year",
   "creditsVersion": "Version",
-  "creditsBack": "Back"
+  "creditsBack": "Back",
+
+  "exportPdf": "PDF",
+  "exportExcel": "Excel",
+  "exportCsv": "CSV",
+  "exportPatientSummary": "Export summary",
+  "exportSelectPatient": "Select a patient",
+  "exportReportTitle": "OptoView Report",
+  "exportReportGenerated": "Report generated on {date}",
+  "@exportReportGenerated": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "exportNoResults": "No results to export",
+  "exportPatientReport": "Patient summary: {name}",
+  "@exportPatientReport": {
+    "placeholders": {
+      "name": { "type": "String" }
+    }
+  },
+  "exportTestDate": "Date",
+  "exportTestType": "Test type",
+  "exportAccuracy": "Accuracy",
+  "exportDuration": "Duration",
+  "exportReactionTime": "Reaction time"
 }

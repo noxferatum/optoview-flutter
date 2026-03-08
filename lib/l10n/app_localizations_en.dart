@@ -565,6 +565,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get macInteractionSequentialDesc => 'The app highlights letters one by one, you read them';
 
   @override
+  String get macInteractionFieldDetection => 'Field detection';
+
+  @override
+  String get macInteractionFieldDetectionDesc => 'Letters appear one at a time at random positions. Touch each letter before it disappears';
+
+  @override
   String get macVisualizationTitle => 'Visualization mode';
 
   @override
@@ -652,6 +658,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get presetMacAdvancedDesc => 'Sequential, progressive, fast';
 
   @override
+  String get presetMacFieldDetectionDesc => 'Visual field detection, touch letters';
+
+  @override
+  String get macHitMapTitle => 'Hits map';
+
+  @override
+  String get macMissMapTitle => 'Misses map';
+
+  @override
   String get macNextRing => 'Next ring';
 
   @override
@@ -730,4 +745,50 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get creditsBack => 'Back';
+
+  @override
+  String get exportPdf => 'PDF';
+
+  @override
+  String get exportExcel => 'Excel';
+
+  @override
+  String get exportCsv => 'CSV';
+
+  @override
+  String get exportPatientSummary => 'Export summary';
+
+  @override
+  String get exportSelectPatient => 'Select a patient';
+
+  @override
+  String get exportReportTitle => 'OptoView Report';
+
+  @override
+  String exportReportGenerated(String date) {
+    return 'Report generated on $date';
+  }
+
+  @override
+  String get exportNoResults => 'No results to export';
+
+  @override
+  String exportPatientReport(String name) {
+    return 'Patient summary: $name';
+  }
+
+  @override
+  String get exportTestDate => 'Date';
+
+  @override
+  String get exportTestType => 'Test type';
+
+  @override
+  String get exportAccuracy => 'Accuracy';
+
+  @override
+  String get exportDuration => 'Duration';
+
+  @override
+  String get exportReactionTime => 'Reaction time';
 }
