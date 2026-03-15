@@ -872,4 +872,47 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get exportReactionTime => 'T. reacción';
+
+  @override
+  String get backupExport => 'Exportar backup';
+
+  @override
+  String get backupExportTooltip => 'Exportar todos los resultados como JSON';
+
+  @override
+  String get backupImport => 'Importar backup';
+
+  @override
+  String get backupImportTooltip => 'Importar resultados desde archivo JSON';
+
+  @override
+  String backupExportSuccess(int count) {
+    return 'Backup exportado con $count resultados';
+  }
+
+  @override
+  String backupImportSuccess(int count) {
+    return 'Se importaron $count resultados nuevos';
+  }
+
+  @override
+  String get backupImportNone => 'No se encontraron resultados nuevos para importar';
+
+  @override
+  String get backupImportError => 'Error al leer el archivo de backup';
+
+  @override
+  String get backupNoResults => 'No hay resultados para exportar';
+
+  @override
+  String get renameTitle => 'Renombrar paciente';
+
+  @override
+  String get renameHint => 'Nuevo nombre del paciente';
+
+  @override
+  String get renameSave => 'Guardar';
+
+  @override
+  String get renameSuccess => 'Nombre actualizado';
 }

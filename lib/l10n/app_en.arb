@@ -369,5 +369,30 @@
   "exportTestType": "Test type",
   "exportAccuracy": "Accuracy",
   "exportDuration": "Duration",
-  "exportReactionTime": "Reaction time"
+  "exportReactionTime": "Reaction time",
+
+  "backupExport": "Export backup",
+  "backupExportTooltip": "Export all results as JSON",
+  "backupImport": "Import backup",
+  "backupImportTooltip": "Import results from JSON file",
+  "backupExportSuccess": "Backup exported with {count} results",
+  "@backupExportSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "backupImportSuccess": "{count} new results imported",
+  "@backupImportSuccess": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
+  "backupImportNone": "No new results found to import",
+  "backupImportError": "Error reading backup file",
+  "backupNoResults": "No results to export",
+
+  "renameTitle": "Rename patient",
+  "renameHint": "New patient name",
+  "renameSave": "Save",
+  "renameSuccess": "Name updated"
 }

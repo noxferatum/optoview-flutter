@@ -1,7 +1,10 @@
 import 'dart:math';
+import 'dart:typed_data';
 
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:share_plus/share_plus.dart' show Share, XFile;
 import '../l10n/app_localizations.dart';
 import '../models/macdonald_result.dart';
 import '../models/saved_result.dart';
@@ -82,6 +85,120 @@ class _HistoryScreenState extends State<HistoryScreen> {
       ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Rename
+  // ---------------------------------------------------------------------------
+
+  void _showRenameDialog(SavedResult result, AppLocalizations l,
+      {VoidCallback? onRenamed}) {
+    final controller = TextEditingController(text: result.patientName);
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l.renameTitle),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: l.renameHint),
+          autofocus: true,
+          textCapitalization: TextCapitalization.words,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l.historyCancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              final newName = controller.text.trim();
+              if (newName.isEmpty || newName == result.patientName) {
+                Navigator.pop(ctx);
+                return;
+              }
+              final updated = result.copyWith(patientName: newName);
+              ResultsStorage.update(updated);
+              setState(() {
+                final idx = _results.indexWhere((r) => r.id == result.id);
+                if (idx != -1) _results[idx] = updated;
+              });
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l.renameSuccess)),
+              );
+              onRenamed?.call();
+            },
+            child: Text(l.renameSave),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Backup export / import
+  // ---------------------------------------------------------------------------
+
+  Future<void> _exportBackup(AppLocalizations l) async {
+    if (_results.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l.backupNoResults)),
+      );
+      return;
+    }
+
+    final json = await ResultsStorage.exportAllJson();
+    final bytes = Uint8List.fromList(json.codeUnits);
+    final now = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
+
+    await Share.shareXFiles([
+      XFile.fromData(
+        bytes,
+        name: 'OptoView_backup_$now.json',
+        mimeType: 'application/json',
+      ),
+    ]);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l.backupExportSuccess(_results.length))),
+      );
+    }
+  }
+
+  Future<void> _importBackup(AppLocalizations l) async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.any,
+      withData: true,
+    );
+    if (result == null || result.files.isEmpty) return;
+
+    final file = result.files.first;
+    if (file.bytes == null) return;
+
+    final jsonString = String.fromCharCodes(file.bytes!);
+    final count = await ResultsStorage.importFromJson(jsonString);
+
+    if (!mounted) return;
+
+    if (count < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l.backupImportError)),
+      );
+    } else if (count == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l.backupImportNone)),
+      );
+    } else {
+      await _loadResults();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l.backupImportSuccess(count))),
+      );
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Patient summary export
+  // ---------------------------------------------------------------------------
 
   void _showPatientSummaryExport(AppLocalizations l) {
     // Group results by patient name
@@ -175,6 +292,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  // ---------------------------------------------------------------------------
+  // Detail bottom sheet
+  // ---------------------------------------------------------------------------
+
   void _showDetail(SavedResult result, AppLocalizations l) {
     final theme = Theme.of(context);
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
@@ -187,209 +308,250 @@ class _HistoryScreenState extends State<HistoryScreen> {
         minChildSize: 0.4,
         maxChildSize: 0.9,
         expand: false,
-        builder: (ctx, scrollController) => Padding(
-          padding: const EdgeInsets.all(16),
-          child: ListView(
-            controller: scrollController,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(2),
+        builder: (ctx, scrollController) {
+          // Buscar la versión actual del resultado (puede haberse renombrado)
+          final current =
+              _results.firstWhere((r) => r.id == result.id, orElse: () => result);
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: ListView(
+              controller: scrollController,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              Text(
-                l.historyDetailTitle,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _testTypeLabel(result.testType, l),
-                style: theme.textTheme.titleMedium,
-              ),
-              if (result.patientName.isNotEmpty) ...[
-                const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Icon(Icons.person, size: 16),
-                    const SizedBox(width: 4),
-                    Text(result.patientName),
+                    Expanded(
+                      child: Text(
+                        l.historyDetailTitle,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.edit, size: 20),
+                      tooltip: l.renameTitle,
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _showRenameDialog(current, l, onRenamed: () {
+                          // Reabrir detalle con datos actualizados
+                          final updated = _results.firstWhere(
+                            (r) => r.id == current.id,
+                            orElse: () => current,
+                          );
+                          _showDetail(updated, l);
+                        });
+                      },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline, size: 20),
+                      tooltip: l.historyDelete,
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        _confirmDelete(current, l);
+                      },
+                    ),
                   ],
                 ),
-              ],
-              const SizedBox(height: 4),
-              Text(
-                dateFmt.format(result.startedAt),
-                style: theme.textTheme.bodySmall,
-              ),
-              const Divider(height: 24),
-
-              // Métricas
-              _DetailRow(
-                label: l.statsActualDuration,
-                value: '${result.durationActualSeconds}s',
-              ),
-              _DetailRow(
-                label: l.statsStimuliShown,
-                value: '${result.totalStimuliShown}',
-              ),
-              if (result.correctTouches != null)
-                _DetailRow(
-                  label: l.accuracyCorrect,
-                  value: '${result.correctTouches}',
-                ),
-              if (result.incorrectTouches != null)
-                _DetailRow(
-                  label: l.accuracyErrors,
-                  value: '${result.incorrectTouches}',
-                ),
-              if (result.missedStimuli != null)
-                _DetailRow(
-                  label: l.accuracyMissed,
-                  value: '${result.missedStimuli}',
-                ),
-              if (result.accuracy != null)
-                _DetailRow(
-                  label: l.accuracyPercent,
-                  value: '${(result.accuracy! * 100).toStringAsFixed(1)}%',
-                ),
-              if (result.avgReactionTimeMs != null)
-                _DetailRow(
-                  label: l.reactionAvg,
-                  value: '${result.avgReactionTimeMs!.toStringAsFixed(0)} ms',
-                ),
-              if (result.bestReactionTimeMs != null)
-                _DetailRow(
-                  label: l.reactionBest,
-                  value: '${result.bestReactionTimeMs!.toStringAsFixed(0)} ms',
-                ),
-              if (result.worstReactionTimeMs != null)
-                _DetailRow(
-                  label: l.reactionWorst,
-                  value: '${result.worstReactionTimeMs!.toStringAsFixed(0)} ms',
-                ),
-              if (result.stimuliPerMinute != null)
-                _DetailRow(
-                  label: l.statsStimuliPerMinute,
-                  value: result.stimuliPerMinute!.toStringAsFixed(1),
-                ),
-              if (result.anillosCompletados != null)
-                _DetailRow(
-                  label: l.macStatsRingsCompleted,
-                  value: '${result.anillosCompletados}',
-                ),
-              if (result.tiempoPorAnillo != null) ...[
                 const SizedBox(height: 8),
-                ...result.tiempoPorAnillo!.asMap().entries.map(
-                      (e) => _DetailRow(
-                        label: l.macRingLabel(e.key + 1),
-                        value: '${(e.value / 1000).toStringAsFixed(1)}s',
-                      ),
-                    ),
-              ],
-
-              // Mapas de aciertos/fallos (MacDonald tocarLetras)
-              if (result.letterEvents != null &&
-                  result.letterEvents!.isNotEmpty) ...[
-                const Divider(height: 24),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(l.macHitMapTitle,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 8),
-                          AspectRatio(
-                            aspectRatio: 1,
-                            child: CustomPaint(
-                              painter: _HitMapPainter(
-                                events: result.letterEvents!
-                                    .where((e) => e.isHit)
-                                    .toList(),
-                                dotColor: Colors.greenAccent,
-                                numRings: result.anillosCompletados ?? 3,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(l.macMissMapTitle,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                  fontWeight: FontWeight.w600)),
-                          const SizedBox(height: 8),
-                          AspectRatio(
-                            aspectRatio: 1,
-                            child: CustomPaint(
-                              painter: _HitMapPainter(
-                                events: result.letterEvents!
-                                    .where((e) => !e.isHit)
-                                    .toList(),
-                                dotColor: Colors.redAccent,
-                                numRings: result.anillosCompletados ?? 3,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              // Config summary
-              if (result.configSummary.isNotEmpty) ...[
-                const Divider(height: 24),
                 Text(
-                  l.configUsedTitle,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+                  _testTypeLabel(current.testType, l),
+                  style: theme.textTheme.titleMedium,
                 ),
-                const SizedBox(height: 8),
-                ...result.configSummary.entries.map(
-                  (e) => _DetailRow(label: e.key, value: e.value),
-                ),
-              ],
-
-              // Export buttons
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () => ExportService.exportResultPdf(context, result, l),
-                    icon: const Icon(Icons.picture_as_pdf, size: 18),
-                    label: Text(l.exportPdf),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => ExportService.exportResultExcel(result, l),
-                    icon: const Icon(Icons.table_chart, size: 18),
-                    label: Text(l.exportExcel),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () => ExportService.exportResultCsv(result, l),
-                    icon: const Icon(Icons.description, size: 18),
-                    label: Text(l.exportCsv),
+                if (current.patientName.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(Icons.person, size: 16),
+                      const SizedBox(width: 4),
+                      Text(current.patientName),
+                    ],
                   ),
                 ],
-              ),
-            ],
-          ),
-        ),
+                const SizedBox(height: 4),
+                Text(
+                  dateFmt.format(current.startedAt),
+                  style: theme.textTheme.bodySmall,
+                ),
+                const Divider(height: 24),
+
+                // Métricas
+                _DetailRow(
+                  label: l.statsActualDuration,
+                  value: '${current.durationActualSeconds}s',
+                ),
+                _DetailRow(
+                  label: l.statsStimuliShown,
+                  value: '${current.totalStimuliShown}',
+                ),
+                if (current.correctTouches != null)
+                  _DetailRow(
+                    label: l.accuracyCorrect,
+                    value: '${current.correctTouches}',
+                  ),
+                if (current.incorrectTouches != null)
+                  _DetailRow(
+                    label: l.accuracyErrors,
+                    value: '${current.incorrectTouches}',
+                  ),
+                if (current.missedStimuli != null)
+                  _DetailRow(
+                    label: l.accuracyMissed,
+                    value: '${current.missedStimuli}',
+                  ),
+                if (current.accuracy != null)
+                  _DetailRow(
+                    label: l.accuracyPercent,
+                    value: '${(current.accuracy! * 100).toStringAsFixed(1)}%',
+                  ),
+                if (current.avgReactionTimeMs != null)
+                  _DetailRow(
+                    label: l.reactionAvg,
+                    value:
+                        '${current.avgReactionTimeMs!.toStringAsFixed(0)} ms',
+                  ),
+                if (current.bestReactionTimeMs != null)
+                  _DetailRow(
+                    label: l.reactionBest,
+                    value:
+                        '${current.bestReactionTimeMs!.toStringAsFixed(0)} ms',
+                  ),
+                if (current.worstReactionTimeMs != null)
+                  _DetailRow(
+                    label: l.reactionWorst,
+                    value:
+                        '${current.worstReactionTimeMs!.toStringAsFixed(0)} ms',
+                  ),
+                if (current.stimuliPerMinute != null)
+                  _DetailRow(
+                    label: l.statsStimuliPerMinute,
+                    value: current.stimuliPerMinute!.toStringAsFixed(1),
+                  ),
+                if (current.anillosCompletados != null)
+                  _DetailRow(
+                    label: l.macStatsRingsCompleted,
+                    value: '${current.anillosCompletados}',
+                  ),
+                if (current.tiempoPorAnillo != null) ...[
+                  const SizedBox(height: 8),
+                  ...current.tiempoPorAnillo!.asMap().entries.map(
+                        (e) => _DetailRow(
+                          label: l.macRingLabel(e.key + 1),
+                          value: '${(e.value / 1000).toStringAsFixed(1)}s',
+                        ),
+                      ),
+                ],
+
+                // Mapas de aciertos/fallos (MacDonald tocarLetras)
+                if (current.letterEvents != null &&
+                    current.letterEvents!.isNotEmpty) ...[
+                  const Divider(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(l.macHitMapTitle,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 8),
+                            AspectRatio(
+                              aspectRatio: 1,
+                              child: CustomPaint(
+                                painter: _HitMapPainter(
+                                  events: current.letterEvents!
+                                      .where((e) => e.isHit)
+                                      .toList(),
+                                  dotColor: Colors.greenAccent,
+                                  numRings: current.anillosCompletados ?? 3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          children: [
+                            Text(l.macMissMapTitle,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w600)),
+                            const SizedBox(height: 8),
+                            AspectRatio(
+                              aspectRatio: 1,
+                              child: CustomPaint(
+                                painter: _HitMapPainter(
+                                  events: current.letterEvents!
+                                      .where((e) => !e.isHit)
+                                      .toList(),
+                                  dotColor: Colors.redAccent,
+                                  numRings: current.anillosCompletados ?? 3,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+
+                // Config summary
+                if (current.configSummary.isNotEmpty) ...[
+                  const Divider(height: 24),
+                  Text(
+                    l.configUsedTitle,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...current.configSummary.entries.map(
+                    (e) => _DetailRow(label: e.key, value: e.value),
+                  ),
+                ],
+
+                // Export buttons
+                const Divider(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          ExportService.exportResultPdf(context, current, l),
+                      icon: const Icon(Icons.picture_as_pdf, size: 18),
+                      label: Text(l.exportPdf),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          ExportService.exportResultExcel(current, l),
+                      icon: const Icon(Icons.table_chart, size: 18),
+                      label: Text(l.exportExcel),
+                    ),
+                    OutlinedButton.icon(
+                      onPressed: () =>
+                          ExportService.exportResultCsv(current, l),
+                      icon: const Icon(Icons.description, size: 18),
+                      label: Text(l.exportCsv),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -434,6 +596,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         title: Text(l.historyTitle),
         actions: [
+          // Import backup
+          IconButton(
+            icon: const Icon(Icons.file_download),
+            tooltip: l.backupImportTooltip,
+            onPressed: () => _importBackup(l),
+          ),
+          // Export backup
+          if (_results.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.file_upload),
+              tooltip: l.backupExportTooltip,
+              onPressed: () => _exportBackup(l),
+            ),
           if (_results.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.summarize),
@@ -460,6 +635,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: Colors.grey,
                         ),
+                  ),
+                  const SizedBox(height: 24),
+                  OutlinedButton.icon(
+                    onPressed: () => _importBackup(l),
+                    icon: const Icon(Icons.file_download),
+                    label: Text(l.backupImport),
                   ),
                 ],
               ),

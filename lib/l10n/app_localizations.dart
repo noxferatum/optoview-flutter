@@ -1768,6 +1768,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reaction time'**
   String get exportReactionTime;
+
+  /// No description provided for @backupExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export backup'**
+  String get backupExport;
+
+  /// No description provided for @backupExportTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Export all results as JSON'**
+  String get backupExportTooltip;
+
+  /// No description provided for @backupImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import backup'**
+  String get backupImport;
+
+  /// No description provided for @backupImportTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Import results from JSON file'**
+  String get backupImportTooltip;
+
+  /// No description provided for @backupExportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup exported with {count} results'**
+  String backupExportSuccess(int count);
+
+  /// No description provided for @backupImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} new results imported'**
+  String backupImportSuccess(int count);
+
+  /// No description provided for @backupImportNone.
+  ///
+  /// In en, this message translates to:
+  /// **'No new results found to import'**
+  String get backupImportNone;
+
+  /// No description provided for @backupImportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error reading backup file'**
+  String get backupImportError;
+
+  /// No description provided for @backupNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results to export'**
+  String get backupNoResults;
+
+  /// No description provided for @renameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename patient'**
+  String get renameTitle;
+
+  /// No description provided for @renameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'New patient name'**
+  String get renameHint;
+
+  /// No description provided for @renameSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get renameSave;
+
+  /// No description provided for @renameSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Name updated'**
+  String get renameSuccess;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

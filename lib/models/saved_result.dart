@@ -125,6 +125,29 @@ class SavedResult {
     );
   }
 
+  SavedResult copyWith({String? patientName}) => SavedResult(
+        id: id,
+        testType: testType,
+        patientName: patientName ?? this.patientName,
+        startedAt: startedAt,
+        finishedAt: finishedAt,
+        durationActualSeconds: durationActualSeconds,
+        completedNaturally: completedNaturally,
+        totalStimuliShown: totalStimuliShown,
+        correctTouches: correctTouches,
+        incorrectTouches: incorrectTouches,
+        missedStimuli: missedStimuli,
+        accuracy: accuracy,
+        avgReactionTimeMs: avgReactionTimeMs,
+        bestReactionTimeMs: bestReactionTimeMs,
+        worstReactionTimeMs: worstReactionTimeMs,
+        stimuliPerMinute: stimuliPerMinute,
+        anillosCompletados: anillosCompletados,
+        tiempoPorAnillo: tiempoPorAnillo,
+        letterEvents: letterEvents,
+        configSummary: configSummary,
+      );
+
   Map<String, dynamic> toJson() => {
         'id': id,
         'testType': testType,
