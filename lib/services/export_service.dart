@@ -49,186 +49,107 @@ abstract final class ExportService {
     AppLocalizations l,
   ) async {
     final doc = pw.Document();
+    final bold = pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold);
+    const normal = pw.TextStyle(fontSize: 10);
+    const small = pw.TextStyle(fontSize: 9, color: PdfColors.grey700);
 
-    doc.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (ctx) => [
-          _pdfHeader(result, l),
-          pw.SizedBox(height: 16),
-          _pdfMetrics(result, l),
-          if (result.anillosCompletados != null ||
-              (result.tiempoPorAnillo != null && result.tiempoPorAnillo!.isNotEmpty))
-            _pdfRingTimes(result, l),
-          pw.SizedBox(height: 12),
-          _pdfConfigSummary(result, l),
-          if (result.letterEvents != null && result.letterEvents!.isNotEmpty) ...[
-            pw.SizedBox(height: 16),
-            _pdfLetterEventsSummary(result, l),
-          ],
-        ],
-      ),
-    );
+    // Pre-build all text lines to minimise widget count.
+    final lines = <pw.Widget>[];
+
+    // Header
+    lines.add(pw.Text(l.exportReportTitle,
+        style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)));
+    lines.add(pw.Text(_testTypeLabel(result.testType, l),
+        style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)));
+    if (result.patientName.isNotEmpty) {
+      lines.add(pw.Text('${l.patientName}: ${result.patientName}', style: normal));
+    }
+    lines.add(pw.Text(_dateFmt.format(result.startedAt), style: small));
+    lines.add(pw.Divider());
+    lines.add(pw.SizedBox(height: 8));
+
+    // Metrics as simple text lines
+    void addLine(String label, String value) {
+      lines.add(pw.Padding(
+        padding: const pw.EdgeInsets.symmetric(vertical: 1),
+        child: pw.Row(
+          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          children: [pw.Text(label, style: normal), pw.Text(value, style: bold)],
+        ),
+      ));
+    }
+
+    addLine(l.statsActualDuration, '${result.durationActualSeconds}s');
+    addLine(l.statsStimuliShown, '${result.totalStimuliShown}');
+    if (result.correctTouches != null) addLine(l.accuracyCorrect, '${result.correctTouches}');
+    if (result.incorrectTouches != null) addLine(l.accuracyErrors, '${result.incorrectTouches}');
+    if (result.missedStimuli != null) addLine(l.accuracyMissed, '${result.missedStimuli}');
+    if (result.accuracy != null) {
+      addLine(l.accuracyPercent, '${(result.accuracy! * 100).toStringAsFixed(1)}%');
+    }
+    if (result.avgReactionTimeMs != null) {
+      addLine(l.reactionAvg, '${result.avgReactionTimeMs!.toStringAsFixed(0)} ms');
+    }
+    if (result.bestReactionTimeMs != null) {
+      addLine(l.reactionBest, '${result.bestReactionTimeMs!.toStringAsFixed(0)} ms');
+    }
+    if (result.worstReactionTimeMs != null) {
+      addLine(l.reactionWorst, '${result.worstReactionTimeMs!.toStringAsFixed(0)} ms');
+    }
+    if (result.stimuliPerMinute != null) {
+      addLine(l.statsStimuliPerMinute, result.stimuliPerMinute!.toStringAsFixed(1));
+    }
+    if (result.anillosCompletados != null) {
+      addLine(l.macStatsRingsCompleted, '${result.anillosCompletados}');
+    }
+
+    // Ring times
+    if (result.tiempoPorAnillo != null && result.tiempoPorAnillo!.isNotEmpty) {
+      lines.add(pw.SizedBox(height: 8));
+      lines.add(pw.Text(l.macStatsTimePerRing, style: bold));
+      for (final e in result.tiempoPorAnillo!.asMap().entries) {
+        addLine(l.macRingLabel(e.key + 1), '${(e.value / 1000).toStringAsFixed(1)}s');
+      }
+    }
+
+    // Letter events summary
+    if (result.letterEvents != null && result.letterEvents!.isNotEmpty) {
+      final events = result.letterEvents!;
+      final numRings = result.anillosCompletados ?? 3;
+      final totalHits = events.where((e) => e.isHit).length;
+      final totalMisses = events.length - totalHits;
+
+      lines.add(pw.SizedBox(height: 8));
+      lines.add(pw.Text('${l.macHitMapTitle} / ${l.macMissMapTitle}', style: bold));
+      addLine('Total', '$totalHits / $totalMisses');
+      for (int ring = 0; ring < numRings; ring++) {
+        final rh = events.where((e) => e.ringIndex == ring && e.isHit).length;
+        final rm = events.where((e) => e.ringIndex == ring && !e.isHit).length;
+        addLine(l.macRingLabel(ring + 1), '$rh / $rm');
+      }
+    }
+
+    // Config summary
+    if (result.configSummary.isNotEmpty) {
+      lines.add(pw.SizedBox(height: 8));
+      lines.add(pw.Divider());
+      lines.add(pw.Text(l.configUsedTitle, style: bold));
+      for (final e in result.configSummary.entries) {
+        addLine(e.key, e.value);
+      }
+    }
+
+    doc.addPage(pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      build: (_) => lines,
+    ));
 
     final bytes = await doc.save();
     await _shareFile(
       bytes,
       'OptoView_${result.testType}_${result.id}.pdf',
       'application/pdf',
-    );
-  }
-
-  static pw.Widget _pdfHeader(SavedResult result, AppLocalizations l) {
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(
-          l.exportReportTitle,
-          style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
-        ),
-        pw.SizedBox(height: 4),
-        pw.Text(
-          _testTypeLabel(result.testType, l),
-          style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
-        ),
-        if (result.patientName.isNotEmpty)
-          pw.Text('${l.patientName}: ${result.patientName}',
-              style: const pw.TextStyle(fontSize: 12)),
-        pw.Text(_dateFmt.format(result.startedAt),
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-        pw.Divider(),
-      ],
-    );
-  }
-
-  static pw.Widget _pdfMetrics(SavedResult result, AppLocalizations l) {
-    final rows = <List<String>>[
-      [l.statsActualDuration, '${result.durationActualSeconds}s'],
-      [l.statsStimuliShown, '${result.totalStimuliShown}'],
-    ];
-
-    if (result.correctTouches != null) {
-      rows.add([l.accuracyCorrect, '${result.correctTouches}']);
-    }
-    if (result.incorrectTouches != null) {
-      rows.add([l.accuracyErrors, '${result.incorrectTouches}']);
-    }
-    if (result.missedStimuli != null) {
-      rows.add([l.accuracyMissed, '${result.missedStimuli}']);
-    }
-    if (result.accuracy != null) {
-      rows.add([l.accuracyPercent, '${(result.accuracy! * 100).toStringAsFixed(1)}%']);
-    }
-    if (result.avgReactionTimeMs != null) {
-      rows.add([l.reactionAvg, '${result.avgReactionTimeMs!.toStringAsFixed(0)} ms']);
-    }
-    if (result.bestReactionTimeMs != null) {
-      rows.add([l.reactionBest, '${result.bestReactionTimeMs!.toStringAsFixed(0)} ms']);
-    }
-    if (result.worstReactionTimeMs != null) {
-      rows.add([l.reactionWorst, '${result.worstReactionTimeMs!.toStringAsFixed(0)} ms']);
-    }
-    if (result.stimuliPerMinute != null) {
-      rows.add([l.statsStimuliPerMinute, result.stimuliPerMinute!.toStringAsFixed(1)]);
-    }
-    if (result.anillosCompletados != null) {
-      rows.add([l.macStatsRingsCompleted, '${result.anillosCompletados}']);
-    }
-
-    return pw.TableHelper.fromTextArray(
-      headerCount: 0,
-      headerAlignment: pw.Alignment.centerLeft,
-      cellAlignment: pw.Alignment.centerLeft,
-      data: rows,
-      border: pw.TableBorder.all(color: PdfColors.grey300),
-      cellStyle: const pw.TextStyle(fontSize: 10),
-      cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-    );
-  }
-
-  static pw.Widget _pdfRingTimes(SavedResult result, AppLocalizations l) {
-    if (result.tiempoPorAnillo == null || result.tiempoPorAnillo!.isEmpty) {
-      return pw.SizedBox();
-    }
-    final rows = result.tiempoPorAnillo!
-        .asMap()
-        .entries
-        .map((e) => [l.macRingLabel(e.key + 1), '${(e.value / 1000).toStringAsFixed(1)}s'])
-        .toList();
-
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.SizedBox(height: 12),
-        pw.Text(l.macStatsTimePerRing,
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        pw.TableHelper.fromTextArray(
-          headerCount: 0,
-          data: rows,
-          border: pw.TableBorder.all(color: PdfColors.grey300),
-          cellStyle: const pw.TextStyle(fontSize: 10),
-          cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-      ],
-    );
-  }
-
-  static pw.Widget _pdfConfigSummary(SavedResult result, AppLocalizations l) {
-    if (result.configSummary.isEmpty) return pw.SizedBox();
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(l.configUsedTitle,
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        pw.TableHelper.fromTextArray(
-          headerCount: 0,
-          data: result.configSummary.entries
-              .map((e) => [e.key, e.value])
-              .toList(),
-          border: pw.TableBorder.all(color: PdfColors.grey300),
-          cellStyle: const pw.TextStyle(fontSize: 10),
-          cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-      ],
-    );
-  }
-
-  /// Tabla resumen de aciertos/fallos por anillo (reemplaza scatter plots
-  /// vectoriales que causaban OOM en dispositivos con poca RAM).
-  static pw.Widget _pdfLetterEventsSummary(SavedResult result, AppLocalizations l) {
-    final events = result.letterEvents!;
-    final numRings = result.anillosCompletados ?? 3;
-    final hits = events.where((e) => e.isHit).toList();
-    final misses = events.where((e) => !e.isHit).toList();
-
-    final rows = <List<String>>[
-      ['Total', '${hits.length}', '${misses.length}'],
-    ];
-
-    for (int ring = 0; ring < numRings; ring++) {
-      final ringHits = hits.where((e) => e.ringIndex == ring).length;
-      final ringMisses = misses.where((e) => e.ringIndex == ring).length;
-      rows.add([l.macRingLabel(ring + 1), '$ringHits', '$ringMisses']);
-    }
-
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text('${l.macHitMapTitle} / ${l.macMissMapTitle}',
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        pw.TableHelper.fromTextArray(
-          headers: ['', l.macHitMapTitle, l.macMissMapTitle],
-          data: rows,
-          border: pw.TableBorder.all(color: PdfColors.grey300),
-          headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
-          cellStyle: const pw.TextStyle(fontSize: 10),
-          cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-      ],
     );
   }
 
