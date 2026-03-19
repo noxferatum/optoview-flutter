@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 
 import '../l10n/app_localizations.dart';
@@ -75,8 +74,11 @@ abstract final class ExportService {
     );
 
     final bytes = await doc.save();
-    final filename = 'OptoView_${result.testType}_${result.id}.pdf';
-    await Printing.sharePdf(bytes: bytes, filename: filename);
+    await _shareFile(
+      bytes,
+      'OptoView_${result.testType}_${result.id}.pdf',
+      'application/pdf',
+    );
   }
 
   static pw.Widget _pdfHeader(SavedResult result, AppLocalizations l) {
@@ -339,8 +341,11 @@ abstract final class ExportService {
     );
 
     final bytes = await doc.save();
-    final filename = 'OptoView_resumen_$patientName.pdf';
-    await Printing.sharePdf(bytes: bytes, filename: filename);
+    await _shareFile(
+      bytes,
+      'OptoView_resumen_$patientName.pdf',
+      'application/pdf',
+    );
   }
 
   // ---------------------------------------------------------------------------
