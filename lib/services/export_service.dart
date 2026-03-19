@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart' as xl;
@@ -11,7 +10,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 
 import '../l10n/app_localizations.dart';
-import '../models/macdonald_result.dart';
 import '../models/saved_result.dart';
 
 /// Servicio de exportación de resultados en PDF, Excel y CSV.
@@ -67,7 +65,7 @@ abstract final class ExportService {
           _pdfConfigSummary(result, l),
           if (result.letterEvents != null && result.letterEvents!.isNotEmpty) ...[
             pw.SizedBox(height: 16),
-            _pdfScatterPlots(result, l),
+            _pdfLetterEventsSummary(result, l),
           ],
         ],
       ),
@@ -198,87 +196,40 @@ abstract final class ExportService {
     );
   }
 
-  static pw.Widget _pdfScatterPlots(SavedResult result, AppLocalizations l) {
-    final hits = result.letterEvents!.where((e) => e.isHit).toList();
-    final misses = result.letterEvents!.where((e) => !e.isHit).toList();
+  /// Tabla resumen de aciertos/fallos por anillo (reemplaza scatter plots
+  /// vectoriales que causaban OOM en dispositivos con poca RAM).
+  static pw.Widget _pdfLetterEventsSummary(SavedResult result, AppLocalizations l) {
+    final events = result.letterEvents!;
     final numRings = result.anillosCompletados ?? 3;
+    final hits = events.where((e) => e.isHit).toList();
+    final misses = events.where((e) => !e.isHit).toList();
 
-    return pw.Row(
+    final rows = <List<String>>[
+      ['Total', '${hits.length}', '${misses.length}'],
+    ];
+
+    for (int ring = 0; ring < numRings; ring++) {
+      final ringHits = hits.where((e) => e.ringIndex == ring).length;
+      final ringMisses = misses.where((e) => e.ringIndex == ring).length;
+      rows.add([l.macRingLabel(ring + 1), '$ringHits', '$ringMisses']);
+    }
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Expanded(
-          child: pw.Column(
-            children: [
-              pw.Text(l.macHitMapTitle,
-                  style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 4),
-              pw.SizedBox(
-                width: 180,
-                height: 180,
-                child: pw.CustomPaint(
-                  painter: (canvas, size) =>
-                      _paintScatterPlot(canvas, size, hits, PdfColors.green, numRings),
-                ),
-              ),
-            ],
-          ),
-        ),
-        pw.SizedBox(width: 16),
-        pw.Expanded(
-          child: pw.Column(
-            children: [
-              pw.Text(l.macMissMapTitle,
-                  style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 4),
-              pw.SizedBox(
-                width: 180,
-                height: 180,
-                child: pw.CustomPaint(
-                  painter: (canvas, size) =>
-                      _paintScatterPlot(canvas, size, misses, PdfColors.red, numRings),
-                ),
-              ),
-            ],
-          ),
+        pw.Text('${l.macHitMapTitle} / ${l.macMissMapTitle}',
+            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 4),
+        pw.TableHelper.fromTextArray(
+          headers: ['', l.macHitMapTitle, l.macMissMapTitle],
+          data: rows,
+          border: pw.TableBorder.all(color: PdfColors.grey300),
+          headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          cellStyle: const pw.TextStyle(fontSize: 10),
+          cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         ),
       ],
     );
-  }
-
-  static void _paintScatterPlot(
-    PdfGraphics canvas,
-    PdfPoint size,
-    List<LetterEvent> events,
-    PdfColor dotColor,
-    int numRings,
-  ) {
-    final cx = size.x / 2;
-    final cy = size.y / 2;
-    final radius = min(size.x, size.y) / 2 - 4;
-
-    // Rings
-    canvas.setStrokeColor(PdfColors.grey400);
-    canvas.setLineWidth(0.5);
-    for (int i = 1; i <= numRings; i++) {
-      final r = radius * i / numRings;
-      canvas.drawEllipse(cx, cy, r, r);
-      canvas.strokePath();
-    }
-
-    // Cross
-    canvas.setLineWidth(0.3);
-    canvas.drawLine(cx - radius, cy, cx + radius, cy);
-    canvas.strokePath();
-    canvas.drawLine(cx, cy - radius, cx, cy + radius);
-    canvas.strokePath();
-
-    // Dots
-    canvas.setFillColor(dotColor);
-    for (final e in events) {
-      final x = cx + e.dx * radius;
-      final y = cy - e.dy * radius; // PDF y is bottom-up
-      canvas.drawEllipse(x, y, 3, 3);
-      canvas.fillPath();
-    }
   }
 
   // ---------------------------------------------------------------------------
