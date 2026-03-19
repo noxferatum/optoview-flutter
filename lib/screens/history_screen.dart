@@ -257,28 +257,49 @@ class _HistoryScreenState extends State<HistoryScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 OutlinedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(ctx);
-                    ExportService.exportPatientSummaryPdf(
-                        context, patientName, results, l);
+                    try {
+                      await ExportService.exportPatientSummaryPdf(
+                          context, patientName, results, l);
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error PDF: $e')),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.picture_as_pdf),
                   label: Text(l.exportPdf),
                 ),
                 OutlinedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(ctx);
-                    ExportService.exportPatientSummaryExcel(
-                        patientName, results, l);
+                    try {
+                      await ExportService.exportPatientSummaryExcel(
+                          patientName, results, l);
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error Excel: $e')),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.table_chart),
                   label: Text(l.exportExcel),
                 ),
                 OutlinedButton.icon(
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(ctx);
-                    ExportService.exportPatientSummaryCsv(
-                        patientName, results, l);
+                    try {
+                      await ExportService.exportPatientSummaryCsv(
+                          patientName, results, l);
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Error CSV: $e')),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.description),
                   label: Text(l.exportCsv),
@@ -529,20 +550,51 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     OutlinedButton.icon(
-                      onPressed: () =>
-                          ExportService.exportResultPdf(context, current, l),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        try {
+                          await ExportService.exportResultPdf(
+                              context, current, l);
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Error PDF: $e')),
+                          );
+                        }
+                      },
                       icon: const Icon(Icons.picture_as_pdf, size: 18),
                       label: Text(l.exportPdf),
                     ),
                     OutlinedButton.icon(
-                      onPressed: () =>
-                          ExportService.exportResultExcel(current, l),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        try {
+                          await ExportService.exportResultExcel(current, l);
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Error Excel: $e')),
+                          );
+                        }
+                      },
                       icon: const Icon(Icons.table_chart, size: 18),
                       label: Text(l.exportExcel),
                     ),
                     OutlinedButton.icon(
-                      onPressed: () =>
-                          ExportService.exportResultCsv(current, l),
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        try {
+                          await ExportService.exportResultCsv(current, l);
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Error CSV: $e')),
+                          );
+                        }
+                      },
                       icon: const Icon(Icons.description, size: 18),
                       label: Text(l.exportCsv),
                     ),

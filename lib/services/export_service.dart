@@ -60,8 +60,9 @@ abstract final class ExportService {
       ),
     );
 
+    final bytes = doc.save();
     await Printing.layoutPdf(
-      onLayout: (_) => doc.save(),
+      onLayout: (_) => bytes,
       name: 'OptoView_${result.testType}_${result.id}',
     );
   }
@@ -322,8 +323,9 @@ abstract final class ExportService {
       ),
     );
 
+    final bytes = doc.save();
     await Printing.layoutPdf(
-      onLayout: (_) => doc.save(),
+      onLayout: (_) => bytes,
       name: 'OptoView_resumen_$patientName',
     );
   }
