@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart' as xl;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -27,6 +29,18 @@ abstract final class ExportService {
         'macdonald' => l.historyTestMacdonald,
         _ => type,
       };
+
+  /// Escribe bytes en un archivo temporal y lo comparte.
+  static Future<void> _shareFile(
+    Uint8List bytes,
+    String filename,
+    String mimeType,
+  ) async {
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/$filename');
+    await file.writeAsBytes(bytes);
+    await Share.shareXFiles([XFile(file.path, mimeType: mimeType)]);
+  }
 
   // ---------------------------------------------------------------------------
   // PDF individual
@@ -60,11 +74,9 @@ abstract final class ExportService {
       ),
     );
 
-    final bytes = doc.save();
-    await Printing.layoutPdf(
-      onLayout: (_) => bytes,
-      name: 'OptoView_${result.testType}_${result.id}',
-    );
+    final bytes = await doc.save();
+    final filename = 'OptoView_${result.testType}_${result.id}.pdf';
+    await Printing.sharePdf(bytes: bytes, filename: filename);
   }
 
   static pw.Widget _pdfHeader(SavedResult result, AppLocalizations l) {
@@ -125,6 +137,7 @@ abstract final class ExportService {
     }
 
     return pw.TableHelper.fromTextArray(
+      headerCount: 0,
       headerAlignment: pw.Alignment.centerLeft,
       cellAlignment: pw.Alignment.centerLeft,
       data: rows,
@@ -152,6 +165,7 @@ abstract final class ExportService {
             style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 4),
         pw.TableHelper.fromTextArray(
+          headerCount: 0,
           data: rows,
           border: pw.TableBorder.all(color: PdfColors.grey300),
           cellStyle: const pw.TextStyle(fontSize: 10),
@@ -170,6 +184,7 @@ abstract final class ExportService {
             style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 4),
         pw.TableHelper.fromTextArray(
+          headerCount: 0,
           data: result.configSummary.entries
               .map((e) => [e.key, e.value])
               .toList(),
@@ -323,11 +338,9 @@ abstract final class ExportService {
       ),
     );
 
-    final bytes = doc.save();
-    await Printing.layoutPdf(
-      onLayout: (_) => bytes,
-      name: 'OptoView_resumen_$patientName',
-    );
+    final bytes = await doc.save();
+    final filename = 'OptoView_resumen_$patientName.pdf';
+    await Printing.sharePdf(bytes: bytes, filename: filename);
   }
 
   // ---------------------------------------------------------------------------
@@ -393,13 +406,11 @@ abstract final class ExportService {
     final bytes = excel.encode();
     if (bytes == null) return;
 
-    await Share.shareXFiles([
-      XFile.fromData(
-        Uint8List.fromList(bytes),
-        name: 'OptoView_${result.testType}_${result.id}.xlsx',
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      ),
-    ]);
+    await _shareFile(
+      Uint8List.fromList(bytes),
+      'OptoView_${result.testType}_${result.id}.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -458,13 +469,11 @@ abstract final class ExportService {
     final bytes = excel.encode();
     if (bytes == null) return;
 
-    await Share.shareXFiles([
-      XFile.fromData(
-        Uint8List.fromList(bytes),
-        name: 'OptoView_resumen_$patientName.xlsx',
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      ),
-    ]);
+    await _shareFile(
+      Uint8List.fromList(bytes),
+      'OptoView_resumen_$patientName.xlsx',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -513,14 +522,11 @@ abstract final class ExportService {
       addRow(entry.key, entry.value);
     }
 
-    final bytes = Uint8List.fromList(buf.toString().codeUnits);
-    await Share.shareXFiles([
-      XFile.fromData(
-        bytes,
-        name: 'OptoView_${result.testType}_${result.id}.csv',
-        mimeType: 'text/csv',
-      ),
-    ]);
+    await _shareFile(
+      Uint8List.fromList(buf.toString().codeUnits),
+      'OptoView_${result.testType}_${result.id}.csv',
+      'text/csv',
+    );
   }
 
   // ---------------------------------------------------------------------------
@@ -561,13 +567,10 @@ abstract final class ExportService {
       ].join(';'));
     }
 
-    final bytes = Uint8List.fromList(buf.toString().codeUnits);
-    await Share.shareXFiles([
-      XFile.fromData(
-        bytes,
-        name: 'OptoView_resumen_$patientName.csv',
-        mimeType: 'text/csv',
-      ),
-    ]);
+    await _shareFile(
+      Uint8List.fromList(buf.toString().codeUnits),
+      'OptoView_resumen_$patientName.csv',
+      'text/csv',
+    );
   }
 }
