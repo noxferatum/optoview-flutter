@@ -746,6 +746,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get themeDark => 'Modo noche';
+
+  @override
+  String get themeLight => 'Modo día';
+
+  @override
   String get creditsTitle => 'Créditos';
 
   @override

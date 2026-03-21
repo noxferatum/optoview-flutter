@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
+import '../main.dart' show themeNotifier, saveThemePreference;
 import 'credits_screen.dart';
 import 'history_screen.dart';
 import 'test_menu_screen.dart';
@@ -12,20 +13,36 @@ class MenuScreen extends StatelessWidget {
     final l = AppLocalizations.of(context)!;
     final colorScheme = Theme.of(context).colorScheme;
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l.menuTitle),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+            tooltip: isDark ? l.themeLight : l.themeDark,
+            onPressed: () {
+              final newMode =
+                  isDark ? ThemeMode.light : ThemeMode.dark;
+              themeNotifier.value = newMode;
+              saveThemePreference(newMode);
+            },
+          ),
+        ],
       ),
       body: SafeArea(
         child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/logo.png',
-              width: 160,
-              height: 160,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: FractionallySizedBox(
+                widthFactor: 0.7,
+                child: Image.asset('assets/images/logo.png'),
+              ),
             ),
             const SizedBox(height: 48),
             Semantics(

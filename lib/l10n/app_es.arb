@@ -317,6 +317,9 @@
     }
   },
 
+  "themeDark": "Modo noche",
+  "themeLight": "Modo día",
+
   "creditsTitle": "Créditos",
   "creditsAppName": "Optoview",
   "creditsDescription": "Esta aplicación ha sido desarrollada con la ayuda de la optometrista titulada experta en terapia visual\nEstefanía Rodríguez-Bobada Lillo.",
