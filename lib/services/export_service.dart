@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:excel/excel.dart' as xl;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,6 +12,10 @@ import 'package:share_plus/share_plus.dart' show Share, XFile;
 
 import '../l10n/app_localizations.dart';
 import '../models/saved_result.dart';
+import '../utils/hit_map_renderer.dart';
+import '../utils/web_download_stub.dart'
+    if (dart.library.js_interop) '../utils/web_download.dart';
+import 'app_logger.dart';
 
 /// Servicio de exportación de resultados en PDF, Excel y CSV.
 abstract final class ExportService {
@@ -28,11 +33,16 @@ abstract final class ExportService {
       };
 
   /// Escribe bytes en un archivo temporal y lo comparte.
+  /// En web usa descarga directa del navegador (no hay filesystem).
   static Future<void> _shareFile(
     Uint8List bytes,
     String filename,
     String mimeType,
   ) async {
+    if (kIsWeb) {
+      downloadFileWeb(bytes, filename, mimeType);
+      return;
+    }
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/$filename');
     await file.writeAsBytes(bytes);
@@ -48,34 +58,121 @@ abstract final class ExportService {
     SavedResult result,
     AppLocalizations l,
   ) async {
+    AppLogger.info('exportResultPdf: inicio (test=${result.testType}, id=${result.id})');
+
     final doc = pw.Document();
 
-    doc.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        build: (ctx) => [
-          _pdfHeader(result, l),
-          pw.SizedBox(height: 16),
-          _pdfMetrics(result, l),
-          if (result.anillosCompletados != null ||
-              (result.tiempoPorAnillo != null && result.tiempoPorAnillo!.isNotEmpty))
-            _pdfRingTimes(result, l),
-          pw.SizedBox(height: 12),
-          _pdfConfigSummary(result, l),
-          if (result.letterEvents != null && result.letterEvents!.isNotEmpty) ...[
-            pw.SizedBox(height: 16),
-            _pdfLetterEventsSummary(result, l),
-          ],
-        ],
-      ),
-    );
+    // Página principal con métricas y configuración.
+    doc.addPage(_buildResultPage(result, l));
+
+    // Página dedicada para los mapas de aciertos/fallos (pw.Image no soporta
+    // paginación en MultiPage, así que van en su propia pw.Page).
+    if (result.letterEvents != null && result.letterEvents!.isNotEmpty) {
+      try {
+        final mapsPage = await _buildHitMapsPage(result, l);
+        doc.addPage(mapsPage);
+        AppLogger.info('exportResultPdf: página de mapas añadida');
+      } catch (e, st) {
+        AppLogger.error('exportResultPdf: fallo al generar mapas, se omiten',
+            error: e, stackTrace: st);
+      }
+    }
 
     final bytes = await doc.save();
+    AppLogger.info('exportResultPdf: documento generado (${bytes.length} bytes)');
+
     await _shareFile(
       bytes,
       'OptoView_${result.testType}_${result.id}.pdf',
       'application/pdf',
+    );
+    AppLogger.info('exportResultPdf: compartido OK');
+  }
+
+  static pw.MultiPage _buildResultPage(SavedResult result, AppLocalizations l) {
+    return pw.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      maxPages: 40,
+      build: (ctx) => [
+        _pdfHeader(result, l),
+        pw.SizedBox(height: 16),
+        ..._pdfMetrics(result, l),
+        ..._pdfRingTimes(result, l),
+        pw.SizedBox(height: 12),
+        ..._pdfConfigSummary(result, l),
+      ],
+    );
+  }
+
+  /// Página dedicada con los mapas de aciertos/fallos como imágenes PNG.
+  /// Usa pw.Page (no MultiPage) porque pw.Image no es SpanningWidget y no
+  /// soporta paginación.
+  static Future<pw.Page> _buildHitMapsPage(
+    SavedResult result,
+    AppLocalizations l,
+  ) async {
+    final events = result.letterEvents!;
+    final numRings = result.anillosCompletados ?? 3;
+    final hits = events.where((e) => e.isHit).toList();
+    final misses = events.where((e) => !e.isHit).toList();
+
+    const double imgSize = 200;
+
+    final hitsPng = await renderHitMapToPng(
+      events: hits,
+      dotColor: const Color(0xFF69F0AE),
+      numRings: numRings,
+      size: 400,
+    );
+    final missesPng = await renderHitMapToPng(
+      events: misses,
+      dotColor: const Color(0xFFFF5252),
+      numRings: numRings,
+      size: 400,
+    );
+
+    return pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: const pw.EdgeInsets.all(32),
+      build: (ctx) => pw.Column(
+        crossAxisAlignment: pw.CrossAxisAlignment.center,
+        children: [
+          pw.Text(
+            '${l.macHitMapTitle} / ${l.macMissMapTitle}',
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.SizedBox(height: 16),
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              pw.Column(children: [
+                pw.Text(
+                  l.macHitMapTitle,
+                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Image(pw.MemoryImage(hitsPng), width: imgSize, height: imgSize),
+                pw.SizedBox(height: 4),
+                pw.Text('${hits.length}',
+                    style: const pw.TextStyle(fontSize: 10)),
+              ]),
+              pw.Column(children: [
+                pw.Text(
+                  l.macMissMapTitle,
+                  style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+                ),
+                pw.SizedBox(height: 4),
+                pw.Image(pw.MemoryImage(missesPng), width: imgSize, height: imgSize),
+                pw.SizedBox(height: 4),
+                pw.Text('${misses.length}',
+                    style: const pw.TextStyle(fontSize: 10)),
+              ]),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -102,134 +199,73 @@ abstract final class ExportService {
     );
   }
 
-  static pw.Widget _pdfMetrics(SavedResult result, AppLocalizations l) {
-    final rows = <List<String>>[
-      [l.statsActualDuration, '${result.durationActualSeconds}s'],
-      [l.statsStimuliShown, '${result.totalStimuliShown}'],
-    ];
-
-    if (result.correctTouches != null) {
-      rows.add([l.accuracyCorrect, '${result.correctTouches}']);
-    }
-    if (result.incorrectTouches != null) {
-      rows.add([l.accuracyErrors, '${result.incorrectTouches}']);
-    }
-    if (result.missedStimuli != null) {
-      rows.add([l.accuracyMissed, '${result.missedStimuli}']);
-    }
-    if (result.accuracy != null) {
-      rows.add([l.accuracyPercent, '${(result.accuracy! * 100).toStringAsFixed(1)}%']);
-    }
-    if (result.avgReactionTimeMs != null) {
-      rows.add([l.reactionAvg, '${result.avgReactionTimeMs!.toStringAsFixed(0)} ms']);
-    }
-    if (result.bestReactionTimeMs != null) {
-      rows.add([l.reactionBest, '${result.bestReactionTimeMs!.toStringAsFixed(0)} ms']);
-    }
-    if (result.worstReactionTimeMs != null) {
-      rows.add([l.reactionWorst, '${result.worstReactionTimeMs!.toStringAsFixed(0)} ms']);
-    }
-    if (result.stimuliPerMinute != null) {
-      rows.add([l.statsStimuliPerMinute, result.stimuliPerMinute!.toStringAsFixed(1)]);
-    }
-    if (result.anillosCompletados != null) {
-      rows.add([l.macStatsRingsCompleted, '${result.anillosCompletados}']);
-    }
-
-    return pw.TableHelper.fromTextArray(
-      headerCount: 0,
-      headerAlignment: pw.Alignment.centerLeft,
-      cellAlignment: pw.Alignment.centerLeft,
-      data: rows,
-      border: pw.TableBorder.all(color: PdfColors.grey300),
-      cellStyle: const pw.TextStyle(fontSize: 10),
-      cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+  /// Fila clave-valor ligera para el PDF (evita TableHelper que no es
+  /// SpanningWidget y causa TooManyPagesException en MultiPage).
+  static pw.Widget _kvRow(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Expanded(
+            child: pw.Text(label, style: const pw.TextStyle(fontSize: 10)),
+          ),
+          pw.Text(value,
+              style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+        ],
+      ),
     );
   }
 
-  static pw.Widget _pdfRingTimes(SavedResult result, AppLocalizations l) {
+  static List<pw.Widget> _pdfMetrics(SavedResult result, AppLocalizations l) {
+    return [
+      _kvRow(l.statsActualDuration, '${result.durationActualSeconds}s'),
+      _kvRow(l.statsStimuliShown, '${result.totalStimuliShown}'),
+      if (result.correctTouches != null)
+        _kvRow(l.accuracyCorrect, '${result.correctTouches}'),
+      if (result.incorrectTouches != null)
+        _kvRow(l.accuracyErrors, '${result.incorrectTouches}'),
+      if (result.missedStimuli != null)
+        _kvRow(l.accuracyMissed, '${result.missedStimuli}'),
+      if (result.accuracy != null)
+        _kvRow(l.accuracyPercent, '${(result.accuracy! * 100).toStringAsFixed(1)}%'),
+      if (result.avgReactionTimeMs != null)
+        _kvRow(l.reactionAvg, '${result.avgReactionTimeMs!.toStringAsFixed(0)} ms'),
+      if (result.bestReactionTimeMs != null)
+        _kvRow(l.reactionBest, '${result.bestReactionTimeMs!.toStringAsFixed(0)} ms'),
+      if (result.worstReactionTimeMs != null)
+        _kvRow(l.reactionWorst, '${result.worstReactionTimeMs!.toStringAsFixed(0)} ms'),
+      if (result.stimuliPerMinute != null)
+        _kvRow(l.statsStimuliPerMinute, result.stimuliPerMinute!.toStringAsFixed(1)),
+      if (result.anillosCompletados != null)
+        _kvRow(l.macStatsRingsCompleted, '${result.anillosCompletados}'),
+    ];
+  }
+
+  static List<pw.Widget> _pdfRingTimes(SavedResult result, AppLocalizations l) {
     if (result.tiempoPorAnillo == null || result.tiempoPorAnillo!.isEmpty) {
-      return pw.SizedBox();
+      return [];
     }
-    final rows = result.tiempoPorAnillo!
-        .asMap()
-        .entries
-        .map((e) => [l.macRingLabel(e.key + 1), '${(e.value / 1000).toStringAsFixed(1)}s'])
-        .toList();
-
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.SizedBox(height: 12),
-        pw.Text(l.macStatsTimePerRing,
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        pw.TableHelper.fromTextArray(
-          headerCount: 0,
-          data: rows,
-          border: pw.TableBorder.all(color: PdfColors.grey300),
-          cellStyle: const pw.TextStyle(fontSize: 10),
-          cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-      ],
-    );
-  }
-
-  static pw.Widget _pdfConfigSummary(SavedResult result, AppLocalizations l) {
-    if (result.configSummary.isEmpty) return pw.SizedBox();
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text(l.configUsedTitle,
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        pw.TableHelper.fromTextArray(
-          headerCount: 0,
-          data: result.configSummary.entries
-              .map((e) => [e.key, e.value])
-              .toList(),
-          border: pw.TableBorder.all(color: PdfColors.grey300),
-          cellStyle: const pw.TextStyle(fontSize: 10),
-          cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-      ],
-    );
-  }
-
-  /// Tabla resumen de aciertos/fallos por anillo (reemplaza scatter plots
-  /// vectoriales que causaban OOM en dispositivos con poca RAM).
-  static pw.Widget _pdfLetterEventsSummary(SavedResult result, AppLocalizations l) {
-    final events = result.letterEvents!;
-    final numRings = result.anillosCompletados ?? 3;
-    final hits = events.where((e) => e.isHit).toList();
-    final misses = events.where((e) => !e.isHit).toList();
-
-    final rows = <List<String>>[
-      ['Total', '${hits.length}', '${misses.length}'],
+    return [
+      pw.SizedBox(height: 12),
+      pw.Text(l.macStatsTimePerRing,
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+      pw.SizedBox(height: 4),
+      ...result.tiempoPorAnillo!.asMap().entries.map(
+            (e) => _kvRow(
+                l.macRingLabel(e.key + 1), '${(e.value / 1000).toStringAsFixed(1)}s'),
+          ),
     ];
+  }
 
-    for (int ring = 0; ring < numRings; ring++) {
-      final ringHits = hits.where((e) => e.ringIndex == ring).length;
-      final ringMisses = misses.where((e) => e.ringIndex == ring).length;
-      rows.add([l.macRingLabel(ring + 1), '$ringHits', '$ringMisses']);
-    }
-
-    return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      children: [
-        pw.Text('${l.macHitMapTitle} / ${l.macMissMapTitle}',
-            style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        pw.TableHelper.fromTextArray(
-          headers: ['', l.macHitMapTitle, l.macMissMapTitle],
-          data: rows,
-          border: pw.TableBorder.all(color: PdfColors.grey300),
-          headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
-          cellStyle: const pw.TextStyle(fontSize: 10),
-          cellPadding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        ),
-      ],
-    );
+  static List<pw.Widget> _pdfConfigSummary(SavedResult result, AppLocalizations l) {
+    if (result.configSummary.isEmpty) return [];
+    return [
+      pw.Text(l.configUsedTitle,
+          style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+      pw.SizedBox(height: 4),
+      ...result.configSummary.entries.map((e) => _kvRow(e.key, e.value)),
+    ];
   }
 
   // ---------------------------------------------------------------------------
@@ -242,6 +278,9 @@ abstract final class ExportService {
     List<SavedResult> results,
     AppLocalizations l,
   ) async {
+    AppLogger.info('exportPatientSummaryPdf: inicio (paciente=$patientName, '
+        'resultados=${results.length})');
+
     final doc = pw.Document();
     final now = _dateFmt.format(DateTime.now());
 
@@ -249,6 +288,7 @@ abstract final class ExportService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
+        maxPages: 100,
         build: (ctx) => [
           pw.Text(l.exportPatientReport(patientName),
               style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
@@ -257,46 +297,65 @@ abstract final class ExportService {
               style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
           pw.Divider(),
           pw.SizedBox(height: 8),
-          pw.TableHelper.fromTextArray(
-            headers: [
-              l.exportTestDate,
-              l.exportTestType,
-              l.exportAccuracy,
-              l.exportReactionTime,
-              l.exportDuration,
-            ],
-            data: results.map((r) {
-              final acc = r.accuracy != null
-                  ? '${(r.accuracy! * 100).toStringAsFixed(1)}%'
-                  : '-';
-              final rt = r.avgReactionTimeMs != null
-                  ? '${r.avgReactionTimeMs!.toStringAsFixed(0)} ms'
-                  : '-';
-              return [
-                _dateFmt.format(r.startedAt),
-                _testTypeLabel(r.testType, l),
-                acc,
-                rt,
-                '${r.durationActualSeconds}s',
-              ];
-            }).toList(),
-            border: pw.TableBorder.all(color: PdfColors.grey300),
-            headerStyle: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
-            cellStyle: const pw.TextStyle(fontSize: 9),
-            headerAlignment: pw.Alignment.centerLeft,
-            cellAlignment: pw.Alignment.centerLeft,
-            cellPadding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+          // Cabecera
+          pw.Container(
+            padding: const pw.EdgeInsets.symmetric(vertical: 4),
+            decoration: const pw.BoxDecoration(
+              border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
+            ),
+            child: pw.Row(children: [
+              pw.Expanded(flex: 3, child: pw.Text(l.exportTestDate,
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(flex: 3, child: pw.Text(l.exportTestType,
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(flex: 2, child: pw.Text(l.exportAccuracy,
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(flex: 2, child: pw.Text(l.exportReactionTime,
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(flex: 2, child: pw.Text(l.exportDuration,
+                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+            ]),
           ),
+          // Filas individuales (paginables por MultiPage)
+          ...results.map((r) {
+            final acc = r.accuracy != null
+                ? '${(r.accuracy! * 100).toStringAsFixed(1)}%'
+                : '-';
+            final rt = r.avgReactionTimeMs != null
+                ? '${r.avgReactionTimeMs!.toStringAsFixed(0)} ms'
+                : '-';
+            return pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 3),
+              decoration: const pw.BoxDecoration(
+                border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey200)),
+              ),
+              child: pw.Row(children: [
+                pw.Expanded(flex: 3, child: pw.Text(_dateFmt.format(r.startedAt),
+                    style: const pw.TextStyle(fontSize: 9))),
+                pw.Expanded(flex: 3, child: pw.Text(_testTypeLabel(r.testType, l),
+                    style: const pw.TextStyle(fontSize: 9))),
+                pw.Expanded(flex: 2, child: pw.Text(acc,
+                    style: const pw.TextStyle(fontSize: 9))),
+                pw.Expanded(flex: 2, child: pw.Text(rt,
+                    style: const pw.TextStyle(fontSize: 9))),
+                pw.Expanded(flex: 2, child: pw.Text('${r.durationActualSeconds}s',
+                    style: const pw.TextStyle(fontSize: 9))),
+              ]),
+            );
+          }),
         ],
       ),
     );
 
     final bytes = await doc.save();
+    AppLogger.info('exportPatientSummaryPdf: documento generado (${bytes.length} bytes)');
+
     await _shareFile(
       bytes,
       'OptoView_resumen_$patientName.pdf',
       'application/pdf',
     );
+    AppLogger.info('exportPatientSummaryPdf: compartido OK');
   }
 
   // ---------------------------------------------------------------------------
@@ -307,6 +366,7 @@ abstract final class ExportService {
     SavedResult result,
     AppLocalizations l,
   ) async {
+    AppLogger.info('exportResultExcel: inicio (test=${result.testType}, id=${result.id})');
     final excel = xl.Excel.createExcel();
     final sheet = excel['Resultado'];
 
@@ -360,13 +420,17 @@ abstract final class ExportService {
     }
 
     final bytes = excel.encode();
-    if (bytes == null) return;
+    if (bytes == null) {
+      AppLogger.warning('exportResultExcel: encode() devolvió null');
+      return;
+    }
 
     await _shareFile(
       Uint8List.fromList(bytes),
       'OptoView_${result.testType}_${result.id}.xlsx',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
+    AppLogger.info('exportResultExcel: compartido OK');
   }
 
   // ---------------------------------------------------------------------------
@@ -378,6 +442,8 @@ abstract final class ExportService {
     List<SavedResult> results,
     AppLocalizations l,
   ) async {
+    AppLogger.info('exportPatientSummaryExcel: inicio (paciente=$patientName, '
+        'resultados=${results.length})');
     final excel = xl.Excel.createExcel();
     final sheet = excel['Resumen'];
 
@@ -423,13 +489,17 @@ abstract final class ExportService {
     }
 
     final bytes = excel.encode();
-    if (bytes == null) return;
+    if (bytes == null) {
+      AppLogger.warning('exportPatientSummaryExcel: encode() devolvió null');
+      return;
+    }
 
     await _shareFile(
       Uint8List.fromList(bytes),
       'OptoView_resumen_$patientName.xlsx',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     );
+    AppLogger.info('exportPatientSummaryExcel: compartido OK');
   }
 
   // ---------------------------------------------------------------------------
@@ -440,6 +510,7 @@ abstract final class ExportService {
     SavedResult result,
     AppLocalizations l,
   ) async {
+    AppLogger.info('exportResultCsv: inicio (test=${result.testType}, id=${result.id})');
     final buf = StringBuffer();
 
     void addRow(String label, String value) {
@@ -483,6 +554,7 @@ abstract final class ExportService {
       'OptoView_${result.testType}_${result.id}.csv',
       'text/csv',
     );
+    AppLogger.info('exportResultCsv: compartido OK');
   }
 
   // ---------------------------------------------------------------------------
@@ -494,6 +566,8 @@ abstract final class ExportService {
     List<SavedResult> results,
     AppLocalizations l,
   ) async {
+    AppLogger.info('exportPatientSummaryCsv: inicio (paciente=$patientName, '
+        'resultados=${results.length})');
     final buf = StringBuffer();
 
     // Header
@@ -528,5 +602,6 @@ abstract final class ExportService {
       'OptoView_resumen_$patientName.csv',
       'text/csv',
     );
+    AppLogger.info('exportPatientSummaryCsv: compartido OK');
   }
 }

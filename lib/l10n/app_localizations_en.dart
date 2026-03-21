@@ -726,6 +726,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get historyTestMacdonald => 'MacDonald Chart';
 
   @override
+  String get historySearchHint => 'Search by patient or test...';
+
+  @override
+  String get historyNoResults => 'No results for this search.';
+
+  @override
+  String get historyUnnamedPatient => 'Unnamed';
+
+  @override
+  String historyResultCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count results',
+      one: '1 result',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get creditsTitle => 'Credits';
 
   @override

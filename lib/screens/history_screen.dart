@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart' show Share, XFile;
 import '../l10n/app_localizations.dart';
 import '../models/macdonald_result.dart';
 import '../models/saved_result.dart';
+import '../services/app_logger.dart';
 import '../services/export_service.dart';
 import '../services/results_storage.dart';
 
@@ -21,11 +22,19 @@ class HistoryScreen extends StatefulWidget {
 class _HistoryScreenState extends State<HistoryScreen> {
   List<SavedResult> _results = [];
   bool _isLoading = true;
+  String _searchQuery = '';
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _loadResults();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadResults() async {
@@ -36,6 +45,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _isLoading = false;
       });
     }
+  }
+
+  /// Filtra resultados por nombre de paciente o tipo de test.
+  List<SavedResult> get _filteredResults {
+    if (_searchQuery.isEmpty) return _results;
+    final q = _searchQuery.toLowerCase();
+    final l = AppLocalizations.of(context)!;
+    return _results.where((r) {
+      final name = r.patientName.toLowerCase();
+      final type = _testTypeLabel(r.testType, l).toLowerCase();
+      return name.contains(q) || type.contains(q);
+    }).toList();
+  }
+
+  /// Agrupa resultados por paciente, ordenados: primero con nombre, luego sin nombre.
+  Map<String, List<SavedResult>> _groupByPatient(List<SavedResult> results) {
+    final groups = <String, List<SavedResult>>{};
+    for (final r in results) {
+      final key = r.patientName.isNotEmpty ? r.patientName : '';
+      groups.putIfAbsent(key, () => []).add(r);
+    }
+    // Ordenar cada grupo por fecha descendente.
+    for (final list in groups.values) {
+      list.sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    }
+    return groups;
   }
 
   void _confirmDeleteAll(AppLocalizations l) {
@@ -262,7 +297,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     try {
                       await ExportService.exportPatientSummaryPdf(
                           context, patientName, results, l);
-                    } catch (e) {
+                    } catch (e, st) {
+                      AppLogger.error('exportPatientSummaryPdf', error: e, stackTrace: st);
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Error PDF: $e')),
@@ -278,7 +314,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     try {
                       await ExportService.exportPatientSummaryExcel(
                           patientName, results, l);
-                    } catch (e) {
+                    } catch (e, st) {
+                      AppLogger.error('exportPatientSummaryExcel', error: e, stackTrace: st);
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Error Excel: $e')),
@@ -294,7 +331,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     try {
                       await ExportService.exportPatientSummaryCsv(
                           patientName, results, l);
-                    } catch (e) {
+                    } catch (e, st) {
+                      AppLogger.error('exportPatientSummaryCsv', error: e, stackTrace: st);
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Error CSV: $e')),
@@ -555,7 +593,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         try {
                           await ExportService.exportResultPdf(
                               context, current, l);
-                        } catch (e) {
+                        } catch (e, st) {
+                          AppLogger.error('exportResultPdf', error: e, stackTrace: st);
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -571,7 +610,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Navigator.pop(ctx);
                         try {
                           await ExportService.exportResultExcel(current, l);
-                        } catch (e) {
+                        } catch (e, st) {
+                          AppLogger.error('exportResultExcel', error: e, stackTrace: st);
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -587,7 +627,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         Navigator.pop(ctx);
                         try {
                           await ExportService.exportResultCsv(current, l);
-                        } catch (e) {
+                        } catch (e, st) {
+                          AppLogger.error('exportResultCsv', error: e, stackTrace: st);
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -636,6 +677,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+    final theme = Theme.of(context);
 
     if (_isLoading) {
       return Scaffold(
@@ -648,13 +690,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
       appBar: AppBar(
         title: Text(l.historyTitle),
         actions: [
-          // Import backup
           IconButton(
             icon: const Icon(Icons.file_download),
             tooltip: l.backupImportTooltip,
             onPressed: () => _importBackup(l),
           ),
-          // Export backup
           if (_results.isNotEmpty)
             IconButton(
               icon: const Icon(Icons.file_upload),
@@ -684,9 +724,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   const SizedBox(height: 16),
                   Text(
                     l.historyEmpty,
-                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          color: Colors.grey,
-                        ),
+                    style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey),
                   ),
                   const SizedBox(height: 24),
                   OutlinedButton.icon(
@@ -697,51 +735,145 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ],
               ),
             )
-          : ListView.builder(
-              itemCount: _results.length,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemBuilder: (context, index) {
-                final r = _results[index];
-                return Dismissible(
-                  key: ValueKey(r.id),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (_) async {
-                    _confirmDelete(r, l);
-                    return false;
-                  },
-                  background: Container(
-                    alignment: Alignment.centerRight,
-                    padding: const EdgeInsets.only(right: 24),
-                    color: Colors.red,
-                    child: const Icon(Icons.delete, color: Colors.white),
-                  ),
-                  child: ListTile(
-                    leading: CircleAvatar(
-                      child: Icon(_testTypeIcon(r.testType)),
-                    ),
-                    title: Text(
-                      r.patientName.isNotEmpty
-                          ? r.patientName
-                          : _testTypeLabel(r.testType, l),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    subtitle: Text(
-                      '${_testTypeLabel(r.testType, l)} - ${dateFmt.format(r.startedAt)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    trailing: Text(
-                      _keyMetric(r),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                    onTap: () => _showDetail(r, l),
-                  ),
-                );
-              },
+          : _buildGroupedList(l, dateFmt, theme),
+    );
+  }
+
+  Widget _buildGroupedList(
+      AppLocalizations l, DateFormat dateFmt, ThemeData theme) {
+    final filtered = _filteredResults;
+    final groups = _groupByPatient(filtered);
+
+    // Ordenar grupos: con nombre alfabéticamente, sin nombre al final.
+    final sortedKeys = groups.keys.toList()
+      ..sort((a, b) {
+        if (a.isEmpty && b.isEmpty) return 0;
+        if (a.isEmpty) return 1;
+        if (b.isEmpty) return -1;
+        return a.toLowerCase().compareTo(b.toLowerCase());
+      });
+
+    return Column(
+      children: [
+        // Barra de búsqueda
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: TextField(
+            controller: _searchController,
+            decoration: InputDecoration(
+              hintText: l.historySearchHint,
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searchQuery.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        setState(() => _searchQuery = '');
+                      },
+                    )
+                  : null,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              isDense: true,
             ),
+            onChanged: (v) => setState(() => _searchQuery = v.trim()),
+          ),
+        ),
+        // Lista agrupada
+        Expanded(
+          child: filtered.isEmpty
+              ? Center(
+                  child: Text(
+                    l.historyNoResults,
+                    style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  itemCount: sortedKeys.length,
+                  itemBuilder: (context, groupIndex) {
+                    final patientName = sortedKeys[groupIndex];
+                    final items = groups[patientName]!;
+                    final displayName = patientName.isNotEmpty
+                        ? patientName
+                        : l.historyUnnamedPatient;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Cabecera del grupo
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.person, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  displayName,
+                                  style: theme.textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                l.historyResultCount(items.length),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Divider(height: 1, indent: 16, endIndent: 16),
+                        // Resultados del grupo
+                        ...items.map((r) => Dismissible(
+                              key: ValueKey(r.id),
+                              direction: DismissDirection.endToStart,
+                              confirmDismiss: (_) async {
+                                _confirmDelete(r, l);
+                                return false;
+                              },
+                              background: Container(
+                                alignment: Alignment.centerRight,
+                                padding: const EdgeInsets.only(right: 24),
+                                color: Colors.red,
+                                child: const Icon(Icons.delete,
+                                    color: Colors.white),
+                              ),
+                              child: ListTile(
+                                leading: CircleAvatar(
+                                  radius: 18,
+                                  child: Icon(_testTypeIcon(r.testType),
+                                      size: 18),
+                                ),
+                                title: Text(
+                                  _testTypeLabel(r.testType, l),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                subtitle: Text(
+                                  dateFmt.format(r.startedAt),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                trailing: Text(
+                                  _keyMetric(r),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                onTap: () => _showDetail(r, l),
+                              ),
+                            )),
+                      ],
+                    );
+                  },
+                ),
+        ),
+      ],
     );
   }
 }

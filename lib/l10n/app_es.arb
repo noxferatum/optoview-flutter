@@ -307,6 +307,15 @@
   "historyTestPeripheral": "Estimulación periférica",
   "historyTestLocalization": "Localización periférica",
   "historyTestMacdonald": "Carta MacDonald",
+  "historySearchHint": "Buscar por paciente o test...",
+  "historyNoResults": "Sin resultados para esta búsqueda.",
+  "historyUnnamedPatient": "Sin nombre",
+  "historyResultCount": "{count, plural, =1{1 resultado} other{{count} resultados}}",
+  "@historyResultCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
 
   "creditsTitle": "Créditos",
   "creditsAppName": "Optoview",

@@ -1505,6 +1505,30 @@ abstract class AppLocalizations {
   /// **'MacDonald Chart'**
   String get historyTestMacdonald;
 
+  /// No description provided for @historySearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by patient or test...'**
+  String get historySearchHint;
+
+  /// No description provided for @historyNoResults.
+  ///
+  /// In en, this message translates to:
+  /// **'No results for this search.'**
+  String get historyNoResults;
+
+  /// No description provided for @historyUnnamedPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed'**
+  String get historyUnnamedPatient;
+
+  /// No description provided for @historyResultCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 result} other{{count} results}}'**
+  String historyResultCount(int count);
+
   /// No description provided for @creditsTitle.
   ///
   /// In en, this message translates to:
