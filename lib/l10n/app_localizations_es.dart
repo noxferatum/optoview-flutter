@@ -746,6 +746,12 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get historyGroupByPatient => 'Por paciente';
+
+  @override
+  String get historyOrderByDate => 'Por fecha';
+
+  @override
   String get themeDark => 'Modo noche';
 
   @override

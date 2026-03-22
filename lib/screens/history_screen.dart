@@ -12,6 +12,8 @@ import '../services/app_logger.dart';
 import '../services/export_service.dart';
 import '../services/results_storage.dart';
 
+enum _HistoryViewMode { byPatient, byDate }
+
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
 
@@ -23,6 +25,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   List<SavedResult> _results = [];
   bool _isLoading = true;
   String _searchQuery = '';
+  _HistoryViewMode _viewMode = _HistoryViewMode.byPatient;
   final _searchController = TextEditingController();
 
   @override
@@ -739,9 +742,131 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  Widget _buildResultTile(
+      SavedResult r, AppLocalizations l, DateFormat dateFmt, ThemeData theme,
+      {bool showPatientName = false}) {
+    return Dismissible(
+      key: ValueKey(r.id),
+      direction: DismissDirection.endToStart,
+      confirmDismiss: (_) async {
+        _confirmDelete(r, l);
+        return false;
+      },
+      background: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.only(right: 24),
+        color: Colors.red,
+        child: const Icon(Icons.delete, color: Colors.white),
+      ),
+      child: ListTile(
+        leading: CircleAvatar(
+          radius: 18,
+          child: Icon(_testTypeIcon(r.testType), size: 18),
+        ),
+        title: Text(
+          _testTypeLabel(r.testType, l),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Text(
+          showPatientName && r.patientName.isNotEmpty
+              ? '${r.patientName} · ${dateFmt.format(r.startedAt)}'
+              : dateFmt.format(r.startedAt),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        trailing: Text(
+          _keyMetric(r),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        onTap: () => _showDetail(r, l),
+      ),
+    );
+  }
+
   Widget _buildGroupedList(
       AppLocalizations l, DateFormat dateFmt, ThemeData theme) {
     final filtered = _filteredResults;
+
+    return Column(
+      children: [
+        // Barra de búsqueda + selector de vista
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: l.historySearchHint,
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                    isDense: true,
+                  ),
+                  onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                ),
+              ),
+              const SizedBox(width: 12),
+              SegmentedButton<_HistoryViewMode>(
+                segments: [
+                  ButtonSegment(
+                    value: _HistoryViewMode.byPatient,
+                    icon: const Icon(Icons.person, size: 18),
+                    label: Text(l.historyGroupByPatient),
+                  ),
+                  ButtonSegment(
+                    value: _HistoryViewMode.byDate,
+                    icon: const Icon(Icons.calendar_today, size: 18),
+                    label: Text(l.historyOrderByDate),
+                  ),
+                ],
+                selected: {_viewMode},
+                onSelectionChanged: (v) =>
+                    setState(() => _viewMode = v.first),
+                style: ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
+          ),
+        ),
+        // Contenido según modo
+        Expanded(
+          child: filtered.isEmpty
+              ? Center(
+                  child: Text(
+                    l.historyNoResults,
+                    style:
+                        theme.textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                  ),
+                )
+              : _viewMode == _HistoryViewMode.byPatient
+                  ? _buildPatientGroupedView(filtered, l, dateFmt, theme)
+                  : _buildDateSortedView(filtered, l, dateFmt, theme),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPatientGroupedView(List<SavedResult> filtered,
+      AppLocalizations l, DateFormat dateFmt, ThemeData theme) {
     final groups = _groupByPatient(filtered);
 
     // Ordenar grupos: con nombre alfabéticamente, sin nombre al final.
@@ -753,127 +878,62 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return a.toLowerCase().compareTo(b.toLowerCase());
       });
 
-    return Column(
-      children: [
-        // Barra de búsqueda
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: l.historySearchHint,
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _searchQuery = '');
-                      },
-                    )
-                  : null,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-              isDense: true,
-            ),
-            onChanged: (v) => setState(() => _searchQuery = v.trim()),
-          ),
-        ),
-        // Lista agrupada
-        Expanded(
-          child: filtered.isEmpty
-              ? Center(
-                  child: Text(
-                    l.historyNoResults,
-                    style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                  ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  itemCount: sortedKeys.length,
-                  itemBuilder: (context, groupIndex) {
-                    final patientName = sortedKeys[groupIndex];
-                    final items = groups[patientName]!;
-                    final displayName = patientName.isNotEmpty
-                        ? patientName
-                        : l.historyUnnamedPatient;
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 16),
+      itemCount: sortedKeys.length,
+      itemBuilder: (context, groupIndex) {
+        final patientName = sortedKeys[groupIndex];
+        final items = groups[patientName]!;
+        final displayName =
+            patientName.isNotEmpty ? patientName : l.historyUnnamedPatient;
 
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Cabecera del grupo
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.person, size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  displayName,
-                                  style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                              Text(
-                                l.historyResultCount(items.length),
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Divider(height: 1, indent: 16, endIndent: 16),
-                        // Resultados del grupo
-                        ...items.map((r) => Dismissible(
-                              key: ValueKey(r.id),
-                              direction: DismissDirection.endToStart,
-                              confirmDismiss: (_) async {
-                                _confirmDelete(r, l);
-                                return false;
-                              },
-                              background: Container(
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 24),
-                                color: Colors.red,
-                                child: const Icon(Icons.delete,
-                                    color: Colors.white),
-                              ),
-                              child: ListTile(
-                                leading: CircleAvatar(
-                                  radius: 18,
-                                  child: Icon(_testTypeIcon(r.testType),
-                                      size: 18),
-                                ),
-                                title: Text(
-                                  _testTypeLabel(r.testType, l),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                subtitle: Text(
-                                  dateFmt.format(r.startedAt),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                trailing: Text(
-                                  _keyMetric(r),
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                onTap: () => _showDetail(r, l),
-                              ),
-                            )),
-                      ],
-                    );
-                  },
-                ),
-        ),
-      ],
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Cabecera del grupo
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.person, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      displayName,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    l.historyResultCount(items.length),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.grey,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, indent: 16, endIndent: 16),
+            // Resultados del grupo
+            ...items.map(
+                (r) => _buildResultTile(r, l, dateFmt, theme)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDateSortedView(List<SavedResult> filtered, AppLocalizations l,
+      DateFormat dateFmt, ThemeData theme) {
+    final sorted = List<SavedResult>.from(filtered)
+      ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(bottom: 16),
+      itemCount: sorted.length,
+      itemBuilder: (context, index) =>
+          _buildResultTile(sorted[index], l, dateFmt, theme, showPatientName: true),
     );
   }
 }

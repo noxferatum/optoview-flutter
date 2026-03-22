@@ -317,6 +317,9 @@
     }
   },
 
+  "historyGroupByPatient": "By patient",
+  "historyOrderByDate": "By date",
+
   "themeDark": "Dark mode",
   "themeLight": "Light mode",
 

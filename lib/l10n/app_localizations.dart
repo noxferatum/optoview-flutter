@@ -1529,6 +1529,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 result} other{{count} results}}'**
   String historyResultCount(int count);
 
+  /// No description provided for @historyGroupByPatient.
+  ///
+  /// In en, this message translates to:
+  /// **'By patient'**
+  String get historyGroupByPatient;
+
+  /// No description provided for @historyOrderByDate.
+  ///
+  /// In en, this message translates to:
+  /// **'By date'**
+  String get historyOrderByDate;
+
   /// No description provided for @themeDark.
   ///
   /// In en, this message translates to:
