@@ -9,6 +9,7 @@ import '../models/localization_result.dart';
 import '../utils/stimulus_positioning.dart';
 import '../constants/app_constants.dart';
 import '../utils/stimulus_color_utils.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
 import '../widgets/test_ui/pause_overlay.dart';
@@ -72,7 +73,6 @@ class _FeedbackIndicator {
 class _LocalizationTestState extends State<LocalizationTest>
     with WidgetsBindingObserver, TickerProviderStateMixin, ImmersiveTestMixin {
   Timer? _stimulusTimer;
-  Timer? _endTimer;
   Timer? _countdownTimer;
   Timer? _feedbackTimer;
 
@@ -216,9 +216,13 @@ class _LocalizationTestState extends State<LocalizationTest>
     }
   }
 
-  void _dismissInstructions() {
-    setState(() => _showingInstructions = false);
-    _runPreCountdown();
+  void _handleInstructionsComplete() {
+    setState(() {
+      _showingInstructions = false;
+      _testStarted = true;
+    });
+    _startedAt = DateTime.now();
+    _startTest();
   }
 
   List<String> _buildInstructions(AppLocalizations l) {
@@ -269,11 +273,13 @@ class _LocalizationTestState extends State<LocalizationTest>
   void _startTest() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _remaining = max(0, _remaining - 1));
-    });
-
-    _endTimer = Timer(Duration(seconds: _remaining), () {
-      _finishTest(stoppedManually: false);
+      setState(() {
+        _remaining = max(0, _remaining - 1);
+        if (_remaining <= 0) {
+          t.cancel();
+          _finishTest(stoppedManually: false);
+        }
+      });
     });
 
     final periodMs = widget.config.velocidad.milliseconds * 2;
@@ -570,7 +576,7 @@ class _LocalizationTestState extends State<LocalizationTest>
     );
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => LocalizationResultsScreen(result: result),
       ),
     );
@@ -579,8 +585,6 @@ class _LocalizationTestState extends State<LocalizationTest>
   void _cancelAllTimers() {
     _stimulusTimer?.cancel();
     _stimulusTimer = null;
-    _endTimer?.cancel();
-    _endTimer = null;
     _countdownTimer?.cancel();
     _countdownTimer = null;
     _feedbackTimer?.cancel();
@@ -664,7 +668,8 @@ class _LocalizationTestState extends State<LocalizationTest>
                 )),
 
             TestTimerDisplay(
-              text: l.testTimeAndHits(_remaining, _correctTouches),
+              remainingSeconds: _remaining,
+              stimuliCount: _correctTouches,
             ),
             TestControlButtons(
               isPaused: _isPaused,
@@ -674,6 +679,8 @@ class _LocalizationTestState extends State<LocalizationTest>
             if (_isPaused)
               PauseOverlay(
                 remainingSeconds: _remaining,
+                elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                stimuliShown: _totalStimuliShown,
                 onResume: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
@@ -695,9 +702,9 @@ class _LocalizationTestState extends State<LocalizationTest>
               ),
             if (_showingInstructions)
               InstructionOverlay(
-                title: l.configLocalizationTitle,
+                testTitle: l.configLocalizationTitle,
                 instructions: _buildInstructions(l),
-                onStart: _dismissInstructions,
+                onCountdownComplete: _handleInstructionsComplete,
               ),
           ],
         ),

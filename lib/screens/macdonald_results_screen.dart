@@ -7,6 +7,9 @@ import '../models/macdonald_config.dart';
 import '../models/macdonald_result.dart';
 import '../models/saved_result.dart';
 import '../services/results_storage.dart';
+import '../theme/opto_colors.dart';
+import '../theme/opto_spacing.dart';
+import '../utils/page_transitions.dart';
 import 'macdonald_test.dart';
 
 class MacDonaldResultsScreen extends StatefulWidget {
@@ -33,7 +36,6 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     final result = widget.result;
     final summary = result.config.localizedSummary(l);
     final isTouchMode =
@@ -44,354 +46,526 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l.resultsMacTitle),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
+      backgroundColor: OptoColors.backgroundDark,
+      body: Column(
+        children: [
+          _buildTopBar(context, l, result),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left column
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      OptoSpacing.lg,
+                      OptoSpacing.md,
+                      OptoSpacing.sm,
+                      OptoSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildStatusBanner(l, result),
+                        if (isTouchMode) ...[
+                          const SizedBox(height: OptoSpacing.md),
+                          _buildAccuracyCard(l, result),
+                        ],
+                        if (isTouchMode &&
+                            result.reactionTimesMs.isNotEmpty) ...[
+                          const SizedBox(height: OptoSpacing.md),
+                          _buildReactionTimesCard(l, result),
+                        ],
+                        if (result.tiempoPorAnillo.isNotEmpty) ...[
+                          const SizedBox(height: OptoSpacing.md),
+                          _buildRingTimesCard(l, result),
+                        ],
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildGeneralStatsCard(l, result),
+                      ],
+                    ),
+                  ),
+                ),
+                // Right column
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      OptoSpacing.sm,
+                      OptoSpacing.md,
+                      OptoSpacing.lg,
+                      OptoSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Date
+                        _buildDateRow(dateFmt, result),
+                        if (isFieldDetection &&
+                            result.letterEvents.isNotEmpty) ...[
+                          const SizedBox(height: OptoSpacing.md),
+                          _buildHitMissMaps(l, result),
+                        ],
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildConfigTags(l, summary),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 600),
-              child: Column(
-                children: [
-                  // Estado
-                  Icon(
-                    result.completedNaturally
-                        ? Icons.check_circle_outline
-                        : Icons.stop_circle_outlined,
-                    size: 64,
-                    color: result.completedNaturally
-                        ? Colors.greenAccent
-                        : Colors.orangeAccent,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    result.completedNaturally
-                        ? l.resultsCompleted
-                        : l.resultsStopped,
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  if (result.patientName.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.person, size: 18),
-                        const SizedBox(width: 4),
-                        Text(
-                          result.patientName,
-                          style: theme.textTheme.titleMedium,
-                        ),
-                      ],
-                    ),
-                  ],
-                  const SizedBox(height: 4),
-                  Text(
-                    dateFmt.format(result.startedAt),
-                    style: theme.textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 24),
+    );
+  }
 
-                  // Precisión (solo modo tocar)
-                  if (isTouchMode)
-                    Card(
-                      elevation: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              l.accuracyTitle,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _StatRow(
-                              label: l.accuracyCorrect,
-                              value: '${result.correctTouches}',
-                              valueColor: Colors.greenAccent,
-                            ),
-                            _StatRow(
-                              label: l.accuracyErrors,
-                              value: '${result.incorrectTouches}',
-                              valueColor: result.incorrectTouches > 0
-                                  ? Colors.redAccent
-                                  : null,
-                            ),
-                            _StatRow(
-                              label: l.accuracyMissed,
-                              value: '${result.missedLetras}',
-                              valueColor: result.missedLetras > 0
-                                  ? Colors.orangeAccent
-                                  : null,
-                            ),
-                            _StatRow(
-                              label: l.accuracyPercent,
-                              value:
-                                  '${(result.accuracy * 100).toStringAsFixed(1)}%',
-                              valueColor: result.accuracy >= 0.8
-                                  ? Colors.greenAccent
-                                  : Colors.orangeAccent,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (isTouchMode) const SizedBox(height: 16),
+  // -- Top bar --
 
-                  // Mapas de aciertos y fallos (solo detección de campo)
-                  if (isFieldDetection && result.letterEvents.isNotEmpty) ...[
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Card(
-                            elevation: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    l.macHitMapTitle,
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  AspectRatio(
-                                    aspectRatio: 1,
-                                    child: CustomPaint(
-                                      painter: _HitMapPainter(
-                                        events: result.letterEvents
-                                            .where((e) => e.isHit)
-                                            .toList(),
-                                        dotColor: Colors.greenAccent,
-                                        numRings: result.config.numAnillos,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Card(
-                            elevation: 1,
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                children: [
-                                  Text(
-                                    l.macMissMapTitle,
-                                    style: theme.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  AspectRatio(
-                                    aspectRatio: 1,
-                                    child: CustomPaint(
-                                      painter: _HitMapPainter(
-                                        events: result.letterEvents
-                                            .where((e) => !e.isHit)
-                                            .toList(),
-                                        dotColor: Colors.redAccent,
-                                        numRings: result.config.numAnillos,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Tiempos de reacción (solo modo tocar)
-                  if (isTouchMode && result.reactionTimesMs.isNotEmpty)
-                    Card(
-                      elevation: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              l.reactionTitle,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _StatRow(
-                              label: l.reactionAvg,
-                              value:
-                                  '${result.avgReactionTimeMs.toStringAsFixed(0)} ms',
-                            ),
-                            _StatRow(
-                              label: l.reactionBest,
-                              value:
-                                  '${result.bestReactionTimeMs.toStringAsFixed(0)} ms',
-                              valueColor: Colors.greenAccent,
-                            ),
-                            _StatRow(
-                              label: l.reactionWorst,
-                              value:
-                                  '${result.worstReactionTimeMs.toStringAsFixed(0)} ms',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (isTouchMode && result.reactionTimesMs.isNotEmpty)
-                    const SizedBox(height: 16),
-
-                  // Tiempos por anillo
-                  if (result.tiempoPorAnillo.isNotEmpty)
-                    Card(
-                      elevation: 1,
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              l.macStatsTimePerRing,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            ...result.tiempoPorAnillo.asMap().entries.map(
-                                  (e) => _StatRow(
-                                    label: l.macRingLabel(e.key + 1),
-                                    value:
-                                        '${(e.value / 1000).toStringAsFixed(1)}s',
-                                  ),
-                                ),
-                            if (result.tiempoPorAnillo.length > 1)
-                              _StatRow(
-                                label: l.macStatsAvgPerRing,
-                                value:
-                                    '${(result.tiempoPorAnillo.reduce((a, b) => a + b) / result.tiempoPorAnillo.length / 1000).toStringAsFixed(1)}s',
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (result.tiempoPorAnillo.isNotEmpty)
-                    const SizedBox(height: 16),
-
-                  // Estadísticas generales
-                  Card(
-                    elevation: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            l.statsTitle,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _StatRow(
-                            label: l.statsActualDuration,
-                            value: '${result.durationActualSeconds}s',
-                          ),
-                          _StatRow(
-                            label: l.statsConfigDuration,
-                            value: '${result.config.duracionSegundos}s',
-                          ),
-                          _StatRow(
-                            label: l.macStatsLettersShown,
-                            value: '${result.totalLetrasShown}',
-                          ),
-                          _StatRow(
-                            label: l.macStatsRingsCompleted,
-                            value: '${result.anillosCompletados}',
-                          ),
-                        ],
-                      ),
+  Widget _buildTopBar(
+    BuildContext context,
+    AppLocalizations l,
+    MacDonaldResult result,
+  ) {
+    return Container(
+      color: OptoColors.surfaceDark,
+      padding: const EdgeInsets.symmetric(
+        horizontal: OptoSpacing.sm,
+        vertical: OptoSpacing.xs,
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: OptoColors.onSurfaceDark),
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+            const SizedBox(width: OptoSpacing.sm),
+            Expanded(
+              child: Text(
+                l.resultsMacTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: OptoColors.onSurfaceDark,
+                ),
+              ),
+            ),
+            _TopBarButton(
+              icon: Icons.replay,
+              label: l.resultsRepeat,
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  OptoPageRoute(
+                    builder: (_) => MacDonaldTest(
+                      config: result.config,
+                      patientName: result.patientName,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                );
+              },
+            ),
+            const SizedBox(width: OptoSpacing.sm),
+            _TopBarButton(
+              icon: Icons.home,
+              label: l.resultsHome,
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                  // Configuración usada
-                  Card(
-                    elevation: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            l.configUsedTitle,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          ...summary.entries.map(
-                            (e) => _StatRow(label: e.key, value: e.value),
-                          ),
-                        ],
-                      ),
-                    ),
+  // -- Status banner --
+
+  Widget _buildStatusBanner(AppLocalizations l, MacDonaldResult result) {
+    final isComplete = result.completedNaturally;
+    final color = isComplete ? OptoColors.success : OptoColors.warning;
+    final icon = isComplete
+        ? Icons.check_circle_outline
+        : Icons.stop_circle_outlined;
+    final text = isComplete ? l.resultsCompleted : l.resultsStopped;
+
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: color.withAlpha(64)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(width: OptoSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: color,
                   ),
-                  const SizedBox(height: 24),
-
-                  // Acciones
+                ),
+                if (result.patientName.isNotEmpty) ...[
+                  const SizedBox(height: OptoSpacing.xs),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      FilledButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => MacDonaldTest(
-                                config: result.config,
-                                patientName: result.patientName,
-                              ),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.replay),
-                        label: Text(l.resultsRepeat),
-                      ),
-                      const SizedBox(width: 16),
-                      OutlinedButton.icon(
-                        onPressed: () {
-                          var count = 0;
-                          Navigator.of(context).popUntil((_) => count++ >= 2);
-                        },
-                        icon: const Icon(Icons.home),
-                        label: Text(l.resultsHome),
+                      const Icon(Icons.person, size: 14,
+                          color: OptoColors.onSurfaceVariantDark),
+                      const SizedBox(width: OptoSpacing.xs),
+                      Text(
+                        result.patientName,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: OptoColors.onSurfaceVariantDark,
+                        ),
                       ),
                     ],
                   ),
                 ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Accuracy card --
+
+  Widget _buildAccuracyCard(AppLocalizations l, MacDonaldResult result) {
+    return _SectionCard(
+      title: l.accuracyTitle,
+      children: [
+        _StatRow(
+          label: l.accuracyCorrect,
+          value: '${result.correctTouches}',
+          valueColor: OptoColors.success,
+        ),
+        _StatRow(
+          label: l.accuracyErrors,
+          value: '${result.incorrectTouches}',
+          valueColor:
+              result.incorrectTouches > 0 ? OptoColors.error : null,
+        ),
+        _StatRow(
+          label: l.accuracyMissed,
+          value: '${result.missedLetras}',
+          valueColor:
+              result.missedLetras > 0 ? OptoColors.warning : null,
+        ),
+        _StatRow(
+          label: l.accuracyPercent,
+          value: '${(result.accuracy * 100).toStringAsFixed(1)}%',
+          valueColor: result.accuracy >= 0.8
+              ? OptoColors.success
+              : OptoColors.warning,
+        ),
+      ],
+    );
+  }
+
+  // -- Reaction times card --
+
+  Widget _buildReactionTimesCard(
+      AppLocalizations l, MacDonaldResult result) {
+    return _SectionCard(
+      title: l.reactionTitle,
+      children: [
+        _StatRow(
+          label: l.reactionAvg,
+          value: '${result.avgReactionTimeMs.toStringAsFixed(0)} ms',
+        ),
+        _StatRow(
+          label: l.reactionBest,
+          value: '${result.bestReactionTimeMs.toStringAsFixed(0)} ms',
+          valueColor: OptoColors.success,
+        ),
+        _StatRow(
+          label: l.reactionWorst,
+          value: '${result.worstReactionTimeMs.toStringAsFixed(0)} ms',
+        ),
+      ],
+    );
+  }
+
+  // -- Ring times card --
+
+  Widget _buildRingTimesCard(AppLocalizations l, MacDonaldResult result) {
+    return _SectionCard(
+      title: l.macStatsTimePerRing,
+      children: [
+        ...result.tiempoPorAnillo.asMap().entries.map(
+              (e) => _StatRow(
+                label: l.macRingLabel(e.key + 1),
+                value: '${(e.value / 1000).toStringAsFixed(1)}s',
+              ),
+            ),
+        if (result.tiempoPorAnillo.length > 1)
+          _StatRow(
+            label: l.macStatsAvgPerRing,
+            value:
+                '${(result.tiempoPorAnillo.reduce((a, b) => a + b) / result.tiempoPorAnillo.length / 1000).toStringAsFixed(1)}s',
+          ),
+      ],
+    );
+  }
+
+  // -- General stats card --
+
+  Widget _buildGeneralStatsCard(
+      AppLocalizations l, MacDonaldResult result) {
+    return _SectionCard(
+      title: l.statsTitle,
+      children: [
+        _StatRow(
+          label: l.statsActualDuration,
+          value: '${result.durationActualSeconds}s',
+        ),
+        _StatRow(
+          label: l.statsConfigDuration,
+          value: '${result.config.duracionSegundos}s',
+        ),
+        _StatRow(
+          label: l.macStatsLettersShown,
+          value: '${result.totalLetrasShown}',
+        ),
+        _StatRow(
+          label: l.macStatsRingsCompleted,
+          value: '${result.anillosCompletados}',
+        ),
+      ],
+    );
+  }
+
+  // -- Date row --
+
+  Widget _buildDateRow(DateFormat dateFmt, MacDonaldResult result) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: OptoSpacing.md,
+        vertical: OptoSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: OptoColors.surfaceDark,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: OptoColors.surfaceVariantDark),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today, size: 16,
+              color: OptoColors.onSurfaceVariantDark),
+          const SizedBox(width: OptoSpacing.sm),
+          Text(
+            dateFmt.format(result.startedAt),
+            style: const TextStyle(
+              fontSize: 13,
+              color: OptoColors.onSurfaceDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Hit/Miss maps --
+
+  Widget _buildHitMissMaps(AppLocalizations l, MacDonaldResult result) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildMapCard(
+            title: l.macHitMapTitle,
+            events: result.letterEvents.where((e) => e.isHit).toList(),
+            dotColor: OptoColors.success,
+            numRings: result.config.numAnillos,
+          ),
+        ),
+        const SizedBox(width: OptoSpacing.sm),
+        Expanded(
+          child: _buildMapCard(
+            title: l.macMissMapTitle,
+            events:
+                result.letterEvents.where((e) => !e.isHit).toList(),
+            dotColor: OptoColors.error,
+            numRings: result.config.numAnillos,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapCard({
+    required String title,
+    required List<LetterEvent> events,
+    required Color dotColor,
+    required int numRings,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: OptoColors.surfaceDark,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: OptoColors.surfaceVariantDark),
+      ),
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: OptoColors.onSurfaceDark,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          AspectRatio(
+            aspectRatio: 1,
+            child: CustomPaint(
+              painter: _HitMapPainter(
+                events: events,
+                dotColor: dotColor,
+                numRings: numRings,
               ),
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // -- Config tags --
+
+  Widget _buildConfigTags(
+      AppLocalizations l, Map<String, String> summary) {
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: OptoColors.surfaceDark,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: OptoColors.surfaceVariantDark),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.configUsedTitle,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: OptoColors.onSurfaceDark,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          Wrap(
+            spacing: OptoSpacing.sm,
+            runSpacing: OptoSpacing.sm,
+            children: summary.entries.map((e) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: OptoSpacing.sm + 2,
+                  vertical: OptoSpacing.xs + 1,
+                ),
+                decoration: BoxDecoration(
+                  color: OptoColors.surfaceVariantDark,
+                  borderRadius:
+                      BorderRadius.circular(OptoSpacing.radiusChip),
+                ),
+                child: Text(
+                  '${e.key}: ${e.value}',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: OptoColors.onSurfaceVariantDark,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// -- Top bar button --
+
+class _TopBarButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _TopBarButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18, color: OptoColors.onSurfaceDark),
+      label: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 13,
+          color: OptoColors.onSurfaceDark,
         ),
       ),
     );
   }
 }
+
+// -- Section card --
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _SectionCard({
+    required this.title,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: OptoColors.surfaceDark,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: OptoColors.surfaceVariantDark),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: OptoColors.onSurfaceDark,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+// -- Stat row --
 
 class _StatRow extends StatelessWidget {
   final String label;
@@ -407,23 +581,32 @@ class _StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: OptoSpacing.xs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: valueColor,
-                ),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? OptoColors.onSurfaceDark,
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+// -- Hit map painter --
 
 class _HitMapPainter extends CustomPainter {
   final List<LetterEvent> events;
@@ -443,7 +626,7 @@ class _HitMapPainter extends CustomPainter {
 
     // Anillos concéntricos
     final ringPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.15)
+      ..color = Colors.white.withAlpha(38)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
 
@@ -454,7 +637,7 @@ class _HitMapPainter extends CustomPainter {
 
     // Cruz central
     final axisPaint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.2)
+      ..color = Colors.white.withAlpha(51)
       ..strokeWidth = 0.5;
     canvas.drawLine(
       Offset(center.dx - radius, center.dy),

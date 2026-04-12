@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'constants/app_constants.dart';
 import 'l10n/app_localizations.dart';
-import 'screens/menu_screen.dart';
+import 'screens/dashboard_screen.dart';
+import 'screens/splash_screen.dart';
+import 'theme/opto_theme.dart';
 
 /// Notificador global de tema. Accesible desde cualquier pantalla.
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
@@ -31,8 +32,15 @@ void main() async {
   runApp(const OptoViewApp());
 }
 
-class OptoViewApp extends StatelessWidget {
+class OptoViewApp extends StatefulWidget {
   const OptoViewApp({super.key});
+
+  @override
+  State<OptoViewApp> createState() => _OptoViewAppState();
+}
+
+class _OptoViewAppState extends State<OptoViewApp> {
+  bool _showSplash = true;
 
   @override
   Widget build(BuildContext context) {
@@ -42,21 +50,17 @@ class OptoViewApp extends StatelessWidget {
         title: 'OptoView',
         debugShowCheckedModeBanner: false,
         themeMode: mode,
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppConstants.optoviewBlue,
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
+        darkTheme: OptoTheme.dark(),
+        theme: OptoTheme.light(),
+        home: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400),
+          child: _showSplash
+              ? SplashScreen(
+                  key: const ValueKey('splash'),
+                  onComplete: () => setState(() => _showSplash = false),
+                )
+              : const DashboardScreen(key: ValueKey('dashboard')),
         ),
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppConstants.optoviewBlue,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-        ),
-        home: const MenuScreen(),
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,

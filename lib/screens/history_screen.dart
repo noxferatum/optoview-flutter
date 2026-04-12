@@ -11,6 +11,8 @@ import '../models/saved_result.dart';
 import '../services/app_logger.dart';
 import '../services/export_service.dart';
 import '../services/results_storage.dart';
+import '../theme/opto_colors.dart';
+import '../theme/opto_spacing.dart';
 
 enum _HistoryViewMode { byPatient, byDate }
 
@@ -31,6 +33,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // Selection mode
   bool _selectionMode = false;
   final Set<String> _selectedIds = {};
+
+  // Master-detail
+  String? _selectedResultId;
 
   @override
   void initState() {
@@ -95,7 +100,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
             onPressed: () {
               Navigator.pop(ctx);
               ResultsStorage.deleteAll();
-              setState(() => _results.clear());
+              setState(() {
+                _results.clear();
+                _selectedResultId = null;
+              });
             },
             child: Text(l.historyClearAllConfirm),
           ),
@@ -119,7 +127,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
             onPressed: () {
               Navigator.pop(ctx);
               ResultsStorage.delete(result.id);
-              setState(() => _results.removeWhere((r) => r.id == result.id));
+              setState(() {
+                _results.removeWhere((r) => r.id == result.id);
+                if (_selectedResultId == result.id) {
+                  _selectedResultId = null;
+                }
+              });
             },
             child: Text(l.historyDelete),
           ),
@@ -429,304 +442,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Detail bottom sheet
-  // ---------------------------------------------------------------------------
-
-  void _showDetail(SavedResult result, AppLocalizations l) {
-    final theme = Theme.of(context);
-    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (ctx) => DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.4,
-        maxChildSize: 0.9,
-        expand: false,
-        builder: (ctx, scrollController) {
-          // Buscar la versión actual del resultado (puede haberse renombrado)
-          final current =
-              _results.firstWhere((r) => r.id == result.id, orElse: () => result);
-
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: ListView(
-              controller: scrollController,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        l.historyDetailTitle,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.edit, size: 20),
-                      tooltip: l.renameTitle,
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _showRenameDialog(current, l, onRenamed: () {
-                          // Reabrir detalle con datos actualizados
-                          final updated = _results.firstWhere(
-                            (r) => r.id == current.id,
-                            orElse: () => current,
-                          );
-                          _showDetail(updated, l);
-                        });
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline, size: 20),
-                      tooltip: l.historyDelete,
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _confirmDelete(current, l);
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _testTypeLabel(current.testType, l),
-                  style: theme.textTheme.titleMedium,
-                ),
-                if (current.patientName.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(Icons.person, size: 16),
-                      const SizedBox(width: 4),
-                      Text(current.patientName),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 4),
-                Text(
-                  dateFmt.format(current.startedAt),
-                  style: theme.textTheme.bodySmall,
-                ),
-                const Divider(height: 24),
-
-                // Métricas
-                _DetailRow(
-                  label: l.statsActualDuration,
-                  value: '${current.durationActualSeconds}s',
-                ),
-                _DetailRow(
-                  label: l.statsStimuliShown,
-                  value: '${current.totalStimuliShown}',
-                ),
-                if (current.correctTouches != null)
-                  _DetailRow(
-                    label: l.accuracyCorrect,
-                    value: '${current.correctTouches}',
-                  ),
-                if (current.incorrectTouches != null)
-                  _DetailRow(
-                    label: l.accuracyErrors,
-                    value: '${current.incorrectTouches}',
-                  ),
-                if (current.missedStimuli != null)
-                  _DetailRow(
-                    label: l.accuracyMissed,
-                    value: '${current.missedStimuli}',
-                  ),
-                if (current.accuracy != null)
-                  _DetailRow(
-                    label: l.accuracyPercent,
-                    value: '${(current.accuracy! * 100).toStringAsFixed(1)}%',
-                  ),
-                if (current.avgReactionTimeMs != null)
-                  _DetailRow(
-                    label: l.reactionAvg,
-                    value:
-                        '${current.avgReactionTimeMs!.toStringAsFixed(0)} ms',
-                  ),
-                if (current.bestReactionTimeMs != null)
-                  _DetailRow(
-                    label: l.reactionBest,
-                    value:
-                        '${current.bestReactionTimeMs!.toStringAsFixed(0)} ms',
-                  ),
-                if (current.worstReactionTimeMs != null)
-                  _DetailRow(
-                    label: l.reactionWorst,
-                    value:
-                        '${current.worstReactionTimeMs!.toStringAsFixed(0)} ms',
-                  ),
-                if (current.stimuliPerMinute != null)
-                  _DetailRow(
-                    label: l.statsStimuliPerMinute,
-                    value: current.stimuliPerMinute!.toStringAsFixed(1),
-                  ),
-                if (current.anillosCompletados != null)
-                  _DetailRow(
-                    label: l.macStatsRingsCompleted,
-                    value: '${current.anillosCompletados}',
-                  ),
-                if (current.tiempoPorAnillo != null) ...[
-                  const SizedBox(height: 8),
-                  ...current.tiempoPorAnillo!.asMap().entries.map(
-                        (e) => _DetailRow(
-                          label: l.macRingLabel(e.key + 1),
-                          value: '${(e.value / 1000).toStringAsFixed(1)}s',
-                        ),
-                      ),
-                ],
-
-                // Mapas de aciertos/fallos (MacDonald tocarLetras)
-                if (current.letterEvents != null &&
-                    current.letterEvents!.isNotEmpty) ...[
-                  const Divider(height: 24),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(l.macHitMapTitle,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 8),
-                            AspectRatio(
-                              aspectRatio: 1,
-                              child: CustomPaint(
-                                painter: _HitMapPainter(
-                                  events: current.letterEvents!
-                                      .where((e) => e.isHit)
-                                      .toList(),
-                                  dotColor: Colors.greenAccent,
-                                  numRings: current.anillosCompletados ?? 3,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            Text(l.macMissMapTitle,
-                                style: theme.textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 8),
-                            AspectRatio(
-                              aspectRatio: 1,
-                              child: CustomPaint(
-                                painter: _HitMapPainter(
-                                  events: current.letterEvents!
-                                      .where((e) => !e.isHit)
-                                      .toList(),
-                                  dotColor: Colors.redAccent,
-                                  numRings: current.anillosCompletados ?? 3,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-
-                // Config summary
-                if (current.configSummary.isNotEmpty) ...[
-                  const Divider(height: 24),
-                  Text(
-                    l.configUsedTitle,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ...current.configSummary.entries.map(
-                    (e) => _DetailRow(label: e.key, value: e.value),
-                  ),
-                ],
-
-                // Export buttons
-                const Divider(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        Navigator.pop(ctx);
-                        try {
-                          await ExportService.exportResultPdf(
-                              context, current, l);
-                        } catch (e, st) {
-                          AppLogger.error('exportResultPdf', error: e, stackTrace: st);
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text('Error PDF: $e')),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.picture_as_pdf, size: 18),
-                      label: Text(l.exportPdf),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        Navigator.pop(ctx);
-                        try {
-                          await ExportService.exportResultExcel(current, l);
-                        } catch (e, st) {
-                          AppLogger.error('exportResultExcel', error: e, stackTrace: st);
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text('Error Excel: $e')),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.table_chart, size: 18),
-                      label: Text(l.exportExcel),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () async {
-                        Navigator.pop(ctx);
-                        try {
-                          await ExportService.exportResultCsv(current, l);
-                        } catch (e, st) {
-                          AppLogger.error('exportResultCsv', error: e, stackTrace: st);
-                          if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                                content: Text('Error CSV: $e')),
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.description, size: 18),
-                      label: Text(l.exportCsv),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   String _testTypeLabel(String type, AppLocalizations l) => switch (type) {
         'peripheral' => l.historyTestPeripheral,
         'localization' => l.historyTestLocalization,
@@ -741,6 +456,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
         _ => Icons.science,
       };
 
+  Color _testTypeColor(String type) => switch (type) {
+        'peripheral' => OptoColors.peripheral,
+        'localization' => OptoColors.localization,
+        'macdonald' => OptoColors.macdonald,
+        _ => OptoColors.primary,
+      };
+
   String _keyMetric(SavedResult r) {
     if (r.accuracy != null) {
       return '${(r.accuracy! * 100).toStringAsFixed(0)}%';
@@ -751,164 +473,760 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return '${r.durationActualSeconds}s';
   }
 
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
-    final theme = Theme.of(context);
 
     if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text(l.historyTitle)),
+        backgroundColor: OptoColors.backgroundDark,
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: _selectionMode
-          ? AppBar(
-              leading: IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: _exitSelectionMode,
-              ),
-              title: Text(l.bulkSelectedCount(_selectedIds.length)),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.select_all),
-                  tooltip: _selectedIds.length == _filteredResults.length
-                      ? l.bulkDeselectAll
-                      : l.bulkSelectAll,
-                  onPressed: _selectedIds.length == _filteredResults.length
-                      ? _deselectAll
-                      : _selectAll,
-                ),
-              ],
-            )
-          : AppBar(
-              title: Text(l.historyTitle),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.file_download),
-                  tooltip: l.backupImportTooltip,
-                  onPressed: () => _importBackup(l),
-                ),
-                if (_results.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(Icons.file_upload),
-                    tooltip: l.backupExportTooltip,
-                    onPressed: () => _exportBackup(l),
+      backgroundColor: OptoColors.backgroundDark,
+      body: Column(
+        children: [
+          _buildTopBar(l),
+          _buildFilterBar(l),
+          Expanded(
+            child: _results.isEmpty
+                ? _buildEmptyState(l)
+                : Row(
+                    children: [
+                      // LEFT: list panel (380px)
+                      SizedBox(
+                        width: 380,
+                        child: _buildListPanel(l, dateFmt),
+                      ),
+                      // Divider
+                      const VerticalDivider(
+                        width: 1,
+                        color: OptoColors.surfaceVariantDark,
+                      ),
+                      // RIGHT: detail panel
+                      Expanded(child: _buildDetailPanel(l, dateFmt)),
+                    ],
                   ),
-                if (_results.isNotEmpty)
+          ),
+          // Bottom bar for selection mode
+          if (_selectionMode && _selectedIds.isNotEmpty) _buildSelectionBar(l),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Top bar
+  // ---------------------------------------------------------------------------
+
+  Widget _buildTopBar(AppLocalizations l) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: OptoSpacing.sm,
+        vertical: OptoSpacing.xs,
+      ),
+      decoration: const BoxDecoration(
+        color: OptoColors.surfaceDark,
+        border: Border(
+          bottom: BorderSide(color: OptoColors.surfaceVariantDark),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: _selectionMode
+            ? Row(
+                children: [
                   IconButton(
-                    icon: const Icon(Icons.summarize),
-                    tooltip: l.exportPatientSummary,
-                    onPressed: () => _showPatientSummaryExport(l),
+                    icon: const Icon(Icons.close,
+                        color: OptoColors.onSurfaceDark),
+                    onPressed: _exitSelectionMode,
                   ),
-                if (_results.isNotEmpty)
-                  IconButton(
-                    icon: const Icon(Icons.delete_sweep),
-                    tooltip: l.historyClearAll,
-                    onPressed: () => _confirmDeleteAll(l),
-                  ),
-              ],
-            ),
-      bottomNavigationBar: _selectionMode && _selectedIds.isNotEmpty
-          ? SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    Text(
-                      l.bulkExportTitle,
-                      style: theme.textTheme.titleSmall?.copyWith(
+                  const SizedBox(width: OptoSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      l.bulkSelectedCount(_selectedIds.length),
+                      style: const TextStyle(
+                        fontSize: 16,
                         fontWeight: FontWeight.w600,
+                        color: OptoColors.onSurfaceDark,
                       ),
                     ),
-                    const Spacer(),
-                    OutlinedButton.icon(
-                      onPressed: () => _bulkExport('pdf', l),
-                      icon: const Icon(Icons.picture_as_pdf, size: 18),
-                      label: Text(l.exportPdf),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.select_all,
+                        color: OptoColors.onSurfaceDark),
+                    tooltip: _selectedIds.length == _filteredResults.length
+                        ? l.bulkDeselectAll
+                        : l.bulkSelectAll,
+                    onPressed: _selectedIds.length == _filteredResults.length
+                        ? _deselectAll
+                        : _selectAll,
+                  ),
+                ],
+              )
+            : Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back,
+                        color: OptoColors.onSurfaceDark),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(width: OptoSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      l.historyTitle,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: OptoColors.onSurfaceDark,
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: () => _bulkExport('excel', l),
-                      icon: const Icon(Icons.table_chart, size: 18),
-                      label: Text(l.exportExcel),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.file_download,
+                        color: OptoColors.onSurfaceDark),
+                    tooltip: l.backupImportTooltip,
+                    onPressed: () => _importBackup(l),
+                  ),
+                  if (_results.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.file_upload,
+                          color: OptoColors.onSurfaceDark),
+                      tooltip: l.backupExportTooltip,
+                      onPressed: () => _exportBackup(l),
                     ),
-                    const SizedBox(width: 8),
-                    OutlinedButton.icon(
-                      onPressed: () => _bulkExport('csv', l),
-                      icon: const Icon(Icons.description, size: 18),
-                      label: Text(l.exportCsv),
+                  if (_results.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.summarize,
+                          color: OptoColors.onSurfaceDark),
+                      tooltip: l.exportPatientSummary,
+                      onPressed: () => _showPatientSummaryExport(l),
                     ),
-                  ],
+                  if (_results.isNotEmpty)
+                    IconButton(
+                      icon: const Icon(Icons.delete_sweep,
+                          color: OptoColors.onSurfaceDark),
+                      tooltip: l.historyClearAll,
+                      onPressed: () => _confirmDeleteAll(l),
+                    ),
+                ],
+              ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Filter bar
+  // ---------------------------------------------------------------------------
+
+  Widget _buildFilterBar(AppLocalizations l) {
+    if (_results.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(
+        OptoSpacing.md,
+        OptoSpacing.sm,
+        OptoSpacing.md,
+        OptoSpacing.xs,
+      ),
+      color: OptoColors.backgroundDark,
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(color: OptoColors.onSurfaceDark),
+              decoration: InputDecoration(
+                hintText: l.historySearchHint,
+                hintStyle:
+                    const TextStyle(color: OptoColors.onSurfaceVariantDark),
+                prefixIcon: const Icon(Icons.search,
+                    color: OptoColors.onSurfaceVariantDark),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear,
+                            color: OptoColors.onSurfaceVariantDark),
+                        onPressed: () {
+                          _searchController.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                filled: true,
+                fillColor: OptoColors.surfaceDark,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                  borderSide:
+                      const BorderSide(color: OptoColors.surfaceVariantDark),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                  borderSide:
+                      const BorderSide(color: OptoColors.surfaceVariantDark),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                  borderSide: const BorderSide(color: OptoColors.primary),
+                ),
+                contentPadding:
+                    const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                isDense: true,
+              ),
+              onChanged: (v) => setState(() => _searchQuery = v.trim()),
+            ),
+          ),
+          const SizedBox(width: 12),
+          SegmentedButton<_HistoryViewMode>(
+            segments: [
+              ButtonSegment(
+                value: _HistoryViewMode.byPatient,
+                icon: const Icon(Icons.person, size: 18),
+                label: Text(l.historyGroupByPatient),
+              ),
+              ButtonSegment(
+                value: _HistoryViewMode.byDate,
+                icon: const Icon(Icons.calendar_today, size: 18),
+                label: Text(l.historyOrderByDate),
+              ),
+            ],
+            selected: {_viewMode},
+            onSelectionChanged: (v) => setState(() => _viewMode = v.first),
+            style: ButtonStyle(
+              visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // List panel (left)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildListPanel(AppLocalizations l, DateFormat dateFmt) {
+    final theme = Theme.of(context);
+    final filtered = _filteredResults;
+
+    if (filtered.isEmpty) {
+      return Center(
+        child: Text(
+          l.historyNoResults,
+          style: const TextStyle(color: OptoColors.onSurfaceVariantDark),
+        ),
+      );
+    }
+
+    return Container(
+      color: OptoColors.backgroundDark,
+      child: _viewMode == _HistoryViewMode.byPatient
+          ? _buildPatientGroupedView(filtered, l, dateFmt, theme)
+          : _buildDateSortedView(filtered, l, dateFmt, theme),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Detail panel (right)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildDetailPanel(AppLocalizations l, DateFormat dateFmt) {
+    final theme = Theme.of(context);
+
+    if (_selectedResultId == null) {
+      return Container(
+        color: OptoColors.backgroundDark,
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.article_outlined,
+                  size: 48, color: OptoColors.subtleDark),
+              const SizedBox(height: OptoSpacing.md),
+              Text(
+                'Selecciona un resultado',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: OptoColors.onSurfaceVariantDark,
                 ),
               ),
-            )
-          : null,
-      body: _results.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+            ],
+          ),
+        ),
+      );
+    }
+
+    final current = _results.firstWhere(
+      (r) => r.id == _selectedResultId,
+      orElse: () {
+        // Result was deleted; clear selection.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() => _selectedResultId = null);
+        });
+        return _results.isNotEmpty ? _results.first : _results.first;
+      },
+    );
+
+    // If the result list is empty (shouldn't normally happen because we
+    // check _results.isEmpty higher up), bail out.
+    if (_results.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final typeColor = _testTypeColor(current.testType);
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 250),
+      child: Container(
+        key: ValueKey(current.id),
+        color: OptoColors.backgroundDark,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(OptoSpacing.lg),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Row(
                 children: [
-                  const Icon(Icons.history, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  Text(
-                    l.historyEmpty,
-                    style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey),
+                  Container(
+                    padding: const EdgeInsets.all(OptoSpacing.sm),
+                    decoration: BoxDecoration(
+                      color: typeColor.withAlpha(30),
+                      borderRadius:
+                          BorderRadius.circular(OptoSpacing.radiusChip),
+                    ),
+                    child: Icon(
+                      _testTypeIcon(current.testType),
+                      color: typeColor,
+                      size: 24,
+                    ),
                   ),
-                  const SizedBox(height: 24),
-                  OutlinedButton.icon(
-                    onPressed: () => _importBackup(l),
-                    icon: const Icon(Icons.file_download),
-                    label: Text(l.backupImport),
+                  const SizedBox(width: OptoSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _testTypeLabel(current.testType, l),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: OptoColors.onSurfaceDark,
+                          ),
+                        ),
+                        if (current.patientName.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              const Icon(Icons.person,
+                                  size: 14,
+                                  color: OptoColors.onSurfaceVariantDark),
+                              const SizedBox(width: 4),
+                              Text(
+                                current.patientName,
+                                style: const TextStyle(
+                                  color: OptoColors.onSurfaceVariantDark,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 2),
+                        Text(
+                          dateFmt.format(current.startedAt),
+                          style: const TextStyle(
+                            color: OptoColors.subtleDark,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.edit,
+                        size: 20, color: OptoColors.onSurfaceVariantDark),
+                    tooltip: l.renameTitle,
+                    onPressed: () {
+                      _showRenameDialog(current, l);
+                    },
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.delete_outline,
+                        size: 20, color: OptoColors.error),
+                    tooltip: l.historyDelete,
+                    onPressed: () => _confirmDelete(current, l),
                   ),
                 ],
               ),
-            )
-          : _buildGroupedList(l, dateFmt, theme),
+
+              const SizedBox(height: OptoSpacing.md),
+              const Divider(color: OptoColors.surfaceVariantDark, height: 1),
+              const SizedBox(height: OptoSpacing.md),
+
+              // Metrics
+              _DetailRow(
+                label: l.statsActualDuration,
+                value: '${current.durationActualSeconds}s',
+              ),
+              _DetailRow(
+                label: l.statsStimuliShown,
+                value: '${current.totalStimuliShown}',
+              ),
+              if (current.correctTouches != null)
+                _DetailRow(
+                  label: l.accuracyCorrect,
+                  value: '${current.correctTouches}',
+                ),
+              if (current.incorrectTouches != null)
+                _DetailRow(
+                  label: l.accuracyErrors,
+                  value: '${current.incorrectTouches}',
+                ),
+              if (current.missedStimuli != null)
+                _DetailRow(
+                  label: l.accuracyMissed,
+                  value: '${current.missedStimuli}',
+                ),
+              if (current.accuracy != null)
+                _DetailRow(
+                  label: l.accuracyPercent,
+                  value: '${(current.accuracy! * 100).toStringAsFixed(1)}%',
+                ),
+              if (current.avgReactionTimeMs != null)
+                _DetailRow(
+                  label: l.reactionAvg,
+                  value:
+                      '${current.avgReactionTimeMs!.toStringAsFixed(0)} ms',
+                ),
+              if (current.bestReactionTimeMs != null)
+                _DetailRow(
+                  label: l.reactionBest,
+                  value:
+                      '${current.bestReactionTimeMs!.toStringAsFixed(0)} ms',
+                ),
+              if (current.worstReactionTimeMs != null)
+                _DetailRow(
+                  label: l.reactionWorst,
+                  value:
+                      '${current.worstReactionTimeMs!.toStringAsFixed(0)} ms',
+                ),
+              if (current.stimuliPerMinute != null)
+                _DetailRow(
+                  label: l.statsStimuliPerMinute,
+                  value: current.stimuliPerMinute!.toStringAsFixed(1),
+                ),
+              if (current.anillosCompletados != null)
+                _DetailRow(
+                  label: l.macStatsRingsCompleted,
+                  value: '${current.anillosCompletados}',
+                ),
+              if (current.tiempoPorAnillo != null) ...[
+                const SizedBox(height: 8),
+                ...current.tiempoPorAnillo!.asMap().entries.map(
+                      (e) => _DetailRow(
+                        label: l.macRingLabel(e.key + 1),
+                        value: '${(e.value / 1000).toStringAsFixed(1)}s',
+                      ),
+                    ),
+              ],
+
+              // Hit/miss maps (MacDonald)
+              if (current.letterEvents != null &&
+                  current.letterEvents!.isNotEmpty) ...[
+                const SizedBox(height: OptoSpacing.md),
+                const Divider(
+                    color: OptoColors.surfaceVariantDark, height: 1),
+                const SizedBox(height: OptoSpacing.md),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(l.macHitMapTitle,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: OptoColors.onSurfaceDark,
+                              )),
+                          const SizedBox(height: 8),
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: CustomPaint(
+                              painter: _HitMapPainter(
+                                events: current.letterEvents!
+                                    .where((e) => e.isHit)
+                                    .toList(),
+                                dotColor: Colors.greenAccent,
+                                numRings: current.anillosCompletados ?? 3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(l.macMissMapTitle,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: OptoColors.onSurfaceDark,
+                              )),
+                          const SizedBox(height: 8),
+                          AspectRatio(
+                            aspectRatio: 1,
+                            child: CustomPaint(
+                              painter: _HitMapPainter(
+                                events: current.letterEvents!
+                                    .where((e) => !e.isHit)
+                                    .toList(),
+                                dotColor: Colors.redAccent,
+                                numRings: current.anillosCompletados ?? 3,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+
+              // Config summary
+              if (current.configSummary.isNotEmpty) ...[
+                const SizedBox(height: OptoSpacing.md),
+                const Divider(
+                    color: OptoColors.surfaceVariantDark, height: 1),
+                const SizedBox(height: OptoSpacing.md),
+                Text(
+                  l.configUsedTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: OptoColors.onSurfaceDark,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...current.configSummary.entries.map(
+                  (e) => _DetailRow(label: e.key, value: e.value),
+                ),
+              ],
+
+              // Export buttons
+              const SizedBox(height: OptoSpacing.md),
+              const Divider(color: OptoColors.surfaceVariantDark, height: 1),
+              const SizedBox(height: OptoSpacing.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await ExportService.exportResultPdf(
+                            context, current, l);
+                      } catch (e, st) {
+                        AppLogger.error('exportResultPdf',
+                            error: e, stackTrace: st);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error PDF: $e')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.picture_as_pdf, size: 18),
+                    label: Text(l.exportPdf),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await ExportService.exportResultExcel(current, l);
+                      } catch (e, st) {
+                        AppLogger.error('exportResultExcel',
+                            error: e, stackTrace: st);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error Excel: $e')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.table_chart, size: 18),
+                    label: Text(l.exportExcel),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await ExportService.exportResultCsv(current, l);
+                      } catch (e, st) {
+                        AppLogger.error('exportResultCsv',
+                            error: e, stackTrace: st);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error CSV: $e')),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.description, size: 18),
+                    label: Text(l.exportCsv),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
+
+  // ---------------------------------------------------------------------------
+  // Selection bar (bottom)
+  // ---------------------------------------------------------------------------
+
+  Widget _buildSelectionBar(AppLocalizations l) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: OptoSpacing.md, vertical: OptoSpacing.sm),
+      decoration: const BoxDecoration(
+        color: OptoColors.surfaceDark,
+        border: Border(
+          top: BorderSide(color: OptoColors.surfaceVariantDark),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Text(
+              l.bulkExportTitle,
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: OptoColors.onSurfaceDark,
+              ),
+            ),
+            const Spacer(),
+            OutlinedButton.icon(
+              onPressed: () => _bulkExport('pdf', l),
+              icon: const Icon(Icons.picture_as_pdf, size: 18),
+              label: Text(l.exportPdf),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: () => _bulkExport('excel', l),
+              icon: const Icon(Icons.table_chart, size: 18),
+              label: Text(l.exportExcel),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: () => _bulkExport('csv', l),
+              icon: const Icon(Icons.description, size: 18),
+              label: Text(l.exportCsv),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Empty state
+  // ---------------------------------------------------------------------------
+
+  Widget _buildEmptyState(AppLocalizations l) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.history, size: 64, color: OptoColors.subtleDark),
+          const SizedBox(height: 16),
+          Text(
+            l.historyEmpty,
+            style: const TextStyle(
+              fontSize: 14,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
+          const SizedBox(height: 24),
+          OutlinedButton.icon(
+            onPressed: () => _importBackup(l),
+            icon: const Icon(Icons.file_download),
+            label: Text(l.backupImport),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Result tile
+  // ---------------------------------------------------------------------------
 
   Widget _buildResultTile(
       SavedResult r, AppLocalizations l, DateFormat dateFmt, ThemeData theme,
       {bool showPatientName = false}) {
     final isSelected = _selectedIds.contains(r.id);
+    final isDetailSelected = r.id == _selectedResultId;
+    final typeColor = _testTypeColor(r.testType);
 
-    final tile = ListTile(
-      leading: _selectionMode
-          ? Checkbox(
-              value: isSelected,
-              onChanged: (_) => _toggleSelection(r),
-            )
-          : CircleAvatar(
-              radius: 18,
-              child: Icon(_testTypeIcon(r.testType), size: 18),
-            ),
-      title: Text(
-        _testTypeLabel(r.testType, l),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
+    final tile = Container(
+      decoration: BoxDecoration(
+        color: isDetailSelected
+            ? OptoColors.surfaceVariantDark
+            : Colors.transparent,
+        border: isDetailSelected
+            ? const Border(
+                left: BorderSide(color: OptoColors.primary, width: 3),
+              )
+            : null,
       ),
-      subtitle: Text(
-        showPatientName && r.patientName.isNotEmpty
-            ? '${r.patientName} · ${dateFmt.format(r.startedAt)}'
-            : dateFmt.format(r.startedAt),
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
-      trailing: Text(
-        _keyMetric(r),
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.w700,
+      child: ListTile(
+        leading: _selectionMode
+            ? Checkbox(
+                value: isSelected,
+                onChanged: (_) => _toggleSelection(r),
+              )
+            : CircleAvatar(
+                radius: 18,
+                backgroundColor: typeColor.withAlpha(30),
+                child: Icon(_testTypeIcon(r.testType),
+                    size: 18, color: typeColor),
+              ),
+        title: Text(
+          _testTypeLabel(r.testType, l),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: OptoColors.onSurfaceDark,
+            fontWeight: isDetailSelected ? FontWeight.w600 : FontWeight.w400,
+          ),
         ),
+        subtitle: Text(
+          showPatientName && r.patientName.isNotEmpty
+              ? '${r.patientName} · ${dateFmt.format(r.startedAt)}'
+              : dateFmt.format(r.startedAt),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(color: OptoColors.onSurfaceVariantDark, fontSize: 12),
+        ),
+        trailing: Text(
+          _keyMetric(r),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: isDetailSelected ? OptoColors.primary : OptoColors.onSurfaceDark,
+          ),
+        ),
+        selected: isSelected,
+        onTap: _selectionMode
+            ? () => _toggleSelection(r)
+            : () => setState(() => _selectedResultId = r.id),
+        onLongPress: _selectionMode ? null : () => _enterSelectionMode(r),
       ),
-      selected: isSelected,
-      onTap: _selectionMode
-          ? () => _toggleSelection(r)
-          : () => _showDetail(r, l),
-      onLongPress: _selectionMode ? null : () => _enterSelectionMode(r),
     );
 
     if (_selectionMode) return tile;
@@ -923,89 +1241,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
-        color: Colors.red,
+        color: OptoColors.error,
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       child: tile,
-    );
-  }
-
-  Widget _buildGroupedList(
-      AppLocalizations l, DateFormat dateFmt, ThemeData theme) {
-    final filtered = _filteredResults;
-
-    return Column(
-      children: [
-        // Barra de búsqueda + selector de vista
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: l.historySearchHint,
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                    isDense: true,
-                  ),
-                  onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                ),
-              ),
-              const SizedBox(width: 12),
-              SegmentedButton<_HistoryViewMode>(
-                segments: [
-                  ButtonSegment(
-                    value: _HistoryViewMode.byPatient,
-                    icon: const Icon(Icons.person, size: 18),
-                    label: Text(l.historyGroupByPatient),
-                  ),
-                  ButtonSegment(
-                    value: _HistoryViewMode.byDate,
-                    icon: const Icon(Icons.calendar_today, size: 18),
-                    label: Text(l.historyOrderByDate),
-                  ),
-                ],
-                selected: {_viewMode},
-                onSelectionChanged: (v) =>
-                    setState(() => _viewMode = v.first),
-                style: ButtonStyle(
-                  visualDensity: VisualDensity.compact,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Contenido según modo
-        Expanded(
-          child: filtered.isEmpty
-              ? Center(
-                  child: Text(
-                    l.historyNoResults,
-                    style:
-                        theme.textTheme.bodyLarge?.copyWith(color: Colors.grey),
-                  ),
-                )
-              : _viewMode == _HistoryViewMode.byPatient
-                  ? _buildPatientGroupedView(filtered, l, dateFmt, theme)
-                  : _buildDateSortedView(filtered, l, dateFmt, theme),
-        ),
-      ],
     );
   }
 
@@ -1039,26 +1278,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Row(
                 children: [
-                  const Icon(Icons.person, size: 18),
+                  const Icon(Icons.person,
+                      size: 18, color: OptoColors.onSurfaceVariantDark),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       displayName,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: OptoColors.onSurfaceDark,
                       ),
                     ),
                   ),
                   Text(
                     l.historyResultCount(items.length),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey,
+                      color: OptoColors.onSurfaceVariantDark,
                     ),
                   ),
                 ],
               ),
             ),
-            const Divider(height: 1, indent: 16, endIndent: 16),
+            Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+                color: OptoColors.surfaceVariantDark),
             // Resultados del grupo
             ...items.map(
                 (r) => _buildResultTile(r, l, dateFmt, theme)),
@@ -1096,15 +1341,18 @@ class _DetailRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
-            child: Text(label, style: Theme.of(context).textTheme.bodyMedium),
+            child: Text(label,
+                style: const TextStyle(
+                    color: OptoColors.onSurfaceVariantDark, fontSize: 13)),
           ),
           const SizedBox(width: 8),
           Text(
             value,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              color: OptoColors.onSurfaceDark,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),

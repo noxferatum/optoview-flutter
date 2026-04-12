@@ -7,6 +7,7 @@ import '../constants/app_constants.dart';
 import '../models/test_config.dart';
 import '../models/macdonald_config.dart';
 import '../models/macdonald_result.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/center_fixation.dart';
 import '../widgets/test_ui/pause_overlay.dart';
 import '../widgets/test_ui/test_control_buttons.dart';
@@ -49,7 +50,6 @@ class _ChartLetterData {
 
 class _MacDonaldTestState extends State<MacDonaldTest>
     with WidgetsBindingObserver, TickerProviderStateMixin, ImmersiveTestMixin {
-  Timer? _endTimer;
   Timer? _countdownTimer;
   Timer? _revealTimer;
   Timer? _fieldLetterTimer;
@@ -252,9 +252,13 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     }
   }
 
-  void _dismissInstructions() {
-    setState(() => _showingInstructions = false);
-    _runPreCountdown();
+  void _handleInstructionsComplete() {
+    setState(() {
+      _showingInstructions = false;
+      _testStarted = true;
+    });
+    _startedAt = DateTime.now();
+    _startTestAfterLayout();
   }
 
   List<String> _buildInstructions(AppLocalizations l) {
@@ -317,12 +321,13 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     // Countdown timer
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _remaining = max(0, _remaining - 1));
-    });
-
-    // End timer
-    _endTimer = Timer(Duration(seconds: _remaining), () {
-      _finishTest(stoppedManually: false);
+      setState(() {
+        _remaining = max(0, _remaining - 1);
+        if (_remaining <= 0) {
+          t.cancel();
+          _finishTest(stoppedManually: false);
+        }
+      });
     });
 
     _anilloStartTime = DateTime.now();
@@ -700,13 +705,16 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   void _resumeFromPause() {
     setState(() => _isPaused = false);
 
-    // Restart countdown and end timers
+    // Restart countdown timer
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _remaining = max(0, _remaining - 1));
-    });
-    _endTimer = Timer(Duration(seconds: _remaining), () {
-      _finishTest(stoppedManually: false);
+      setState(() {
+        _remaining = max(0, _remaining - 1);
+        if (_remaining <= 0) {
+          t.cancel();
+          _finishTest(stoppedManually: false);
+        }
+      });
     });
     _anilloStartTime ??= DateTime.now();
 
@@ -792,15 +800,13 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     );
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => MacDonaldResultsScreen(result: result),
       ),
     );
   }
 
   void _cancelAllTimers() {
-    _endTimer?.cancel();
-    _endTimer = null;
     _countdownTimer?.cancel();
     _countdownTimer = null;
     _revealTimer?.cancel();
@@ -857,7 +863,10 @@ class _MacDonaldTestState extends State<MacDonaldTest>
               }),
 
             // Timer display
-            TestTimerDisplay(text: l.testTimeRemaining(_remaining)),
+            TestTimerDisplay(
+              remainingSeconds: _remaining,
+              stimuliCount: _totalLetrasShown,
+            ),
 
             // Control buttons
             TestControlButtons(
@@ -889,6 +898,8 @@ class _MacDonaldTestState extends State<MacDonaldTest>
             if (_isPaused)
               PauseOverlay(
                 remainingSeconds: _remaining,
+                elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                stimuliShown: _totalLetrasShown,
                 onResume: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
@@ -912,9 +923,9 @@ class _MacDonaldTestState extends State<MacDonaldTest>
               ),
             if (_showingInstructions)
               InstructionOverlay(
-                title: l.configMacdonaldTitle,
+                testTitle: l.configMacdonaldTitle,
                 instructions: _buildInstructions(l),
-                onStart: _dismissInstructions,
+                onCountdownComplete: _handleInstructionsComplete,
               ),
           ],
         ),

@@ -160,7 +160,11 @@
   "testPause": "Pause",
   "testResume": "Resume",
   "testStop": "Stop",
-  "testPaused": "TEST PAUSED",
+  "testPaused": "Test Paused",
+  "testPauseHint": "The test will resume exactly where you left off.",
+  "testStatRemaining": "Remaining",
+  "testStatElapsed": "Elapsed",
+  "testStatStimuli": "Stimuli",
 
   "countdownReady": "Get ready!",
 
@@ -301,6 +305,14 @@
   "historyClearAllConfirm": "Delete all",
   "historyCancel": "Cancel",
   "historyDelete": "Delete",
+  "bulkSelectedCount": "{count} selected",
+  "@bulkSelectedCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkDeselectAll": "Deselect all",
+  "bulkSelectAll": "Select all",
+  "bulkExportTitle": "Export selected",
+  "bulkReportTitle": "Bulk Report",
   "historyDeleteTitle": "Delete result",
   "historyDeleteMessage": "Are you sure you want to delete this result?",
   "historyDetailTitle": "Result details",

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
+import '../design_system/opto_glass_panel.dart';
+import '../../theme/opto_colors.dart';
 
-/// Botones de control (pausar/reanudar + terminar) para los tests.
+/// Botones de control (pausar/reanudar + terminar) como pastillas de cristal.
 class TestControlButtons extends StatelessWidget {
-  final bool isPaused;
-  final VoidCallback onTogglePause;
-  final VoidCallback onStop;
-
   const TestControlButtons({
     super.key,
     required this.isPaused,
@@ -14,40 +12,63 @@ class TestControlButtons extends StatelessWidget {
     required this.onStop,
   });
 
+  final bool isPaused;
+  final VoidCallback onTogglePause;
+  final VoidCallback onStop;
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
 
     return Positioned(
-      top: 24,
-      right: 24,
+      top: 12,
+      right: 12,
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Semantics(
-            button: true,
-            label: isPaused ? l.testResume : l.testPause,
-            child: TextButton.icon(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.black45,
+          GestureDetector(
+            onTap: onTogglePause,
+            child: OptoGlassPanel(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    isPaused ? Icons.play_arrow : Icons.pause,
+                    size: 14,
+                    color: OptoColors.warning,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    isPaused ? l.testResume : l.testPause,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: OptoColors.warning,
+                    ),
+                  ),
+                ],
               ),
-              onPressed: onTogglePause,
-              icon: Icon(isPaused ? Icons.play_arrow : Icons.pause),
-              label: Text(isPaused ? l.testResume : l.testPause),
             ),
           ),
-          const SizedBox(width: 8),
-          Semantics(
-            button: true,
-            label: l.testStop,
-            child: TextButton.icon(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.black45,
+          const SizedBox(width: 6),
+          GestureDetector(
+            onTap: onStop,
+            child: OptoGlassPanel(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.stop, size: 14, color: OptoColors.error),
+                  const SizedBox(width: 6),
+                  Text(
+                    l.testStop,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: OptoColors.error,
+                    ),
+                  ),
+                ],
               ),
-              onPressed: onStop,
-              icon: const Icon(Icons.stop),
-              label: Text(l.testStop),
             ),
           ),
         ],

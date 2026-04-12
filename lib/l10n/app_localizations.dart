@@ -818,8 +818,32 @@ abstract class AppLocalizations {
   /// No description provided for @testPaused.
   ///
   /// In en, this message translates to:
-  /// **'TEST PAUSED'**
+  /// **'Test Paused'**
   String get testPaused;
+
+  /// No description provided for @testPauseHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The test will resume exactly where you left off.'**
+  String get testPauseHint;
+
+  /// No description provided for @testStatRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining'**
+  String get testStatRemaining;
+
+  /// No description provided for @testStatElapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'Elapsed'**
+  String get testStatElapsed;
+
+  /// No description provided for @testStatStimuli.
+  ///
+  /// In en, this message translates to:
+  /// **'Stimuli'**
+  String get testStatStimuli;
 
   /// No description provided for @countdownReady.
   ///
@@ -1469,6 +1493,36 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get historyDelete;
 
+  /// No description provided for @bulkSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String bulkSelectedCount(int count);
+
+  /// No description provided for @bulkDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get bulkDeselectAll;
+
+  /// No description provided for @bulkSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get bulkSelectAll;
+
+  /// No description provided for @bulkExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export selected'**
+  String get bulkExportTitle;
+
+  /// No description provided for @bulkReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk Report'**
+  String get bulkReportTitle;
+
   /// No description provided for @historyDeleteTitle.
   ///
   /// In en, this message translates to:
@@ -1870,36 +1924,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No results to export'**
   String get backupNoResults;
-
-  /// No description provided for @bulkSelectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Select all'**
-  String get bulkSelectAll;
-
-  /// No description provided for @bulkDeselectAll.
-  ///
-  /// In en, this message translates to:
-  /// **'Deselect all'**
-  String get bulkDeselectAll;
-
-  /// No description provided for @bulkSelectedCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count} selected'**
-  String bulkSelectedCount(int count);
-
-  /// No description provided for @bulkExportTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Export selected'**
-  String get bulkExportTitle;
-
-  /// No description provided for @bulkReportTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'OptoView - Selected Results'**
-  String get bulkReportTitle;
 
   /// No description provided for @renameTitle.
   ///

@@ -8,6 +8,7 @@ import '../models/test_result.dart';
 import '../utils/stimulus_positioning.dart';
 import '../constants/app_constants.dart';
 import '../utils/stimulus_color_utils.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/center_fixation.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
@@ -30,7 +31,6 @@ class DynamicPeripheryTest extends StatefulWidget {
 class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     with WidgetsBindingObserver, TickerProviderStateMixin, ImmersiveTestMixin {
   Timer? _stimulusTimer;
-  Timer? _endTimer;
   Timer? _countdownTimer;
 
   bool _showStimulus = false;
@@ -112,9 +112,13 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     }
   }
 
-  void _dismissInstructions() {
-    setState(() => _showingInstructions = false);
-    _runPreCountdown();
+  void _handleInstructionsComplete() {
+    setState(() {
+      _showingInstructions = false;
+      _testStarted = true;
+    });
+    _startedAt = DateTime.now();
+    _startTest();
   }
 
   List<String> _buildInstructions(AppLocalizations l) {
@@ -165,11 +169,13 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   void _startTest() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _remaining = max(0, _remaining - 1));
-    });
-
-    _endTimer = Timer(Duration(seconds: _remaining), () {
-      _finishTest(stoppedManually: false);
+      setState(() {
+        _remaining = max(0, _remaining - 1);
+        if (_remaining <= 0) {
+          t.cancel();
+          _finishTest(stoppedManually: false);
+        }
+      });
     });
 
     final onMs = widget.config.velocidad.milliseconds;
@@ -365,7 +371,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     );
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => TestResultsScreen(result: result),
       ),
     );
@@ -374,8 +380,6 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   void _cancelAllTimers() {
     _stimulusTimer?.cancel();
     _stimulusTimer = null;
-    _endTimer?.cancel();
-    _endTimer = null;
     _countdownTimer?.cancel();
     _countdownTimer = null;
   }
@@ -423,7 +427,10 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                 outlineColor: outlineColorForStimulus(
                     _currentColorOption, widget.config.fondo),
               ),
-            TestTimerDisplay(text: l.testTimeRemaining(_remaining)),
+            TestTimerDisplay(
+              remainingSeconds: _remaining,
+              stimuliCount: _stimuliShown,
+            ),
             TestControlButtons(
               isPaused: _isPaused,
               onTogglePause: _togglePause,
@@ -432,6 +439,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
             if (_isPaused)
               PauseOverlay(
                 remainingSeconds: _remaining,
+                elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                stimuliShown: _stimuliShown,
                 onResume: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
@@ -453,9 +462,9 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
               ),
             if (_showingInstructions)
               InstructionOverlay(
-                title: l.configPeripheralTitle,
+                testTitle: l.configPeripheralTitle,
                 instructions: _buildInstructions(l),
-                onStart: _dismissInstructions,
+                onCountdownComplete: _handleInstructionsComplete,
               ),
           ],
         ),

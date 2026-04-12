@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import '../l10n/app_localizations.dart';
+import '../theme/opto_colors.dart';
+import '../theme/opto_spacing.dart';
 
 class CreditsScreen extends StatefulWidget {
   const CreditsScreen({super.key});
@@ -30,114 +32,316 @@ class _CreditsScreenState extends State<CreditsScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l.creditsTitle),
-        centerTitle: true,
+      backgroundColor: OptoColors.backgroundDark,
+      body: Row(
+        children: [
+          Expanded(flex: 5, child: _buildBrandingPanel(l)),
+          Expanded(flex: 6, child: _buildInfoPanel(l)),
+        ],
       ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 700),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // Logo
-                Image.asset(
+    );
+  }
+
+  Widget _buildBrandingPanel(AppLocalizations l) {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            OptoColors.backgroundDark,
+            Color(0xFF1A2332),
+            Color(0x280A3F6FB2), // OptoColors.primary with alpha ~40
+          ],
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Logo with subtle glow
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(OptoSpacing.radiusLogo),
+                boxShadow: [
+                  BoxShadow(
+                    color: OptoColors.primary.withAlpha(40),
+                    blurRadius: 32,
+                    spreadRadius: 8,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(OptoSpacing.radiusLogo),
+                child: Image.asset(
                   'assets/images/logo.png',
-                  width: 200,
-                  height: 200,
+                  width: 150,
+                  height: 150,
                 ),
-                const SizedBox(height: 24),
-                // Título
-                Text(
-                  l.creditsAppName,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // App name
+            const Text(
+              'OPTOVIEW',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.w700,
+                color: OptoColors.onSurfaceDark,
+                letterSpacing: 4,
+              ),
+            ),
+            const SizedBox(height: 8),
+            // Description
+            SizedBox(
+              width: 280,
+              child: Text(
+                l.creditsDescription,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: OptoColors.onSurfaceVariantDark,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Version badge
+            if (_version.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: OptoColors.surfaceVariantDark,
+                  borderRadius: BorderRadius.circular(OptoSpacing.radiusPill),
+                ),
+                child: Text(
+                  '$_version (build $_buildNumber)',
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: OptoColors.onSurfaceVariantDark,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 12),
-                // Texto descriptivo
-                Text(
-                  l.creditsDescription,
-                  style: theme.textTheme.bodyLarge,
-                  textAlign: TextAlign.center,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoPanel(AppLocalizations l) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(OptoSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Team card
+          _buildCard(
+            header: 'EQUIPO',
+            child: Column(
+              children: const [
+                _TeamMember(
+                  icon: Icons.remove_red_eye,
+                  iconColor: OptoColors.peripheral,
+                  name: 'Estefania Rodriguez-Bobada Lillo',
+                  role: 'Optometrista',
                 ),
-                const SizedBox(height: 24),
-                Divider(color: theme.colorScheme.outlineVariant),
-                const SizedBox(height: 16),
-                _InfoRow(
-                  icon: Icons.apartment,
-                  label: l.creditsCompany,
-                  value: 'Optoview',
-                ),
-                _InfoRow(
-                  icon: Icons.calendar_today,
-                  label: l.creditsYear,
-                  value: DateTime.now().year.toString(),
-                ),
-                if (_version.isNotEmpty)
-                  _InfoRow(
-                    icon: Icons.settings,
-                    label: l.creditsVersion,
-                    value: '$_version (build $_buildNumber)',
-                  ),
-                const SizedBox(height: 32),
-                FilledButton.icon(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.arrow_back),
-                  label: Text(l.creditsBack),
+                SizedBox(height: OptoSpacing.md),
+                _TeamMember(
+                  icon: Icons.code,
+                  iconColor: OptoColors.primary,
+                  name: 'Rodrigo Melon Gutte',
+                  role: 'Desarrollo',
                 ),
               ],
             ),
           ),
-        ),
+          const SizedBox(height: OptoSpacing.md),
+
+          // Technology card
+          _buildCard(
+            header: 'TECNOLOGIA',
+            child: Wrap(
+              spacing: OptoSpacing.sm,
+              runSpacing: OptoSpacing.sm,
+              children: const [
+                _TechTag(label: 'Flutter 3.8'),
+                _TechTag(label: 'Dart'),
+                _TechTag(label: 'Material 3'),
+                _TechTag(label: 'Android'),
+              ],
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.md),
+
+          // Legal card
+          _buildCard(
+            header: 'LEGAL',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '\u00a9 ${DateTime.now().year} Optoview',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: OptoColors.onSurfaceDark,
+                  ),
+                ),
+                const SizedBox(height: OptoSpacing.sm),
+                Text(
+                  l.creditsDescription,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: OptoColors.onSurfaceVariantDark,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.lg),
+
+          // Back button
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: OptoSpacing.md,
+                vertical: 12,
+              ),
+              decoration: BoxDecoration(
+                color: OptoColors.surfaceVariantDark,
+                borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.arrow_back,
+                    size: 18,
+                    color: OptoColors.onSurfaceDark,
+                  ),
+                  const SizedBox(width: OptoSpacing.sm),
+                  Text(
+                    l.creditsBack,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: OptoColors.onSurfaceDark,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildCard({required String header, required Widget child}) {
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: OptoColors.surfaceDark,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            header,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.8,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
       ),
     );
   }
 }
 
-class _InfoRow extends StatelessWidget {
+class _TeamMember extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final String value;
+  final Color iconColor;
+  final String name;
+  final String role;
 
-  const _InfoRow({
+  const _TeamMember({
     required this.icon,
-    required this.label,
-    required this.value,
+    required this.iconColor,
+    required this.name,
+    required this.role,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(width: 8),
-          Text(
-            '$label: ',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
+    return Row(
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: iconColor.withAlpha(30),
+            shape: BoxShape.circle,
           ),
-          Flexible(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium,
-              overflow: TextOverflow.ellipsis,
-            ),
+          child: Icon(icon, size: 18, color: iconColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: OptoColors.onSurfaceDark,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                role,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: OptoColors.onSurfaceVariantDark,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TechTag extends StatelessWidget {
+  final String label;
+
+  const _TechTag({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: OptoColors.surfaceVariantDark,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusPill),
+      ),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 12,
+          color: OptoColors.onSurfaceVariantDark,
+        ),
       ),
     );
   }

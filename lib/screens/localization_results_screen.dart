@@ -4,6 +4,10 @@ import '../l10n/app_localizations.dart';
 import '../models/localization_result.dart';
 import '../models/saved_result.dart';
 import '../services/results_storage.dart';
+import '../theme/opto_colors.dart';
+import '../theme/opto_spacing.dart';
+import '../utils/page_transitions.dart';
+import '../widgets/design_system/opto_card.dart';
 import 'localization_test.dart';
 
 class LocalizationResultsScreen extends StatefulWidget {
@@ -31,252 +35,441 @@ class _LocalizationResultsScreenState
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
-    final theme = Theme.of(context);
     final result = widget.result;
     final summary = result.config.localizedSummary(l);
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l.resultsLocTitle),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Column(
+      backgroundColor: OptoColors.backgroundDark,
+      body: Column(
+        children: [
+          _buildTopBar(l),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Estado
-                Icon(
-                  result.completedNaturally
-                      ? Icons.check_circle_outline
-                      : Icons.stop_circle_outlined,
-                  size: 64,
-                  color: result.completedNaturally
-                      ? Colors.greenAccent
-                      : Colors.orangeAccent,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  result.completedNaturally
-                      ? l.resultsCompleted
-                      : l.resultsStopped,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (result.patientName.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.person, size: 18),
-                      const SizedBox(width: 4),
-                      Text(
-                        result.patientName,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: 4),
-                Text(
-                  dateFmt.format(result.startedAt),
-                  style: theme.textTheme.bodySmall,
-                ),
-                const SizedBox(height: 24),
-
-                // Precisión
-                Card(
-                  elevation: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
+                // Left column
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      OptoSpacing.lg,
+                      OptoSpacing.md,
+                      OptoSpacing.sm,
+                      OptoSpacing.lg,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          l.accuracyTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _StatRow(
-                          label: l.accuracyCorrect,
-                          value: '${result.correctTouches}',
-                          valueColor: Colors.greenAccent,
-                        ),
-                        _StatRow(
-                          label: l.accuracyErrors,
-                          value: '${result.incorrectTouches}',
-                          valueColor: result.incorrectTouches > 0
-                              ? Colors.redAccent
-                              : null,
-                        ),
-                        _StatRow(
-                          label: l.accuracyMissed,
-                          value: '${result.missedStimuli}',
-                          valueColor: result.missedStimuli > 0
-                              ? Colors.orangeAccent
-                              : null,
-                        ),
-                        _StatRow(
-                          label: l.accuracyPercent,
-                          value: '${(result.accuracy * 100).toStringAsFixed(1)}%',
-                          valueColor: result.accuracy >= 0.8
-                              ? Colors.greenAccent
-                              : Colors.orangeAccent,
-                        ),
-                        _StatRow(
-                          label: l.statsStimuliShown,
-                          value: '${result.totalStimuliShown}',
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Tiempos de reacción
-                if (result.reactionTimesMs.isNotEmpty)
-                  Card(
-                    elevation: 1,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            l.reactionTitle,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _StatRow(
-                            label: l.reactionAvg,
-                            value:
-                                '${result.avgReactionTimeMs.toStringAsFixed(0)} ms',
-                          ),
-                          _StatRow(
-                            label: l.reactionBest,
-                            value:
-                                '${result.bestReactionTimeMs.toStringAsFixed(0)} ms',
-                            valueColor: Colors.greenAccent,
-                          ),
-                          _StatRow(
-                            label: l.reactionWorst,
-                            value:
-                                '${result.worstReactionTimeMs.toStringAsFixed(0)} ms',
-                          ),
+                        _buildStatusBanner(l, result),
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildAccuracyCard(l, result),
+                        if (result.reactionTimesMs.isNotEmpty) ...[
+                          const SizedBox(height: OptoSpacing.md),
+                          _buildReactionTimesCard(l, result),
                         ],
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 16),
-
-                // Estadísticas generales
-                Card(
-                  elevation: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          l.statsTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        _StatRow(
-                          label: l.statsActualDuration,
-                          value: '${result.durationActualSeconds}s',
-                        ),
-                        _StatRow(
-                          label: l.statsConfigDuration,
-                          value: '${result.config.duracionSegundos}s',
-                        ),
-                        if (result.durationActualSeconds > 0)
-                          _StatRow(
-                            label: l.statsStimuliPerMinute,
-                            value: result.stimuliPerMinute
-                                .toStringAsFixed(1),
-                          ),
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildGeneralStatsCard(l, result),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                // Configuración usada
-                Card(
-                  elevation: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
+                // Right column
+                Expanded(
+                  flex: 1,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      OptoSpacing.sm,
+                      OptoSpacing.md,
+                      OptoSpacing.lg,
+                      OptoSpacing.lg,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          l.configUsedTitle,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        ...summary.entries.map(
-                          (e) =>
-                              _StatRow(label: e.key, value: e.value),
-                        ),
+                        _buildDateSection(dateFmt, result),
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildHeatmapPlaceholder(),
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildConfigTags(l, summary),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-
-                // Acciones
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    FilledButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (_) => LocalizationTest(
-                              config: result.config,
-                              patientName: result.patientName,
-                            ),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.replay),
-                      label: Text(l.resultsRepeat),
-                    ),
-                    const SizedBox(width: 16),
-                    OutlinedButton.icon(
-                      onPressed: () {
-                        var count = 0;
-                        Navigator.of(context).popUntil((_) => count++ >= 2);
-                      },
-                      icon: const Icon(Icons.home),
-                      label: Text(l.resultsHome),
-                    ),
-                  ],
                 ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  // -- Top bar --
+
+  Widget _buildTopBar(AppLocalizations l) {
+    final result = widget.result;
+
+    return Container(
+      color: OptoColors.surfaceDark,
+      padding: const EdgeInsets.symmetric(
+        horizontal: OptoSpacing.sm,
+        vertical: OptoSpacing.sm,
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            IconButton(
+              icon: const Icon(
+                Icons.arrow_back,
+                color: OptoColors.onSurfaceDark,
+              ),
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+            const SizedBox(width: OptoSpacing.sm),
+            Expanded(
+              child: Text(
+                l.resultsLocTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: OptoColors.onSurfaceDark,
+                ),
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  OptoPageRoute(
+                    builder: (_) => LocalizationTest(
+                      config: result.config,
+                      patientName: result.patientName,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.replay, size: 18),
+              label: Text(l.resultsRepeat),
+              style: TextButton.styleFrom(
+                foregroundColor: OptoColors.localization,
+              ),
+            ),
+            const SizedBox(width: OptoSpacing.xs),
+            TextButton.icon(
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+              icon: const Icon(Icons.home, size: 18),
+              label: Text(l.resultsHome),
+              style: TextButton.styleFrom(
+                foregroundColor: OptoColors.onSurfaceVariantDark,
+              ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  // -- Status banner --
+
+  Widget _buildStatusBanner(AppLocalizations l, LocalizationResult result) {
+    final color =
+        result.completedNaturally ? OptoColors.success : OptoColors.warning;
+    final label =
+        result.completedNaturally ? l.resultsCompleted : l.resultsStopped;
+    final icon = result.completedNaturally
+        ? Icons.check_circle_outline
+        : Icons.stop_circle_outlined;
+
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: color.withAlpha(64)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(width: OptoSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+                if (result.patientName.isNotEmpty) ...[
+                  const SizedBox(height: OptoSpacing.xs),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.person,
+                        size: 14,
+                        color: OptoColors.onSurfaceVariantDark,
+                      ),
+                      const SizedBox(width: OptoSpacing.xs),
+                      Flexible(
+                        child: Text(
+                          result.patientName,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: OptoColors.onSurfaceDark,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Accuracy card --
+
+  Widget _buildAccuracyCard(AppLocalizations l, LocalizationResult result) {
+    return OptoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.accuracyTitle,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.md),
+          _StatRow(
+            label: l.accuracyCorrect,
+            value: '${result.correctTouches}',
+            valueColor: OptoColors.success,
+          ),
+          _StatRow(
+            label: l.accuracyErrors,
+            value: '${result.incorrectTouches}',
+            valueColor:
+                result.incorrectTouches > 0 ? OptoColors.error : null,
+          ),
+          _StatRow(
+            label: l.accuracyMissed,
+            value: '${result.missedStimuli}',
+            valueColor:
+                result.missedStimuli > 0 ? OptoColors.warning : null,
+          ),
+          _StatRow(
+            label: l.accuracyPercent,
+            value: '${(result.accuracy * 100).toStringAsFixed(1)}%',
+            valueColor: result.accuracy >= 0.8
+                ? OptoColors.success
+                : OptoColors.warning,
+          ),
+          _StatRow(
+            label: l.statsStimuliShown,
+            value: '${result.totalStimuliShown}',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Reaction times card --
+
+  Widget _buildReactionTimesCard(
+    AppLocalizations l,
+    LocalizationResult result,
+  ) {
+    return OptoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.reactionTitle,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.md),
+          _StatRow(
+            label: l.reactionAvg,
+            value: '${result.avgReactionTimeMs.toStringAsFixed(0)} ms',
+          ),
+          _StatRow(
+            label: l.reactionBest,
+            value: '${result.bestReactionTimeMs.toStringAsFixed(0)} ms',
+            valueColor: OptoColors.success,
+          ),
+          _StatRow(
+            label: l.reactionWorst,
+            value: '${result.worstReactionTimeMs.toStringAsFixed(0)} ms',
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- General stats card --
+
+  Widget _buildGeneralStatsCard(
+    AppLocalizations l,
+    LocalizationResult result,
+  ) {
+    return OptoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.statsTitle,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.md),
+          _StatRow(
+            label: l.statsActualDuration,
+            value: '${result.durationActualSeconds}s',
+          ),
+          _StatRow(
+            label: l.statsConfigDuration,
+            value: '${result.config.duracionSegundos}s',
+          ),
+          if (result.durationActualSeconds > 0)
+            _StatRow(
+              label: l.statsStimuliPerMinute,
+              value: result.stimuliPerMinute.toStringAsFixed(1),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // -- Date section --
+
+  Widget _buildDateSection(DateFormat dateFmt, LocalizationResult result) {
+    return OptoCard(
+      child: Row(
+        children: [
+          const Icon(
+            Icons.calendar_today,
+            size: 16,
+            color: OptoColors.onSurfaceVariantDark,
+          ),
+          const SizedBox(width: OptoSpacing.sm),
+          Text(
+            dateFmt.format(result.startedAt),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: OptoColors.onSurfaceDark,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Heatmap placeholder --
+
+  Widget _buildHeatmapPlaceholder() {
+    return OptoCard(
+      child: Column(
+        children: [
+          const SizedBox(height: OptoSpacing.lg),
+          Icon(
+            Icons.grid_on,
+            size: 40,
+            color: OptoColors.localization.withAlpha(64),
+          ),
+          const SizedBox(height: OptoSpacing.md),
+          const Text(
+            'Datos de posicion no disponibles\npara este resultado',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.lg),
+        ],
+      ),
+    );
+  }
+
+  // -- Config tags --
+
+  Widget _buildConfigTags(
+    AppLocalizations l,
+    Map<String, String> summary,
+  ) {
+    return OptoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.configUsedTitle,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.md),
+          Wrap(
+            spacing: OptoSpacing.sm,
+            runSpacing: OptoSpacing.sm,
+            children: summary.entries.map((e) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: OptoSpacing.sm + 2,
+                  vertical: OptoSpacing.xs + 2,
+                ),
+                decoration: BoxDecoration(
+                  color: OptoColors.surfaceVariantDark,
+                  borderRadius:
+                      BorderRadius.circular(OptoSpacing.radiusChip),
+                  border: Border.all(
+                    color: OptoColors.subtleDark.withAlpha(64),
+                  ),
+                ),
+                child: Text(
+                  '${e.key}: ${e.value}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: OptoColors.onSurfaceDark,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
       ),
     );
   }
 }
+
+// -- Stat row --
 
 class _StatRow extends StatelessWidget {
   final String label;
@@ -292,17 +485,24 @@ class _StatRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: OptoSpacing.xs),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              color: OptoColors.onSurfaceVariantDark,
+            ),
+          ),
           Text(
             value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: valueColor,
-                ),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? OptoColors.onSurfaceDark,
+            ),
           ),
         ],
       ),
