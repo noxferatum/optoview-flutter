@@ -30,7 +30,6 @@ class DynamicPeripheryTest extends StatefulWidget {
 class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     with WidgetsBindingObserver, TickerProviderStateMixin, ImmersiveTestMixin {
   Timer? _stimulusTimer;
-  Timer? _endTimer;
   Timer? _countdownTimer;
 
   bool _showStimulus = false;
@@ -165,11 +164,13 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   void _startTest() {
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _remaining = max(0, _remaining - 1));
-    });
-
-    _endTimer = Timer(Duration(seconds: _remaining), () {
-      _finishTest(stoppedManually: false);
+      setState(() {
+        _remaining = max(0, _remaining - 1);
+        if (_remaining <= 0) {
+          t.cancel();
+          _finishTest(stoppedManually: false);
+        }
+      });
     });
 
     final onMs = widget.config.velocidad.milliseconds;
@@ -374,8 +375,6 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
   void _cancelAllTimers() {
     _stimulusTimer?.cancel();
     _stimulusTimer = null;
-    _endTimer?.cancel();
-    _endTimer = null;
     _countdownTimer?.cancel();
     _countdownTimer = null;
   }

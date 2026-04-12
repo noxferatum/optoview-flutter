@@ -49,7 +49,6 @@ class _ChartLetterData {
 
 class _MacDonaldTestState extends State<MacDonaldTest>
     with WidgetsBindingObserver, TickerProviderStateMixin, ImmersiveTestMixin {
-  Timer? _endTimer;
   Timer? _countdownTimer;
   Timer? _revealTimer;
   Timer? _fieldLetterTimer;
@@ -317,12 +316,13 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     // Countdown timer
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _remaining = max(0, _remaining - 1));
-    });
-
-    // End timer
-    _endTimer = Timer(Duration(seconds: _remaining), () {
-      _finishTest(stoppedManually: false);
+      setState(() {
+        _remaining = max(0, _remaining - 1);
+        if (_remaining <= 0) {
+          t.cancel();
+          _finishTest(stoppedManually: false);
+        }
+      });
     });
 
     _anilloStartTime = DateTime.now();
@@ -700,13 +700,16 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   void _resumeFromPause() {
     setState(() => _isPaused = false);
 
-    // Restart countdown and end timers
+    // Restart countdown timer
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return;
-      setState(() => _remaining = max(0, _remaining - 1));
-    });
-    _endTimer = Timer(Duration(seconds: _remaining), () {
-      _finishTest(stoppedManually: false);
+      setState(() {
+        _remaining = max(0, _remaining - 1);
+        if (_remaining <= 0) {
+          t.cancel();
+          _finishTest(stoppedManually: false);
+        }
+      });
     });
     _anilloStartTime ??= DateTime.now();
 
@@ -799,8 +802,6 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   }
 
   void _cancelAllTimers() {
-    _endTimer?.cancel();
-    _endTimer = null;
     _countdownTimer?.cancel();
     _countdownTimer = null;
     _revealTimer?.cancel();
