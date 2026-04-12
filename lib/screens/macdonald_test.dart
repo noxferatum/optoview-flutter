@@ -251,9 +251,13 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     }
   }
 
-  void _dismissInstructions() {
-    setState(() => _showingInstructions = false);
-    _runPreCountdown();
+  void _handleInstructionsComplete() {
+    setState(() {
+      _showingInstructions = false;
+      _testStarted = true;
+    });
+    _startedAt = DateTime.now();
+    _startTestAfterLayout();
   }
 
   List<String> _buildInstructions(AppLocalizations l) {
@@ -858,7 +862,10 @@ class _MacDonaldTestState extends State<MacDonaldTest>
               }),
 
             // Timer display
-            TestTimerDisplay(text: l.testTimeRemaining(_remaining)),
+            TestTimerDisplay(
+              remainingSeconds: _remaining,
+              stimuliCount: _totalLetrasShown,
+            ),
 
             // Control buttons
             TestControlButtons(
@@ -890,6 +897,8 @@ class _MacDonaldTestState extends State<MacDonaldTest>
             if (_isPaused)
               PauseOverlay(
                 remainingSeconds: _remaining,
+                elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                stimuliShown: _totalLetrasShown,
                 onResume: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
@@ -913,9 +922,9 @@ class _MacDonaldTestState extends State<MacDonaldTest>
               ),
             if (_showingInstructions)
               InstructionOverlay(
-                title: l.configMacdonaldTitle,
+                testTitle: l.configMacdonaldTitle,
                 instructions: _buildInstructions(l),
-                onStart: _dismissInstructions,
+                onCountdownComplete: _handleInstructionsComplete,
               ),
           ],
         ),

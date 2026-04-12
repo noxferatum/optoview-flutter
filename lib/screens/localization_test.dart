@@ -215,9 +215,13 @@ class _LocalizationTestState extends State<LocalizationTest>
     }
   }
 
-  void _dismissInstructions() {
-    setState(() => _showingInstructions = false);
-    _runPreCountdown();
+  void _handleInstructionsComplete() {
+    setState(() {
+      _showingInstructions = false;
+      _testStarted = true;
+    });
+    _startedAt = DateTime.now();
+    _startTest();
   }
 
   List<String> _buildInstructions(AppLocalizations l) {
@@ -663,7 +667,8 @@ class _LocalizationTestState extends State<LocalizationTest>
                 )),
 
             TestTimerDisplay(
-              text: l.testTimeAndHits(_remaining, _correctTouches),
+              remainingSeconds: _remaining,
+              stimuliCount: _correctTouches,
             ),
             TestControlButtons(
               isPaused: _isPaused,
@@ -673,6 +678,8 @@ class _LocalizationTestState extends State<LocalizationTest>
             if (_isPaused)
               PauseOverlay(
                 remainingSeconds: _remaining,
+                elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                stimuliShown: _totalStimuliShown,
                 onResume: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
@@ -694,9 +701,9 @@ class _LocalizationTestState extends State<LocalizationTest>
               ),
             if (_showingInstructions)
               InstructionOverlay(
-                title: l.configLocalizationTitle,
+                testTitle: l.configLocalizationTitle,
                 instructions: _buildInstructions(l),
-                onStart: _dismissInstructions,
+                onCountdownComplete: _handleInstructionsComplete,
               ),
           ],
         ),

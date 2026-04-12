@@ -377,7 +377,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get testStop => 'Stop';
 
   @override
-  String get testPaused => 'TEST PAUSED';
+  String get testPaused => 'Test Paused';
+
+  @override
+  String get testPauseHint => 'The test will resume exactly where you left off.';
+
+  @override
+  String get testStatRemaining => 'Remaining';
+
+  @override
+  String get testStatElapsed => 'Elapsed';
+
+  @override
+  String get testStatStimuli => 'Stimuli';
 
   @override
   String get countdownReady => 'Get ready!';
@@ -935,23 +947,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get backupNoResults => 'No results to export';
-
-  @override
-  String get bulkSelectAll => 'Select all';
-
-  @override
-  String get bulkDeselectAll => 'Deselect all';
-
-  @override
-  String bulkSelectedCount(int count) {
-    return '$count selected';
-  }
-
-  @override
-  String get bulkExportTitle => 'Export selected';
-
-  @override
-  String get bulkReportTitle => 'OptoView - Selected Results';
 
   @override
   String get renameTitle => 'Rename patient';

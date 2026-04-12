@@ -111,9 +111,13 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     }
   }
 
-  void _dismissInstructions() {
-    setState(() => _showingInstructions = false);
-    _runPreCountdown();
+  void _handleInstructionsComplete() {
+    setState(() {
+      _showingInstructions = false;
+      _testStarted = true;
+    });
+    _startedAt = DateTime.now();
+    _startTest();
   }
 
   List<String> _buildInstructions(AppLocalizations l) {
@@ -422,7 +426,10 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
                 outlineColor: outlineColorForStimulus(
                     _currentColorOption, widget.config.fondo),
               ),
-            TestTimerDisplay(text: l.testTimeRemaining(_remaining)),
+            TestTimerDisplay(
+              remainingSeconds: _remaining,
+              stimuliCount: _stimuliShown,
+            ),
             TestControlButtons(
               isPaused: _isPaused,
               onTogglePause: _togglePause,
@@ -431,6 +438,8 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
             if (_isPaused)
               PauseOverlay(
                 remainingSeconds: _remaining,
+                elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                stimuliShown: _stimuliShown,
                 onResume: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
@@ -452,9 +461,9 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
               ),
             if (_showingInstructions)
               InstructionOverlay(
-                title: l.configPeripheralTitle,
+                testTitle: l.configPeripheralTitle,
                 instructions: _buildInstructions(l),
-                onStart: _dismissInstructions,
+                onCountdownComplete: _handleInstructionsComplete,
               ),
           ],
         ),

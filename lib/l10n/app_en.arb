@@ -160,7 +160,11 @@
   "testPause": "Pause",
   "testResume": "Resume",
   "testStop": "Stop",
-  "testPaused": "TEST PAUSED",
+  "testPaused": "Test Paused",
+  "testPauseHint": "The test will resume exactly where you left off.",
+  "testStatRemaining": "Remaining",
+  "testStatElapsed": "Elapsed",
+  "testStatStimuli": "Stimuli",
 
   "countdownReady": "Get ready!",
 
