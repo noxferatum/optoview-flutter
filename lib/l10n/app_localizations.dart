@@ -1493,6 +1493,36 @@ abstract class AppLocalizations {
   /// **'Delete'**
   String get historyDelete;
 
+  /// No description provided for @bulkSelectedCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} selected'**
+  String bulkSelectedCount(int count);
+
+  /// No description provided for @bulkDeselectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Deselect all'**
+  String get bulkDeselectAll;
+
+  /// No description provided for @bulkSelectAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Select all'**
+  String get bulkSelectAll;
+
+  /// No description provided for @bulkExportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export selected'**
+  String get bulkExportTitle;
+
+  /// No description provided for @bulkReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bulk Report'**
+  String get bulkReportTitle;
+
   /// No description provided for @historyDeleteTitle.
   ///
   /// In en, this message translates to:

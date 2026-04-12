@@ -720,6 +720,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get historyDelete => 'Eliminar';
 
   @override
+  String bulkSelectedCount(int count) {
+    return '$count seleccionados';
+  }
+
+  @override
+  String get bulkDeselectAll => 'Deseleccionar todo';
+
+  @override
+  String get bulkSelectAll => 'Seleccionar todo';
+
+  @override
+  String get bulkExportTitle => 'Exportar seleccionados';
+
+  @override
+  String get bulkReportTitle => 'Informe múltiple';
+
+  @override
   String get historyDeleteTitle => 'Eliminar resultado';
 
   @override

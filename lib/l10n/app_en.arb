@@ -305,6 +305,14 @@
   "historyClearAllConfirm": "Delete all",
   "historyCancel": "Cancel",
   "historyDelete": "Delete",
+  "bulkSelectedCount": "{count} selected",
+  "@bulkSelectedCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "bulkDeselectAll": "Deselect all",
+  "bulkSelectAll": "Select all",
+  "bulkExportTitle": "Export selected",
+  "bulkReportTitle": "Bulk Report",
   "historyDeleteTitle": "Delete result",
   "historyDeleteMessage": "Are you sure you want to delete this result?",
   "historyDetailTitle": "Result details",
