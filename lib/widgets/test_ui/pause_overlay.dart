@@ -34,7 +34,7 @@ class PauseOverlay extends StatelessWidget {
             alignment: Alignment.center,
             child: Container(
               constraints: const BoxConstraints(maxWidth: 340),
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 32),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
               decoration: BoxDecoration(
                 color: OptoColors.surfaceDark,
                 borderRadius: BorderRadius.circular(16),
@@ -82,7 +82,7 @@ class PauseOverlay extends StatelessWidget {
                       GestureDetector(
                         onTap: onStop,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                           decoration: BoxDecoration(
                             color: OptoColors.surfaceVariantDark,
                             borderRadius: BorderRadius.circular(10),
@@ -101,7 +101,7 @@ class PauseOverlay extends StatelessWidget {
                       GestureDetector(
                         onTap: onResume,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                           decoration: BoxDecoration(
                             color: OptoColors.primary,
                             borderRadius: BorderRadius.circular(10),
