@@ -5,6 +5,7 @@ import '../models/macdonald_config.dart';
 import '../models/macdonald_presets.dart';
 import '../services/config_storage.dart';
 import '../theme/opto_colors.dart';
+import '../utils/page_transitions.dart';
 
 import '../widgets/config/speed_selector.dart';
 import '../widgets/config/section_card.dart';
@@ -61,7 +62,7 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
     ConfigStorage.savePatientName(_patientController.text.trim());
     Navigator.push(
       context,
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => MacDonaldTest(
           config: config,
           patientName: _patientController.text.trim(),

@@ -6,6 +6,7 @@ import '../models/saved_result.dart';
 import '../services/results_storage.dart';
 import '../theme/opto_colors.dart';
 import '../theme/opto_spacing.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/design_system/opto_card.dart';
 import 'localization_test.dart';
 
@@ -141,7 +142,7 @@ class _LocalizationResultsScreenState
             TextButton.icon(
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
+                  OptoPageRoute(
                     builder: (_) => LocalizationTest(
                       config: result.config,
                       patientName: result.patientName,

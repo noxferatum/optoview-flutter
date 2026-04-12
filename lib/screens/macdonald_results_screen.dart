@@ -9,6 +9,7 @@ import '../models/saved_result.dart';
 import '../services/results_storage.dart';
 import '../theme/opto_colors.dart';
 import '../theme/opto_spacing.dart';
+import '../utils/page_transitions.dart';
 import 'macdonald_test.dart';
 
 class MacDonaldResultsScreen extends StatefulWidget {
@@ -159,7 +160,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
               label: l.resultsRepeat,
               onPressed: () {
                 Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
+                  OptoPageRoute(
                     builder: (_) => MacDonaldTest(
                       config: result.config,
                       patientName: result.patientName,

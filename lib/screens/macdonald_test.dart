@@ -7,6 +7,7 @@ import '../constants/app_constants.dart';
 import '../models/test_config.dart';
 import '../models/macdonald_config.dart';
 import '../models/macdonald_result.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/center_fixation.dart';
 import '../widgets/test_ui/pause_overlay.dart';
 import '../widgets/test_ui/test_control_buttons.dart';
@@ -799,7 +800,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     );
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => MacDonaldResultsScreen(result: result),
       ),
     );

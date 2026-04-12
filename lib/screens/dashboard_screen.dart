@@ -5,6 +5,7 @@ import '../models/saved_result.dart';
 import '../services/results_storage.dart';
 import '../theme/opto_colors.dart';
 import '../theme/opto_spacing.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/design_system/opto_card.dart';
 import 'config_screen.dart';
 import 'credits_screen.dart';
@@ -143,7 +144,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       default:
         return;
     }
-    Navigator.push(context, MaterialPageRoute(builder: (_) => screen)).then((_) {
+    Navigator.push(context, OptoPageRoute(builder: (_) => screen)).then((_) {
       // Reload results when returning from a test flow.
       _refreshData();
     });
@@ -252,7 +253,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const CreditsScreen()),
+                OptoPageRoute(builder: (_) => const CreditsScreen()),
               );
             },
           ),
@@ -597,7 +598,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const HistoryScreen()),
+                    OptoPageRoute(builder: (_) => const HistoryScreen()),
                   ).then((_) => _refreshData());
                 },
                 child: Text(

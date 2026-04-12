@@ -4,6 +4,7 @@ import '../models/test_config.dart';
 import '../models/test_presets.dart';
 import '../services/config_storage.dart';
 import '../theme/opto_colors.dart';
+import '../utils/page_transitions.dart';
 
 import '../widgets/config/side_selector.dart';
 import '../widgets/config/symbol_selector.dart';
@@ -64,7 +65,7 @@ class _ConfigScreenState extends State<ConfigScreen> {
     ConfigStorage.savePatientName(_patientController.text.trim());
     Navigator.push(
       context,
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => DynamicPeripheryTest(
           config: config,
           patientName: _patientController.text.trim(),

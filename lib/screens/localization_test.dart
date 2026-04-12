@@ -9,6 +9,7 @@ import '../models/localization_result.dart';
 import '../utils/stimulus_positioning.dart';
 import '../constants/app_constants.dart';
 import '../utils/stimulus_color_utils.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
 import '../widgets/test_ui/pause_overlay.dart';
@@ -575,7 +576,7 @@ class _LocalizationTestState extends State<LocalizationTest>
     );
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => LocalizationResultsScreen(result: result),
       ),
     );

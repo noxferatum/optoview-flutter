@@ -8,6 +8,7 @@ import '../models/test_result.dart';
 import '../utils/stimulus_positioning.dart';
 import '../constants/app_constants.dart';
 import '../utils/stimulus_color_utils.dart';
+import '../utils/page_transitions.dart';
 import '../widgets/center_fixation.dart';
 import '../widgets/peripheral_stimulus.dart';
 import '../widgets/background_pattern.dart';
@@ -370,7 +371,7 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     );
 
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => TestResultsScreen(result: result),
       ),
     );

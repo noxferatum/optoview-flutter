@@ -4,6 +4,7 @@ import '../models/localization_config.dart';
 import '../models/localization_presets.dart';
 import '../services/config_storage.dart';
 import '../theme/opto_colors.dart';
+import '../utils/page_transitions.dart';
 
 import '../widgets/config/side_selector.dart';
 import '../widgets/config/symbol_selector.dart';
@@ -63,7 +64,7 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
     ConfigStorage.savePatientName(_patientController.text.trim());
     Navigator.push(
       context,
-      MaterialPageRoute(
+      OptoPageRoute(
         builder: (_) => LocalizationTest(
           config: config,
           patientName: _patientController.text.trim(),
