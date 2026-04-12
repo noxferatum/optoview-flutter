@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'constants/app_constants.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/menu_screen.dart';
+import 'theme/opto_theme.dart';
 
 /// Notificador global de tema. Accesible desde cualquier pantalla.
 final ValueNotifier<ThemeMode> themeNotifier = ValueNotifier(ThemeMode.dark);
@@ -42,20 +42,8 @@ class OptoViewApp extends StatelessWidget {
         title: 'OptoView',
         debugShowCheckedModeBanner: false,
         themeMode: mode,
-        darkTheme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppConstants.optoviewBlue,
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-        ),
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppConstants.optoviewBlue,
-            brightness: Brightness.light,
-          ),
-          useMaterial3: true,
-        ),
+        darkTheme: OptoTheme.dark(),
+        theme: OptoTheme.light(),
         home: const MenuScreen(),
         localizationsDelegates: const [
           AppLocalizations.delegate,
