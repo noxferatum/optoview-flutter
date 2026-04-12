@@ -937,6 +937,23 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backupNoResults => 'No hay resultados para exportar';
 
   @override
+  String get bulkSelectAll => 'Seleccionar todo';
+
+  @override
+  String get bulkDeselectAll => 'Deseleccionar todo';
+
+  @override
+  String bulkSelectedCount(int count) {
+    return '$count seleccionados';
+  }
+
+  @override
+  String get bulkExportTitle => 'Exportar seleccionados';
+
+  @override
+  String get bulkReportTitle => 'OptoView - Resultados seleccionados';
+
+  @override
   String get renameTitle => 'Renombrar paciente';
 
   @override

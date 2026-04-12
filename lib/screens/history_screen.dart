@@ -28,6 +28,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   _HistoryViewMode _viewMode = _HistoryViewMode.byPatient;
   final _searchController = TextEditingController();
 
+  // Selection mode
+  bool _selectionMode = false;
+  final Set<String> _selectedIds = {};
+
   @override
   void initState() {
     super.initState();
@@ -122,6 +126,77 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ],
       ),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Selection mode
+  // ---------------------------------------------------------------------------
+
+  void _enterSelectionMode(SavedResult result) {
+    setState(() {
+      _selectionMode = true;
+      _selectedIds.add(result.id);
+    });
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
+  }
+
+  void _toggleSelection(SavedResult result) {
+    setState(() {
+      if (_selectedIds.contains(result.id)) {
+        _selectedIds.remove(result.id);
+        if (_selectedIds.isEmpty) _selectionMode = false;
+      } else {
+        _selectedIds.add(result.id);
+      }
+    });
+  }
+
+  void _selectAll() {
+    setState(() {
+      _selectedIds.addAll(_filteredResults.map((r) => r.id));
+    });
+  }
+
+  void _deselectAll() {
+    setState(() {
+      _selectedIds.clear();
+      _selectionMode = false;
+    });
+  }
+
+  List<SavedResult> get _selectedResults =>
+      _results.where((r) => _selectedIds.contains(r.id)).toList()
+        ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+
+  Future<void> _bulkExport(String format, AppLocalizations l) async {
+    final selected = _selectedResults;
+    if (selected.isEmpty) return;
+
+    try {
+      switch (format) {
+        case 'pdf':
+          await ExportService.exportBulkPdf(context, selected, l);
+          break;
+        case 'excel':
+          await ExportService.exportBulkExcel(selected, l);
+          break;
+        case 'csv':
+          await ExportService.exportBulkCsv(selected, l);
+          break;
+      }
+    } catch (e, st) {
+      AppLogger.error('bulkExport($format)', error: e, stackTrace: st);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -690,34 +765,88 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l.historyTitle),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.file_download),
-            tooltip: l.backupImportTooltip,
-            onPressed: () => _importBackup(l),
-          ),
-          if (_results.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.file_upload),
-              tooltip: l.backupExportTooltip,
-              onPressed: () => _exportBackup(l),
+      appBar: _selectionMode
+          ? AppBar(
+              leading: IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: _exitSelectionMode,
+              ),
+              title: Text(l.bulkSelectedCount(_selectedIds.length)),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.select_all),
+                  tooltip: _selectedIds.length == _filteredResults.length
+                      ? l.bulkDeselectAll
+                      : l.bulkSelectAll,
+                  onPressed: _selectedIds.length == _filteredResults.length
+                      ? _deselectAll
+                      : _selectAll,
+                ),
+              ],
+            )
+          : AppBar(
+              title: Text(l.historyTitle),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.file_download),
+                  tooltip: l.backupImportTooltip,
+                  onPressed: () => _importBackup(l),
+                ),
+                if (_results.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.file_upload),
+                    tooltip: l.backupExportTooltip,
+                    onPressed: () => _exportBackup(l),
+                  ),
+                if (_results.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.summarize),
+                    tooltip: l.exportPatientSummary,
+                    onPressed: () => _showPatientSummaryExport(l),
+                  ),
+                if (_results.isNotEmpty)
+                  IconButton(
+                    icon: const Icon(Icons.delete_sweep),
+                    tooltip: l.historyClearAll,
+                    onPressed: () => _confirmDeleteAll(l),
+                  ),
+              ],
             ),
-          if (_results.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.summarize),
-              tooltip: l.exportPatientSummary,
-              onPressed: () => _showPatientSummaryExport(l),
-            ),
-          if (_results.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete_sweep),
-              tooltip: l.historyClearAll,
-              onPressed: () => _confirmDeleteAll(l),
-            ),
-        ],
-      ),
+      bottomNavigationBar: _selectionMode && _selectedIds.isNotEmpty
+          ? SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Text(
+                      l.bulkExportTitle,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const Spacer(),
+                    OutlinedButton.icon(
+                      onPressed: () => _bulkExport('pdf', l),
+                      icon: const Icon(Icons.picture_as_pdf, size: 18),
+                      label: Text(l.exportPdf),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () => _bulkExport('excel', l),
+                      icon: const Icon(Icons.table_chart, size: 18),
+                      label: Text(l.exportExcel),
+                    ),
+                    const SizedBox(width: 8),
+                    OutlinedButton.icon(
+                      onPressed: () => _bulkExport('csv', l),
+                      icon: const Icon(Icons.description, size: 18),
+                      label: Text(l.exportCsv),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          : null,
       body: _results.isEmpty
           ? Center(
               child: Column(
@@ -745,6 +874,45 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildResultTile(
       SavedResult r, AppLocalizations l, DateFormat dateFmt, ThemeData theme,
       {bool showPatientName = false}) {
+    final isSelected = _selectedIds.contains(r.id);
+
+    final tile = ListTile(
+      leading: _selectionMode
+          ? Checkbox(
+              value: isSelected,
+              onChanged: (_) => _toggleSelection(r),
+            )
+          : CircleAvatar(
+              radius: 18,
+              child: Icon(_testTypeIcon(r.testType), size: 18),
+            ),
+      title: Text(
+        _testTypeLabel(r.testType, l),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(
+        showPatientName && r.patientName.isNotEmpty
+            ? '${r.patientName} · ${dateFmt.format(r.startedAt)}'
+            : dateFmt.format(r.startedAt),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      trailing: Text(
+        _keyMetric(r),
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      selected: isSelected,
+      onTap: _selectionMode
+          ? () => _toggleSelection(r)
+          : () => _showDetail(r, l),
+      onLongPress: _selectionMode ? null : () => _enterSelectionMode(r),
+    );
+
+    if (_selectionMode) return tile;
+
     return Dismissible(
       key: ValueKey(r.id),
       direction: DismissDirection.endToStart,
@@ -758,31 +926,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         color: Colors.red,
         child: const Icon(Icons.delete, color: Colors.white),
       ),
-      child: ListTile(
-        leading: CircleAvatar(
-          radius: 18,
-          child: Icon(_testTypeIcon(r.testType), size: 18),
-        ),
-        title: Text(
-          _testTypeLabel(r.testType, l),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Text(
-          showPatientName && r.patientName.isNotEmpty
-              ? '${r.patientName} · ${dateFmt.format(r.startedAt)}'
-              : dateFmt.format(r.startedAt),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: Text(
-          _keyMetric(r),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        onTap: () => _showDetail(r, l),
-      ),
+      child: tile,
     );
   }
 
