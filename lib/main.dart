@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/app_localizations.dart';
-import 'screens/menu_screen.dart';
+import 'screens/dashboard_screen.dart';
 import 'screens/splash_screen.dart';
 import 'theme/opto_theme.dart';
 
@@ -59,7 +59,7 @@ class _OptoViewAppState extends State<OptoViewApp> {
                   key: const ValueKey('splash'),
                   onComplete: () => setState(() => _showSplash = false),
                 )
-              : const MenuScreen(key: ValueKey('menu')),
+              : const DashboardScreen(key: ValueKey('dashboard')),
         ),
         localizationsDelegates: const [
           AppLocalizations.delegate,

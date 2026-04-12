@@ -375,8 +375,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
                       const SizedBox(width: 16),
                       OutlinedButton.icon(
                         onPressed: () {
-                          var count = 0;
-                          Navigator.of(context).popUntil((_) => count++ >= 2);
+                          Navigator.of(context).popUntil((route) => route.isFirst);
                         },
                         icon: const Icon(Icons.home),
                         label: Text(l.resultsHome),
