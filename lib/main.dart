@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/menu_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/opto_theme.dart';
 
 /// Notificador global de tema. Accesible desde cualquier pantalla.
@@ -31,8 +32,15 @@ void main() async {
   runApp(const OptoViewApp());
 }
 
-class OptoViewApp extends StatelessWidget {
+class OptoViewApp extends StatefulWidget {
   const OptoViewApp({super.key});
+
+  @override
+  State<OptoViewApp> createState() => _OptoViewAppState();
+}
+
+class _OptoViewAppState extends State<OptoViewApp> {
+  bool _showSplash = true;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +52,15 @@ class OptoViewApp extends StatelessWidget {
         themeMode: mode,
         darkTheme: OptoTheme.dark(),
         theme: OptoTheme.light(),
-        home: const MenuScreen(),
+        home: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 400),
+          child: _showSplash
+              ? SplashScreen(
+                  key: const ValueKey('splash'),
+                  onComplete: () => setState(() => _showSplash = false),
+                )
+              : const MenuScreen(key: ValueKey('menu')),
+        ),
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
