@@ -976,4 +976,158 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get renameSuccess => 'Nombre actualizado';
+
+  @override
+  String get questionnaireMenuTitle => 'Cuestionario CVS-Q';
+
+  @override
+  String get questionnaireMenuSubtitle => 'Evaluación de síntomas visuales';
+
+  @override
+  String get questionnaireFormTitle => 'Cuestionario CVS-Q';
+
+  @override
+  String get questionnaireCvsqSection => 'Síntomas visuales (CVS-Q)';
+
+  @override
+  String get questionnaireFssSection => 'Fatiga y motivación — opcional';
+
+  @override
+  String questionnaireAnsweredCount(int answered) {
+    return '$answered/16 respondidas';
+  }
+
+  @override
+  String get questionnaireScoreLabel => 'Score CVS-Q';
+
+  @override
+  String get questionnaireSaveButton => 'Guardar';
+
+  @override
+  String get questionnaireSavedSnack => 'Cuestionario guardado';
+
+  @override
+  String get questionnairePatientLabel => 'Nombre del paciente';
+
+  @override
+  String get cvsqFreqHeader => 'Frecuencia';
+
+  @override
+  String get cvsqIntHeader => 'Intensidad';
+
+  @override
+  String get cvsqFreqNever => 'Nunca';
+
+  @override
+  String get cvsqFreqOccasional => 'Ocasionalmente';
+
+  @override
+  String get cvsqFreqHabitual => 'Habitualmente o siempre';
+
+  @override
+  String get cvsqIntModerate => 'Moderado';
+
+  @override
+  String get cvsqIntIntense => 'Intenso';
+
+  @override
+  String get cvsqItem1 => 'Quemazón';
+
+  @override
+  String get cvsqItem2 => 'Picor';
+
+  @override
+  String get cvsqItem3 => 'Sensación de cuerpo extraño';
+
+  @override
+  String get cvsqItem4 => 'Lagrimeo';
+
+  @override
+  String get cvsqItem5 => 'Parpadeo excesivo';
+
+  @override
+  String get cvsqItem6 => 'Ojo rojo';
+
+  @override
+  String get cvsqItem7 => 'Dolor ocular';
+
+  @override
+  String get cvsqItem8 => 'Párpados pesados';
+
+  @override
+  String get cvsqItem9 => 'Sequedad';
+
+  @override
+  String get cvsqItem10 => 'Visión borrosa';
+
+  @override
+  String get cvsqItem11 => 'Visión doble';
+
+  @override
+  String get cvsqItem12 => 'Dificultad de enfocar en cerca';
+
+  @override
+  String get cvsqItem13 => 'Elevada sensibilidad a la luz';
+
+  @override
+  String get cvsqItem14 => 'Halos de colores alrededor de las luces';
+
+  @override
+  String get cvsqItem15 => 'Siente que ha empeorado la visión';
+
+  @override
+  String get cvsqItem16 => 'Dolor de cabeza';
+
+  @override
+  String get fssItem1 => 'Grado de fatiga';
+
+  @override
+  String get fssItem2 => 'Grado de motivación';
+
+  @override
+  String get fssItem3 => 'Grado de estrés';
+
+  @override
+  String get fssItem4 => 'La fatiga me dificulta la realización de tareas';
+
+  @override
+  String get fssItem5 => 'Horas de sueño';
+
+  @override
+  String get fssAnchorAgree => 'Acuerdo';
+
+  @override
+  String get fssAnchorDisagree => 'Desacuerdo';
+
+  @override
+  String get historyTestQuestionnaire => 'Cuestionario';
+
+  @override
+  String questionnaireHistorySubtitle(int score) {
+    return 'CVS-Q · Score: $score';
+  }
+
+  @override
+  String get exportQuestionnaireTitle => 'Cuestionario CVS-Q';
+
+  @override
+  String get exportQuestionnaireBulkTitle => 'Cuestionarios';
+
+  @override
+  String get exportItemNumber => '#';
+
+  @override
+  String get exportItemName => 'Ítem';
+
+  @override
+  String get exportFrequency => 'Frecuencia';
+
+  @override
+  String get exportIntensity => 'Intensidad';
+
+  @override
+  String get exportScore => 'Score';
+
+  @override
+  String get exportValueScale => 'Valor (1-7)';
 }
