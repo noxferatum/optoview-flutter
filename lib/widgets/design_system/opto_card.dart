@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/opto_colors.dart';
 import '../../theme/opto_spacing.dart';
 
 class OptoCard extends StatelessWidget {
@@ -10,12 +9,13 @@ class OptoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: padding ?? const EdgeInsets.all(OptoSpacing.md),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: child,
     );

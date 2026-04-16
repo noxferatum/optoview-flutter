@@ -480,17 +480,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     if (_isLoading) {
-      return Scaffold(
-        backgroundColor: OptoColors.backgroundDark,
-        body: const Center(child: CircularProgressIndicator()),
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: OptoColors.backgroundDark,
       body: Column(
         children: [
           _buildTopBar(l),
@@ -506,9 +505,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         child: _buildListPanel(l, dateFmt),
                       ),
                       // Divider
-                      const VerticalDivider(
+                      VerticalDivider(
                         width: 1,
-                        color: OptoColors.surfaceVariantDark,
+                        color: colorScheme.outlineVariant,
                       ),
                       // RIGHT: detail panel
                       Expanded(child: _buildDetailPanel(l, dateFmt)),
@@ -527,15 +526,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildTopBar(AppLocalizations l) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: OptoSpacing.sm,
         vertical: OptoSpacing.xs,
       ),
-      decoration: const BoxDecoration(
-        color: OptoColors.surfaceDark,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: OptoColors.surfaceVariantDark),
+          bottom: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
       child: SafeArea(
@@ -544,24 +544,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ? Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.close,
-                        color: OptoColors.onSurfaceDark),
+                    icon: Icon(Icons.close,
+                        color: colorScheme.onSurface),
                     onPressed: _exitSelectionMode,
                   ),
                   const SizedBox(width: OptoSpacing.sm),
                   Expanded(
                     child: Text(
                       l.bulkSelectedCount(_selectedIds.length),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: OptoColors.onSurfaceDark,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.select_all,
-                        color: OptoColors.onSurfaceDark),
+                    icon: Icon(Icons.select_all,
+                        color: colorScheme.onSurface),
                     tooltip: _selectedIds.length == _filteredResults.length
                         ? l.bulkDeselectAll
                         : l.bulkSelectAll,
@@ -574,45 +574,45 @@ class _HistoryScreenState extends State<HistoryScreen> {
             : Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back,
-                        color: OptoColors.onSurfaceDark),
+                    icon: Icon(Icons.arrow_back,
+                        color: colorScheme.onSurface),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(width: OptoSpacing.sm),
                   Expanded(
                     child: Text(
                       l.historyTitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: OptoColors.onSurfaceDark,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.file_download,
-                        color: OptoColors.onSurfaceDark),
+                    icon: Icon(Icons.file_download,
+                        color: colorScheme.onSurface),
                     tooltip: l.backupImportTooltip,
                     onPressed: () => _importBackup(l),
                   ),
                   if (_results.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.file_upload,
-                          color: OptoColors.onSurfaceDark),
+                      icon: Icon(Icons.file_upload,
+                          color: colorScheme.onSurface),
                       tooltip: l.backupExportTooltip,
                       onPressed: () => _exportBackup(l),
                     ),
                   if (_results.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.summarize,
-                          color: OptoColors.onSurfaceDark),
+                      icon: Icon(Icons.summarize,
+                          color: colorScheme.onSurface),
                       tooltip: l.exportPatientSummary,
                       onPressed: () => _showPatientSummaryExport(l),
                     ),
                   if (_results.isNotEmpty)
                     IconButton(
-                      icon: const Icon(Icons.delete_sweep,
-                          color: OptoColors.onSurfaceDark),
+                      icon: Icon(Icons.delete_sweep,
+                          color: colorScheme.onSurface),
                       tooltip: l.historyClearAll,
                       onPressed: () => _confirmDeleteAll(l),
                     ),
@@ -629,6 +629,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildFilterBar(AppLocalizations l) {
     if (_results.isEmpty) return const SizedBox.shrink();
 
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.fromLTRB(
         OptoSpacing.md,
@@ -636,23 +637,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
         OptoSpacing.md,
         OptoSpacing.xs,
       ),
-      color: OptoColors.backgroundDark,
       child: Row(
         children: [
           Expanded(
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: OptoColors.onSurfaceDark),
+              style: TextStyle(color: colorScheme.onSurface),
               decoration: InputDecoration(
                 hintText: l.historySearchHint,
                 hintStyle:
-                    const TextStyle(color: OptoColors.onSurfaceVariantDark),
-                prefixIcon: const Icon(Icons.search,
-                    color: OptoColors.onSurfaceVariantDark),
+                    TextStyle(color: colorScheme.onSurfaceVariant),
+                prefixIcon: Icon(Icons.search,
+                    color: colorScheme.onSurfaceVariant),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear,
-                            color: OptoColors.onSurfaceVariantDark),
+                        icon: Icon(Icons.clear,
+                            color: colorScheme.onSurfaceVariant),
                         onPressed: () {
                           _searchController.clear();
                           setState(() => _searchQuery = '');
@@ -660,16 +660,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       )
                     : null,
                 filled: true,
-                fillColor: OptoColors.surfaceDark,
+                fillColor: colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
                   borderSide:
-                      const BorderSide(color: OptoColors.surfaceVariantDark),
+                      BorderSide(color: colorScheme.outlineVariant),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
                   borderSide:
-                      const BorderSide(color: OptoColors.surfaceVariantDark),
+                      BorderSide(color: colorScheme.outlineVariant),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
@@ -714,23 +714,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildListPanel(AppLocalizations l, DateFormat dateFmt) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final filtered = _filteredResults;
 
     if (filtered.isEmpty) {
       return Center(
         child: Text(
           l.historyNoResults,
-          style: const TextStyle(color: OptoColors.onSurfaceVariantDark),
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
       );
     }
 
-    return Container(
-      color: OptoColors.backgroundDark,
-      child: _viewMode == _HistoryViewMode.byPatient
-          ? _buildPatientGroupedView(filtered, l, dateFmt, theme)
-          : _buildDateSortedView(filtered, l, dateFmt, theme),
-    );
+    return _viewMode == _HistoryViewMode.byPatient
+        ? _buildPatientGroupedView(filtered, l, dateFmt, theme)
+        : _buildDateSortedView(filtered, l, dateFmt, theme);
   }
 
   // ---------------------------------------------------------------------------
@@ -739,26 +737,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildDetailPanel(AppLocalizations l, DateFormat dateFmt) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     if (_selectedResultId == null) {
-      return Container(
-        color: OptoColors.backgroundDark,
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.article_outlined,
-                  size: 48, color: OptoColors.subtleDark),
-              const SizedBox(height: OptoSpacing.md),
-              Text(
-                'Selecciona un resultado',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: OptoColors.onSurfaceVariantDark,
-                ),
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.article_outlined,
+                size: 48,
+                color: colorScheme.onSurfaceVariant.withAlpha(128)),
+            const SizedBox(height: OptoSpacing.md),
+            Text(
+              'Selecciona un resultado',
+              style: TextStyle(
+                fontSize: 14,
+                color: colorScheme.onSurfaceVariant,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       );
     }
@@ -784,12 +781,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 250),
-      child: Container(
+      child: SingleChildScrollView(
         key: ValueKey(current.id),
-        color: OptoColors.backgroundDark,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(OptoSpacing.lg),
-          child: Column(
+        padding: const EdgeInsets.all(OptoSpacing.lg),
+        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
@@ -817,21 +812,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           _testTypeLabel(current.testType, l),
                           style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
-                            color: OptoColors.onSurfaceDark,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         if (current.patientName.isNotEmpty) ...[
                           const SizedBox(height: 2),
                           Row(
                             children: [
-                              const Icon(Icons.person,
+                              Icon(Icons.person,
                                   size: 14,
-                                  color: OptoColors.onSurfaceVariantDark),
+                                  color: colorScheme.onSurfaceVariant),
                               const SizedBox(width: 4),
                               Text(
                                 current.patientName,
-                                style: const TextStyle(
-                                  color: OptoColors.onSurfaceVariantDark,
+                                style: TextStyle(
+                                  color: colorScheme.onSurfaceVariant,
                                   fontSize: 13,
                                 ),
                               ),
@@ -841,8 +836,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         const SizedBox(height: 2),
                         Text(
                           dateFmt.format(current.startedAt),
-                          style: const TextStyle(
-                            color: OptoColors.subtleDark,
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant.withAlpha(128),
                             fontSize: 12,
                           ),
                         ),
@@ -850,8 +845,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.edit,
-                        size: 20, color: OptoColors.onSurfaceVariantDark),
+                    icon: Icon(Icons.edit,
+                        size: 20, color: colorScheme.onSurfaceVariant),
                     tooltip: l.renameTitle,
                     onPressed: () {
                       _showRenameDialog(current, l);
@@ -867,7 +862,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
 
               const SizedBox(height: OptoSpacing.md),
-              const Divider(color: OptoColors.surfaceVariantDark, height: 1),
+              Divider(color: colorScheme.outlineVariant, height: 1),
               const SizedBox(height: OptoSpacing.md),
 
               // Metrics
@@ -941,8 +936,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               if (current.letterEvents != null &&
                   current.letterEvents!.isNotEmpty) ...[
                 const SizedBox(height: OptoSpacing.md),
-                const Divider(
-                    color: OptoColors.surfaceVariantDark, height: 1),
+                Divider(
+                    color: colorScheme.outlineVariant, height: 1),
                 const SizedBox(height: OptoSpacing.md),
                 Row(
                   children: [
@@ -952,7 +947,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           Text(l.macHitMapTitle,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: OptoColors.onSurfaceDark,
+                                color: colorScheme.onSurface,
                               )),
                           const SizedBox(height: 8),
                           AspectRatio(
@@ -977,7 +972,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           Text(l.macMissMapTitle,
                               style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.w600,
-                                color: OptoColors.onSurfaceDark,
+                                color: colorScheme.onSurface,
                               )),
                           const SizedBox(height: 8),
                           AspectRatio(
@@ -1002,14 +997,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
               // Config summary
               if (current.configSummary.isNotEmpty) ...[
                 const SizedBox(height: OptoSpacing.md),
-                const Divider(
-                    color: OptoColors.surfaceVariantDark, height: 1),
+                Divider(
+                    color: colorScheme.outlineVariant, height: 1),
                 const SizedBox(height: OptoSpacing.md),
                 Text(
                   l.configUsedTitle,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: OptoColors.onSurfaceDark,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1020,7 +1015,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
               // Export buttons
               const SizedBox(height: OptoSpacing.md),
-              const Divider(color: OptoColors.surfaceVariantDark, height: 1),
+              Divider(color: colorScheme.outlineVariant, height: 1),
               const SizedBox(height: OptoSpacing.md),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1078,7 +1073,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ],
           ),
-        ),
       ),
     );
   }
@@ -1089,14 +1083,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildSelectionBar(AppLocalizations l) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
     return Container(
       padding:
           const EdgeInsets.symmetric(horizontal: OptoSpacing.md, vertical: OptoSpacing.sm),
-      decoration: const BoxDecoration(
-        color: OptoColors.surfaceDark,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
         border: Border(
-          top: BorderSide(color: OptoColors.surfaceVariantDark),
+          top: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
       child: SafeArea(
@@ -1107,7 +1102,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               l.bulkExportTitle,
               style: theme.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: OptoColors.onSurfaceDark,
+                color: colorScheme.onSurface,
               ),
             ),
             const Spacer(),
@@ -1139,17 +1134,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildEmptyState(AppLocalizations l) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.history, size: 64, color: OptoColors.subtleDark),
+          Icon(Icons.history,
+              size: 64,
+              color: colorScheme.onSurfaceVariant.withAlpha(128)),
           const SizedBox(height: 16),
           Text(
             l.historyEmpty,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 24),
@@ -1170,6 +1168,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildResultTile(
       SavedResult r, AppLocalizations l, DateFormat dateFmt, ThemeData theme,
       {bool showPatientName = false}) {
+    final colorScheme = theme.colorScheme;
     final isSelected = _selectedIds.contains(r.id);
     final isDetailSelected = r.id == _selectedResultId;
     final typeColor = _testTypeColor(r.testType);
@@ -1177,7 +1176,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final tile = Container(
       decoration: BoxDecoration(
         color: isDetailSelected
-            ? OptoColors.surfaceVariantDark
+            ? colorScheme.surfaceContainerHighest
             : Colors.transparent,
         border: isDetailSelected
             ? const Border(
@@ -1202,7 +1201,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: TextStyle(
-            color: OptoColors.onSurfaceDark,
+            color: colorScheme.onSurface,
             fontWeight: isDetailSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -1212,13 +1211,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
               : dateFmt.format(r.startedAt),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: const TextStyle(color: OptoColors.onSurfaceVariantDark, fontSize: 12),
+          style: TextStyle(color: colorScheme.onSurfaceVariant, fontSize: 12),
         ),
         trailing: Text(
           _keyMetric(r),
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w700,
-            color: isDetailSelected ? OptoColors.primary : OptoColors.onSurfaceDark,
+            color: isDetailSelected ? OptoColors.primary : colorScheme.onSurface,
           ),
         ),
         selected: isSelected,
@@ -1250,6 +1249,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   Widget _buildPatientGroupedView(List<SavedResult> filtered,
       AppLocalizations l, DateFormat dateFmt, ThemeData theme) {
+    final colorScheme = theme.colorScheme;
     final groups = _groupByPatient(filtered);
 
     // Ordenar grupos: con nombre alfabéticamente, sin nombre al final.
@@ -1278,22 +1278,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: Row(
                 children: [
-                  const Icon(Icons.person,
-                      size: 18, color: OptoColors.onSurfaceVariantDark),
+                  Icon(Icons.person,
+                      size: 18, color: colorScheme.onSurfaceVariant),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       displayName,
                       style: theme.textTheme.titleSmall?.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: OptoColors.onSurfaceDark,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                   ),
                   Text(
                     l.historyResultCount(items.length),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: OptoColors.onSurfaceVariantDark,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -1303,7 +1303,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 height: 1,
                 indent: 16,
                 endIndent: 16,
-                color: OptoColors.surfaceVariantDark),
+                color: colorScheme.outlineVariant),
             // Resultados del grupo
             ...items.map(
                 (r) => _buildResultTile(r, l, dateFmt, theme)),
@@ -1335,6 +1335,7 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -1342,14 +1343,14 @@ class _DetailRow extends StatelessWidget {
         children: [
           Flexible(
             child: Text(label,
-                style: const TextStyle(
-                    color: OptoColors.onSurfaceVariantDark, fontSize: 13)),
+                style: TextStyle(
+                    color: colorScheme.onSurfaceVariant, fontSize: 13)),
           ),
           const SizedBox(width: 8),
           Text(
             value,
-            style: const TextStyle(
-              color: OptoColors.onSurfaceDark,
+            style: TextStyle(
+              color: colorScheme.onSurface,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),

@@ -23,6 +23,7 @@ class OptoSliderField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final display = formatValue?.call(value) ?? value.toStringAsFixed(0);
     return Row(
       children: [
@@ -30,7 +31,7 @@ class OptoSliderField extends StatelessWidget {
           child: SliderTheme(
             data: SliderThemeData(
               activeTrackColor: OptoColors.primary,
-              inactiveTrackColor: OptoColors.surfaceVariantDark,
+              inactiveTrackColor: colorScheme.surfaceContainerHighest,
               thumbColor: OptoColors.primary,
               overlayColor: OptoColors.primary.withAlpha(31),
               trackHeight: 4,
@@ -49,10 +50,10 @@ class OptoSliderField extends StatelessWidget {
           child: Text(
             '$display$unit',
             textAlign: TextAlign.right,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
         ),

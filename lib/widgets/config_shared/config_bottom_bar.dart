@@ -17,18 +17,19 @@ class ConfigBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: const BoxDecoration(
-        color: OptoColors.surfaceDark,
-        border: Border(top: BorderSide(color: OptoColors.surfaceVariantDark)),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(top: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               summary,
-              style: const TextStyle(fontSize: 11, color: OptoColors.onSurfaceVariantDark),
+              style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
               overflow: TextOverflow.ellipsis,
               maxLines: 2,
             ),

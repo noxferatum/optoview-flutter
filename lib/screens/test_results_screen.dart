@@ -37,7 +37,6 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
-      backgroundColor: OptoColors.backgroundDark,
       body: Column(
         children: [
           _buildTopBar(context, l, result),
@@ -96,15 +95,16 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
     AppLocalizations l,
     TestResult result,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: OptoSpacing.sm,
         vertical: OptoSpacing.xs,
       ),
-      decoration: const BoxDecoration(
-        color: OptoColors.surfaceDark,
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
         border: Border(
-          bottom: BorderSide(color: OptoColors.surfaceVariantDark),
+          bottom: BorderSide(color: colorScheme.outlineVariant),
         ),
       ),
       child: SafeArea(
@@ -112,7 +112,7 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back, color: OptoColors.onSurfaceDark),
+              icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
               onPressed: () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
@@ -121,10 +121,10 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
             Expanded(
               child: Text(
                 l.resultsTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: OptoColors.onSurfaceDark,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -206,6 +206,7 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildStatusBanner(AppLocalizations l, TestResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isComplete = result.completedNaturally;
     final statusColor = isComplete ? OptoColors.success : OptoColors.warning;
     final statusText = isComplete ? l.resultsCompleted : l.resultsStopped;
@@ -241,18 +242,18 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
                   const SizedBox(height: OptoSpacing.xs),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.person,
                         size: 14,
-                        color: OptoColors.onSurfaceVariantDark,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: OptoSpacing.xs),
                       Flexible(
                         child: Text(
                           result.patientName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
-                            color: OptoColors.onSurfaceVariantDark,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -273,13 +274,14 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildSectionLabel(String text) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Text(
       text.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         letterSpacing: 1,
-        color: OptoColors.onSurfaceVariantDark,
+        color: colorScheme.onSurfaceVariant,
       ),
     );
   }
@@ -323,6 +325,7 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildConfigTags(Map<String, String> summary) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Wrap(
       spacing: OptoSpacing.sm,
       runSpacing: OptoSpacing.sm,
@@ -333,34 +336,34 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
             vertical: OptoSpacing.xs + 2,
           ),
           decoration: BoxDecoration(
-            color: OptoColors.surfaceDark,
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(OptoSpacing.radiusChip),
-            border: Border.all(color: OptoColors.surfaceVariantDark),
+            border: Border.all(color: colorScheme.outlineVariant),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 entry.key,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: OptoColors.onSurfaceVariantDark,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
               const SizedBox(width: OptoSpacing.xs),
               Container(
                 width: 1,
                 height: 12,
-                color: OptoColors.surfaceVariantDark,
+                color: colorScheme.outlineVariant,
               ),
               const SizedBox(width: OptoSpacing.xs),
               Text(
                 entry.value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: OptoColors.onSurfaceDark,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ],
@@ -375,43 +378,44 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildDateRow(DateFormat dateFmt, TestResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(OptoSpacing.md),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.calendar_today,
             size: 16,
-            color: OptoColors.onSurfaceVariantDark,
+            color: colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: OptoSpacing.sm),
           Text(
             dateFmt.format(result.startedAt),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(width: OptoSpacing.md),
-          const Icon(
+          Icon(
             Icons.arrow_forward,
             size: 14,
-            color: OptoColors.subtleDark,
+            color: colorScheme.onSurfaceVariant.withAlpha(128),
           ),
           const SizedBox(width: OptoSpacing.md),
           Text(
             dateFmt.format(result.finishedAt),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
         ],
@@ -424,38 +428,39 @@ class _TestResultsScreenState extends State<TestResultsScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildHeatmapPlaceholder() {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(OptoSpacing.xl),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         children: [
           Icon(
             Icons.grid_off_rounded,
             size: 48,
-            color: OptoColors.subtleDark.withAlpha(128),
+            color: colorScheme.onSurfaceVariant.withAlpha(64),
           ),
           const SizedBox(height: OptoSpacing.md),
-          const Text(
+          Text(
             'No hay datos de posicion para este test',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: OptoSpacing.xs),
-          const Text(
+          Text(
             'Los mapas de calor estan disponibles para los tests de localizacion y MacDonald',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 11,
-              color: OptoColors.subtleDark,
+              color: colorScheme.onSurfaceVariant.withAlpha(128),
             ),
           ),
         ],
@@ -481,13 +486,14 @@ class _StatBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       width: 160,
       padding: const EdgeInsets.all(OptoSpacing.md),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -496,18 +502,18 @@ class _StatBox extends StatelessWidget {
           const SizedBox(height: OptoSpacing.sm),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: OptoSpacing.xs),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],

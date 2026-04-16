@@ -100,25 +100,26 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
   }
 
   Widget _buildAppBar(AppLocalizations l) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-      decoration: const BoxDecoration(
-        color: OptoColors.surfaceDark,
-        border: Border(bottom: BorderSide(color: OptoColors.surfaceVariantDark)),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        border: Border(bottom: BorderSide(color: colorScheme.outlineVariant)),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: OptoColors.onSurfaceDark),
+            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
             onPressed: () => Navigator.pop(context),
           ),
           const SizedBox(width: 8),
           Text(
             l.configLocalizationTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
         ],
@@ -132,13 +133,11 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
 
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: OptoColors.backgroundDark,
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      backgroundColor: OptoColors.backgroundDark,
       body: DefaultTabController(
         length: 4,
         child: Column(
@@ -470,12 +469,13 @@ class _LocConfigTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const TabBar(
+    final colorScheme = Theme.of(context).colorScheme;
+    return TabBar(
       labelColor: OptoColors.primary,
-      unselectedLabelColor: OptoColors.onSurfaceVariantDark,
+      unselectedLabelColor: colorScheme.onSurfaceVariant,
       indicatorColor: OptoColors.primary,
       indicatorSize: TabBarIndicatorSize.label,
-      tabs: [
+      tabs: const [
         Tab(icon: Icon(Icons.tune), text: 'General'),
         Tab(icon: Icon(Icons.touch_app), text: 'Modo'),
         Tab(icon: Icon(Icons.auto_awesome), text: 'Estímulo'),

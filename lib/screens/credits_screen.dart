@@ -34,7 +34,6 @@ class _CreditsScreenState extends State<CreditsScreen> {
     final l = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: OptoColors.backgroundDark,
       body: Row(
         children: [
           Expanded(flex: 5, child: _buildBrandingPanel(l)),
@@ -45,15 +44,17 @@ class _CreditsScreenState extends State<CreditsScreen> {
   }
 
   Widget _buildBrandingPanel(AppLocalizations l) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            OptoColors.backgroundDark,
-            Color(0xFF1A2332),
-            Color(0x280A3F6FB2), // OptoColors.primary with alpha ~40
+            colorScheme.surface,
+            Color.alphaBlend(
+                OptoColors.primary.withAlpha(20), colorScheme.surface),
+            OptoColors.primary.withAlpha(40),
           ],
         ),
       ),
@@ -84,12 +85,12 @@ class _CreditsScreenState extends State<CreditsScreen> {
             ),
             const SizedBox(height: 20),
             // App name
-            const Text(
+            Text(
               'OPTOVIEW',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.w700,
-                color: OptoColors.onSurfaceDark,
+                color: colorScheme.onSurface,
                 letterSpacing: 4,
               ),
             ),
@@ -99,9 +100,9 @@ class _CreditsScreenState extends State<CreditsScreen> {
               width: 280,
               child: Text(
                 l.creditsDescription,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: OptoColors.onSurfaceVariantDark,
+                  color: colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -115,14 +116,14 @@ class _CreditsScreenState extends State<CreditsScreen> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: OptoColors.surfaceVariantDark,
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(OptoSpacing.radiusPill),
                 ),
                 child: Text(
                   '$_version (build $_buildNumber)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
-                    color: OptoColors.onSurfaceVariantDark,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),
@@ -133,6 +134,7 @@ class _CreditsScreenState extends State<CreditsScreen> {
   }
 
   Widget _buildInfoPanel(AppLocalizations l) {
+    final colorScheme = Theme.of(context).colorScheme;
     return SingleChildScrollView(
       padding: const EdgeInsets.all(OptoSpacing.lg),
       child: Column(
@@ -185,17 +187,17 @@ class _CreditsScreenState extends State<CreditsScreen> {
               children: [
                 Text(
                   '\u00a9 ${DateTime.now().year} Optoview',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
-                    color: OptoColors.onSurfaceDark,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: OptoSpacing.sm),
                 Text(
                   l.creditsDescription,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: OptoColors.onSurfaceVariantDark,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
@@ -212,24 +214,24 @@ class _CreditsScreenState extends State<CreditsScreen> {
                 vertical: 12,
               ),
               decoration: BoxDecoration(
-                color: OptoColors.surfaceVariantDark,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.arrow_back,
                     size: 18,
-                    color: OptoColors.onSurfaceDark,
+                    color: colorScheme.onSurface,
                   ),
                   const SizedBox(width: OptoSpacing.sm),
                   Text(
                     l.creditsBack,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: OptoColors.onSurfaceDark,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -242,10 +244,11 @@ class _CreditsScreenState extends State<CreditsScreen> {
   }
 
   Widget _buildCard({required String header, required Widget child}) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(OptoSpacing.md),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
       ),
       child: Column(
@@ -253,11 +256,11 @@ class _CreditsScreenState extends State<CreditsScreen> {
         children: [
           Text(
             header,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.8,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 12),
@@ -283,6 +286,7 @@ class _TeamMember extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Container(
@@ -301,18 +305,18 @@ class _TeamMember extends StatelessWidget {
             children: [
               Text(
                 name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: OptoColors.onSurfaceDark,
+                  color: colorScheme.onSurface,
                 ),
               ),
               const SizedBox(height: 2),
               Text(
                 role,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
-                  color: OptoColors.onSurfaceVariantDark,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -330,17 +334,18 @@ class _TechTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceVariantDark,
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusPill),
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 12,
-          color: OptoColors.onSurfaceVariantDark,
+          color: colorScheme.onSurfaceVariant,
         ),
       ),
     );

@@ -18,11 +18,12 @@ class VisualFieldHeatmap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -32,8 +33,8 @@ class VisualFieldHeatmap extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('MAPA DEL CAMPO VISUAL',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.8, color: OptoColors.onSurfaceVariantDark)),
+              Text('MAPA DEL CAMPO VISUAL',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, letterSpacing: 0.8, color: colorScheme.onSurfaceVariant)),
               Row(children: [
                 _LegendDot(color: OptoColors.success, label: 'Acierto'),
                 const SizedBox(width: 12),
@@ -47,11 +48,15 @@ class VisualFieldHeatmap extends StatelessWidget {
             aspectRatio: compact ? 2.0 : 16 / 10,
             child: Container(
               decoration: BoxDecoration(
-                color: OptoColors.backgroundDark,
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: CustomPaint(
-                painter: _HeatmapPainter(hits: hits, misses: misses),
+                painter: _HeatmapPainter(
+                  hits: hits,
+                  misses: misses,
+                  gridColor: colorScheme.outlineVariant,
+                ),
                 size: Size.infinite,
               ),
             ),
@@ -60,7 +65,7 @@ class VisualFieldHeatmap extends StatelessWidget {
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.only(top: 12),
-            decoration: const BoxDecoration(border: Border(top: BorderSide(color: OptoColors.surfaceVariantDark))),
+            decoration: BoxDecoration(border: Border(top: BorderSide(color: colorScheme.outlineVariant))),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -81,14 +86,19 @@ class VisualFieldHeatmap extends StatelessWidget {
 }
 
 class _HeatmapPainter extends CustomPainter {
-  _HeatmapPainter({required this.hits, required this.misses});
+  _HeatmapPainter({
+    required this.hits,
+    required this.misses,
+    required this.gridColor,
+  });
   final List<Offset> hits;
   final List<Offset> misses;
+  final Color gridColor;
 
   @override
   void paint(Canvas canvas, Size size) {
     final gridPaint = Paint()
-      ..color = OptoColors.surfaceVariantDark.withAlpha(204)
+      ..color = gridColor.withAlpha(204)
       ..strokeWidth = 1;
 
     // Grid lines
@@ -128,7 +138,7 @@ class _HeatmapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _HeatmapPainter old) =>
-      old.hits != hits || old.misses != misses;
+      old.hits != hits || old.misses != misses || old.gridColor != gridColor;
 }
 
 class _LegendDot extends StatelessWidget {
@@ -138,12 +148,13 @@ class _LegendDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 10, color: OptoColors.onSurfaceVariantDark)),
+        Text(label, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
       ],
     );
   }
@@ -157,11 +168,12 @@ class _HeatmapStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Column(
       children: [
         Text(value, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color)),
         const SizedBox(height: 2),
-        Text(label, style: const TextStyle(fontSize: 10, color: OptoColors.onSurfaceVariantDark)),
+        Text(label, style: TextStyle(fontSize: 10, color: colorScheme.onSurfaceVariant)),
       ],
     );
   }

@@ -25,20 +25,23 @@ class OptoActionButton extends StatefulWidget {
 class _OptoActionButtonState extends State<OptoActionButton> {
   bool _pressed = false;
 
-  Color get _bg => switch (widget.variant) {
+  Color _bg(ColorScheme cs) => switch (widget.variant) {
     OptoButtonVariant.primary => OptoColors.primary,
-    OptoButtonVariant.secondary => OptoColors.surfaceVariantDark,
+    OptoButtonVariant.secondary => cs.surfaceContainerHighest,
     OptoButtonVariant.danger => OptoColors.error.withAlpha(26),
   };
 
-  Color get _fg => switch (widget.variant) {
+  Color _fg(ColorScheme cs) => switch (widget.variant) {
     OptoButtonVariant.primary => Colors.white,
-    OptoButtonVariant.secondary => OptoColors.onSurfaceVariantDark,
+    OptoButtonVariant.secondary => cs.onSurfaceVariant,
     OptoButtonVariant.danger => OptoColors.error,
   };
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final bg = _bg(cs);
+    final fg = _fg(cs);
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapUp: (_) {
@@ -52,7 +55,7 @@ class _OptoActionButtonState extends State<OptoActionButton> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: _bg,
+            color: bg,
             borderRadius: BorderRadius.circular(OptoSpacing.radiusChip),
             border: widget.variant == OptoButtonVariant.danger
                 ? Border.all(color: OptoColors.error.withAlpha(77))
@@ -62,7 +65,7 @@ class _OptoActionButtonState extends State<OptoActionButton> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (widget.icon != null) ...[
-                Icon(widget.icon, size: 16, color: _fg),
+                Icon(widget.icon, size: 16, color: fg),
                 const SizedBox(width: 6),
               ],
               Text(
@@ -70,7 +73,7 @@ class _OptoActionButtonState extends State<OptoActionButton> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: _fg,
+                  color: fg,
                 ),
               ),
             ],

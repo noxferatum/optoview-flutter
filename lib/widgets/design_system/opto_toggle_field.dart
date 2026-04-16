@@ -17,6 +17,7 @@ class OptoToggleField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         Expanded(
@@ -25,17 +26,17 @@ class OptoToggleField extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
-                  color: OptoColors.onSurfaceDark,
+                  color: colorScheme.onSurface,
                 ),
               ),
               if (subtitle != null)
                 Text(
                   subtitle!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: OptoColors.onSurfaceVariantDark,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
             ],

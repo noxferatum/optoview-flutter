@@ -361,9 +361,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const SizedBox(height: 2),
                     Text(
                       description,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: OptoColors.onSurfaceVariantDark,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -440,9 +440,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
-                        color: OptoColors.onSurfaceVariantDark,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -569,11 +569,11 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: OptoSpacing.xs),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w500,
               letterSpacing: 0.5,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -661,9 +661,9 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
               Text(
                 '${_testTypeLabel(r.testType)} · ${_relativeTime(r.startedAt)}',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 10,
-                  color: OptoColors.onSurfaceVariantDark,
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -696,11 +696,11 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _sectionLabel(String text, ColorScheme colorScheme) {
     return Text(
       text,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 11,
         fontWeight: FontWeight.w600,
         letterSpacing: 1,
-        color: OptoColors.onSurfaceVariantDark,
+        color: colorScheme.onSurfaceVariant,
       ),
     );
   }

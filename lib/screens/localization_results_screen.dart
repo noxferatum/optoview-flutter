@@ -40,7 +40,6 @@ class _LocalizationResultsScreenState
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
-      backgroundColor: OptoColors.backgroundDark,
       body: Column(
         children: [
           _buildTopBar(l),
@@ -107,10 +106,11 @@ class _LocalizationResultsScreenState
   // -- Top bar --
 
   Widget _buildTopBar(AppLocalizations l) {
+    final colorScheme = Theme.of(context).colorScheme;
     final result = widget.result;
 
     return Container(
-      color: OptoColors.surfaceDark,
+      color: colorScheme.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: OptoSpacing.sm,
         vertical: OptoSpacing.sm,
@@ -120,9 +120,9 @@ class _LocalizationResultsScreenState
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back,
-                color: OptoColors.onSurfaceDark,
+                color: colorScheme.onSurface,
               ),
               onPressed: () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
@@ -132,10 +132,10 @@ class _LocalizationResultsScreenState
             Expanded(
               child: Text(
                 l.resultsLocTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: OptoColors.onSurfaceDark,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -164,7 +164,7 @@ class _LocalizationResultsScreenState
               icon: const Icon(Icons.home, size: 18),
               label: Text(l.resultsHome),
               style: TextButton.styleFrom(
-                foregroundColor: OptoColors.onSurfaceVariantDark,
+                foregroundColor: colorScheme.onSurfaceVariant,
               ),
             ),
           ],
@@ -176,6 +176,7 @@ class _LocalizationResultsScreenState
   // -- Status banner --
 
   Widget _buildStatusBanner(AppLocalizations l, LocalizationResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
     final color =
         result.completedNaturally ? OptoColors.success : OptoColors.warning;
     final label =
@@ -211,18 +212,18 @@ class _LocalizationResultsScreenState
                   const SizedBox(height: OptoSpacing.xs),
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.person,
                         size: 14,
-                        color: OptoColors.onSurfaceVariantDark,
+                        color: colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: OptoSpacing.xs),
                       Flexible(
                         child: Text(
                           result.patientName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 13,
-                            color: OptoColors.onSurfaceDark,
+                            color: colorScheme.onSurface,
                           ),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -241,17 +242,18 @@ class _LocalizationResultsScreenState
   // -- Accuracy card --
 
   Widget _buildAccuracyCard(AppLocalizations l, LocalizationResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
     return OptoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l.accuracyTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: OptoSpacing.md),
@@ -294,17 +296,18 @@ class _LocalizationResultsScreenState
     AppLocalizations l,
     LocalizationResult result,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     return OptoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l.reactionTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: OptoSpacing.md),
@@ -332,17 +335,18 @@ class _LocalizationResultsScreenState
     AppLocalizations l,
     LocalizationResult result,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     return OptoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l.statsTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: OptoSpacing.md),
@@ -367,21 +371,22 @@ class _LocalizationResultsScreenState
   // -- Date section --
 
   Widget _buildDateSection(DateFormat dateFmt, LocalizationResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
     return OptoCard(
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.calendar_today,
             size: 16,
-            color: OptoColors.onSurfaceVariantDark,
+            color: colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: OptoSpacing.sm),
           Text(
             dateFmt.format(result.startedAt),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
         ],
@@ -392,6 +397,7 @@ class _LocalizationResultsScreenState
   // -- Heatmap placeholder --
 
   Widget _buildHeatmapPlaceholder() {
+    final colorScheme = Theme.of(context).colorScheme;
     return OptoCard(
       child: Column(
         children: [
@@ -402,12 +408,12 @@ class _LocalizationResultsScreenState
             color: OptoColors.localization.withAlpha(64),
           ),
           const SizedBox(height: OptoSpacing.md),
-          const Text(
+          Text(
             'Datos de posicion no disponibles\npara este resultado',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: OptoSpacing.lg),
@@ -422,17 +428,18 @@ class _LocalizationResultsScreenState
     AppLocalizations l,
     Map<String, String> summary,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     return OptoCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l.configUsedTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               letterSpacing: 0.5,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: OptoSpacing.md),
@@ -446,18 +453,18 @@ class _LocalizationResultsScreenState
                   vertical: OptoSpacing.xs + 2,
                 ),
                 decoration: BoxDecoration(
-                  color: OptoColors.surfaceVariantDark,
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius:
                       BorderRadius.circular(OptoSpacing.radiusChip),
                   border: Border.all(
-                    color: OptoColors.subtleDark.withAlpha(64),
+                    color: colorScheme.onSurfaceVariant.withAlpha(64),
                   ),
                 ),
                 child: Text(
                   '${e.key}: ${e.value}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
-                    color: OptoColors.onSurfaceDark,
+                    color: colorScheme.onSurface,
                   ),
                 ),
               );
@@ -484,6 +491,7 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: OptoSpacing.xs),
       child: Row(
@@ -491,9 +499,9 @@ class _StatRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           Text(
@@ -501,7 +509,7 @@ class _StatRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: valueColor ?? OptoColors.onSurfaceDark,
+              color: valueColor ?? colorScheme.onSurface,
             ),
           ),
         ],

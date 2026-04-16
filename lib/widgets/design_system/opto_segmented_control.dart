@@ -24,10 +24,11 @@ class OptoSegmentedControl<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceVariantDark,
+        color: colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusChip),
       ),
       child: Row(
@@ -52,7 +53,7 @@ class OptoSegmentedControl<T> extends StatelessWidget {
                       Icon(
                         item.icon,
                         size: 14,
-                        color: isSelected ? Colors.white : OptoColors.onSurfaceVariantDark,
+                        color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
                       ),
                       const SizedBox(width: 4),
                     ],
@@ -64,7 +65,7 @@ class OptoSegmentedControl<T> extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: isSelected ? Colors.white : OptoColors.onSurfaceVariantDark,
+                          color: isSelected ? Colors.white : colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),

@@ -46,7 +46,6 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
-      backgroundColor: OptoColors.backgroundDark,
       body: Column(
         children: [
           _buildTopBar(context, l, result),
@@ -128,8 +127,9 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     AppLocalizations l,
     MacDonaldResult result,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      color: OptoColors.surfaceDark,
+      color: colorScheme.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: OptoSpacing.sm,
         vertical: OptoSpacing.xs,
@@ -139,7 +139,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
         child: Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back, color: OptoColors.onSurfaceDark),
+              icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
               onPressed: () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
@@ -148,10 +148,10 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
             Expanded(
               child: Text(
                 l.resultsMacTitle,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: OptoColors.onSurfaceDark,
+                  color: colorScheme.onSurface,
                 ),
               ),
             ),
@@ -186,6 +186,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
   // -- Status banner --
 
   Widget _buildStatusBanner(AppLocalizations l, MacDonaldResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isComplete = result.completedNaturally;
     final color = isComplete ? OptoColors.success : OptoColors.warning;
     final icon = isComplete
@@ -220,14 +221,14 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
                   const SizedBox(height: OptoSpacing.xs),
                   Row(
                     children: [
-                      const Icon(Icons.person, size: 14,
-                          color: OptoColors.onSurfaceVariantDark),
+                      Icon(Icons.person, size: 14,
+                          color: colorScheme.onSurfaceVariant),
                       const SizedBox(width: OptoSpacing.xs),
                       Text(
                         result.patientName,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 13,
-                          color: OptoColors.onSurfaceVariantDark,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -351,26 +352,27 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
   // -- Date row --
 
   Widget _buildDateRow(DateFormat dateFmt, MacDonaldResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: OptoSpacing.md,
         vertical: OptoSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Row(
         children: [
-          const Icon(Icons.calendar_today, size: 16,
-              color: OptoColors.onSurfaceVariantDark),
+          Icon(Icons.calendar_today, size: 16,
+              color: colorScheme.onSurfaceVariant),
           const SizedBox(width: OptoSpacing.sm),
           Text(
             dateFmt.format(result.startedAt),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
         ],
@@ -411,21 +413,22 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     required Color dotColor,
     required int numRings,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(OptoSpacing.md),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: OptoSpacing.sm),
@@ -448,22 +451,23 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
 
   Widget _buildConfigTags(
       AppLocalizations l, Map<String, String> summary) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(OptoSpacing.md),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             l.configUsedTitle,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: OptoSpacing.sm),
@@ -477,15 +481,15 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
                   vertical: OptoSpacing.xs + 1,
                 ),
                 decoration: BoxDecoration(
-                  color: OptoColors.surfaceVariantDark,
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius:
                       BorderRadius.circular(OptoSpacing.radiusChip),
                 ),
                 child: Text(
                   '${e.key}: ${e.value}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    color: OptoColors.onSurfaceVariantDark,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ),
               );
@@ -512,14 +516,15 @@ class _TopBarButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return TextButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, size: 18, color: OptoColors.onSurfaceDark),
+      icon: Icon(icon, size: 18, color: colorScheme.onSurface),
       label: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 13,
-          color: OptoColors.onSurfaceDark,
+          color: colorScheme.onSurface,
         ),
       ),
     );
@@ -539,22 +544,23 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(OptoSpacing.md),
       decoration: BoxDecoration(
-        color: OptoColors.surfaceDark,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: OptoColors.surfaceVariantDark),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: OptoColors.onSurfaceDark,
+              color: colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: OptoSpacing.sm),
@@ -580,6 +586,7 @@ class _StatRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: OptoSpacing.xs),
       child: Row(
@@ -587,9 +594,9 @@ class _StatRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: OptoColors.onSurfaceVariantDark,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
           Text(
@@ -597,7 +604,7 @@ class _StatRow extends StatelessWidget {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: valueColor ?? OptoColors.onSurfaceDark,
+              color: valueColor ?? colorScheme.onSurface,
             ),
           ),
         ],

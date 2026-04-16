@@ -106,7 +106,9 @@ class _SplashScreenState extends State<SplashScreen>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Container(
+        return Material(
+          type: MaterialType.transparency,
+          child: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -206,6 +208,7 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ],
             ),
+          ),
           ),
         );
       },

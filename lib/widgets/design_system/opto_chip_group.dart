@@ -30,6 +30,7 @@ class OptoChipGroup<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Wrap(
       spacing: 6,
       runSpacing: 6,
@@ -47,7 +48,7 @@ class OptoChipGroup<T> extends StatelessWidget {
             decoration: BoxDecoration(
               color: isSelected
                   ? OptoColors.primary.withAlpha(38)
-                  : OptoColors.surfaceVariantDark,
+                  : colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(OptoSpacing.radiusChip),
               border: Border.all(
                 color: isSelected
@@ -74,8 +75,8 @@ class OptoChipGroup<T> extends StatelessWidget {
                     item.icon,
                     size: 14,
                     color: isSelected
-                        ? OptoColors.peripheral
-                        : OptoColors.onSurfaceVariantDark,
+                        ? OptoColors.primary
+                        : colorScheme.onSurfaceVariant,
                   ),
                   const SizedBox(width: 6),
                 ],
@@ -85,8 +86,8 @@ class OptoChipGroup<T> extends StatelessWidget {
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: isSelected
-                        ? OptoColors.peripheral
-                        : OptoColors.onSurfaceVariantDark,
+                        ? OptoColors.primary
+                        : colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],
