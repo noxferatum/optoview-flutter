@@ -7,12 +7,15 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 import '../l10n/app_localizations.dart';
 import '../models/macdonald_result.dart';
+import '../models/questionnaire_result.dart';
 import '../models/saved_result.dart';
 import '../services/app_logger.dart';
 import '../services/export_service.dart';
+import '../services/questionnaire_storage.dart';
 import '../services/results_storage.dart';
 import '../theme/opto_colors.dart';
 import '../theme/opto_spacing.dart';
+import '../widgets/design_system/opto_action_button.dart';
 
 enum _HistoryViewMode { byPatient, byDate }
 
@@ -24,11 +27,12 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  List<SavedResult> _results = [];
+  List<Object> _items = []; // SavedResult OR QuestionnaireResult
   bool _isLoading = true;
   String _searchQuery = '';
   _HistoryViewMode _viewMode = _HistoryViewMode.byPatient;
   final _searchController = TextEditingController();
+  String? _activeFilter; // Filter by test type: 'peripheral', 'localization', 'macdonald', 'questionnaire', null = all
 
   // Selection mode
   bool _selectionMode = false;
@@ -40,7 +44,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _loadResults();
+    _loadData();
   }
 
   @override
@@ -49,38 +53,82 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.dispose();
   }
 
-  Future<void> _loadResults() async {
-    final results = await ResultsStorage.loadAll();
-    if (mounted) {
-      setState(() {
-        _results = results;
-        _isLoading = false;
-      });
-    }
+  Future<void> _loadData() async {
+    final loaded = await Future.wait([
+      ResultsStorage.loadAll(),
+      QuestionnaireStorage.loadAll(),
+    ]);
+    final combined = <Object>[...loaded[0], ...loaded[1]];
+    combined.sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
+    if (!mounted) return;
+    setState(() {
+      _items = combined;
+      _isLoading = false;
+    });
   }
 
-  /// Filtra resultados por nombre de paciente o tipo de test.
-  List<SavedResult> get _filteredResults {
-    if (_searchQuery.isEmpty) return _results;
+  // ---------------------------------------------------------------------------
+  // Mixed-item helpers
+  // ---------------------------------------------------------------------------
+
+  DateTime _dateOf(Object item) {
+    if (item is SavedResult) return item.startedAt;
+    if (item is QuestionnaireResult) return item.completedAt;
+    throw StateError('unknown item type $item');
+  }
+
+  String _idOf(Object item) {
+    if (item is SavedResult) return item.id;
+    if (item is QuestionnaireResult) return item.id;
+    throw StateError('unknown item type $item');
+  }
+
+  String _patientOf(Object item) {
+    if (item is SavedResult) return item.patientName;
+    if (item is QuestionnaireResult) return item.patientName;
+    throw StateError('unknown item type $item');
+  }
+
+  /// Filtra items por nombre de paciente, tipo de test y filtro activo.
+  List<Object> get _filteredItems {
+    var result = _items.where((item) {
+      // Apply filter by test type / questionnaire
+      if (_activeFilter != null) {
+        if (_activeFilter == 'questionnaire') {
+          if (item is! QuestionnaireResult) return false;
+        } else {
+          if (item is! SavedResult || item.testType != _activeFilter) return false;
+        }
+      }
+      return true;
+    }).toList();
+
+    // Apply search filter
+    if (_searchQuery.isEmpty) return result;
     final q = _searchQuery.toLowerCase();
     final l = AppLocalizations.of(context)!;
-    return _results.where((r) {
-      final name = r.patientName.toLowerCase();
-      final type = _testTypeLabel(r.testType, l).toLowerCase();
-      return name.contains(q) || type.contains(q);
+    return result.where((item) {
+      final name = _patientOf(item).toLowerCase();
+      if (name.contains(q)) return true;
+      if (item is SavedResult) {
+        final type = _testTypeLabel(item.testType, l).toLowerCase();
+        if (type.contains(q)) return true;
+      }
+      return false;
     }).toList();
   }
 
-  /// Agrupa resultados por paciente, ordenados: primero con nombre, luego sin nombre.
-  Map<String, List<SavedResult>> _groupByPatient(List<SavedResult> results) {
-    final groups = <String, List<SavedResult>>{};
-    for (final r in results) {
-      final key = r.patientName.isNotEmpty ? r.patientName : '';
-      groups.putIfAbsent(key, () => []).add(r);
+  /// Agrupa items por paciente, ordenados: primero con nombre, luego sin nombre.
+  Map<String, List<Object>> _groupByPatient(List<Object> items) {
+    final groups = <String, List<Object>>{};
+    for (final item in items) {
+      final name = _patientOf(item);
+      final key = name.isNotEmpty ? name : '';
+      groups.putIfAbsent(key, () => []).add(item);
     }
     // Ordenar cada grupo por fecha descendente.
     for (final list in groups.values) {
-      list.sort((a, b) => b.startedAt.compareTo(a.startedAt));
+      list.sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
     }
     return groups;
   }
@@ -97,11 +145,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text(l.historyCancel),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              ResultsStorage.deleteAll();
+              await Future.wait([
+                ResultsStorage.deleteAll(),
+                QuestionnaireStorage.clear(),
+              ]);
+              if (!mounted) return;
               setState(() {
-                _results.clear();
+                _items.clear();
                 _selectedResultId = null;
               });
             },
@@ -128,7 +180,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Navigator.pop(ctx);
               ResultsStorage.delete(result.id);
               setState(() {
-                _results.removeWhere((r) => r.id == result.id);
+                _items.removeWhere(
+                  (item) => item is SavedResult && item.id == result.id,
+                );
                 if (_selectedResultId == result.id) {
                   _selectedResultId = null;
                 }
@@ -170,9 +224,20 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
+  void _toggleSelectionById(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) _selectionMode = false;
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
   void _selectAll() {
     setState(() {
-      _selectedIds.addAll(_filteredResults.map((r) => r.id));
+      _selectedIds.addAll(_filteredItems.map(_idOf));
     });
   }
 
@@ -183,12 +248,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
-  List<SavedResult> get _selectedResults =>
-      _results.where((r) => _selectedIds.contains(r.id)).toList()
-        ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+  List<Object> get _selectedItems =>
+      _items.where((i) => _selectedIds.contains(_idOf(i))).toList()
+        ..sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
 
   Future<void> _bulkExport(String format, AppLocalizations l) async {
-    final selected = _selectedResults;
+    final selected = _selectedItems;
     if (selected.isEmpty) return;
 
     try {
@@ -244,8 +309,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               final updated = result.copyWith(patientName: newName);
               ResultsStorage.update(updated);
               setState(() {
-                final idx = _results.indexWhere((r) => r.id == result.id);
-                if (idx != -1) _results[idx] = updated;
+                final idx = _items.indexWhere(
+                  (item) => item is SavedResult && item.id == result.id,
+                );
+                if (idx != -1) _items[idx] = updated;
               });
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -265,7 +332,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _exportBackup(AppLocalizations l) async {
-    if (_results.isEmpty) {
+    final savedResults = _items.whereType<SavedResult>().toList();
+    if (savedResults.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l.backupNoResults)),
       );
@@ -286,7 +354,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.backupExportSuccess(_results.length))),
+        SnackBar(content: Text(l.backupExportSuccess(savedResults.length))),
       );
     }
   }
@@ -315,7 +383,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         SnackBar(content: Text(l.backupImportNone)),
       );
     } else {
-      await _loadResults();
+      await _loadData();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l.backupImportSuccess(count))),
       );
@@ -327,11 +395,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   void _showPatientSummaryExport(AppLocalizations l) {
-    // Group results by patient name
-    final patients = <String, List<SavedResult>>{};
-    for (final r in _results) {
-      final name = r.patientName.isNotEmpty ? r.patientName : '-';
-      patients.putIfAbsent(name, () => []).add(r);
+    // Group items (tests + questionnaires) by patient name.
+    final patients = <String, List<Object>>{};
+    for (final item in _items) {
+      final rawName = _patientOf(item);
+      final name = rawName.isNotEmpty ? rawName : '-';
+      patients.putIfAbsent(name, () => []).add(item);
     }
 
     if (patients.length == 1) {
@@ -368,7 +437,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _showFormatPicker(
-      String patientName, List<SavedResult> results, AppLocalizations l) {
+      String patientName, List<Object> results, AppLocalizations l) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => Padding(
@@ -495,7 +564,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           _buildTopBar(l),
           _buildFilterBar(l),
           Expanded(
-            child: _results.isEmpty
+            child: _items.isEmpty
                 ? _buildEmptyState(l)
                 : Row(
                     children: [
@@ -562,10 +631,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   IconButton(
                     icon: Icon(Icons.select_all,
                         color: colorScheme.onSurface),
-                    tooltip: _selectedIds.length == _filteredResults.length
+                    tooltip: _selectedIds.length == _filteredItems.length
                         ? l.bulkDeselectAll
                         : l.bulkSelectAll,
-                    onPressed: _selectedIds.length == _filteredResults.length
+                    onPressed: _selectedIds.length == _filteredItems.length
                         ? _deselectAll
                         : _selectAll,
                   ),
@@ -595,21 +664,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     tooltip: l.backupImportTooltip,
                     onPressed: () => _importBackup(l),
                   ),
-                  if (_results.isNotEmpty)
+                  if (_items.isNotEmpty)
                     IconButton(
                       icon: Icon(Icons.file_upload,
                           color: colorScheme.onSurface),
                       tooltip: l.backupExportTooltip,
                       onPressed: () => _exportBackup(l),
                     ),
-                  if (_results.isNotEmpty)
+                  if (_items.isNotEmpty)
                     IconButton(
                       icon: Icon(Icons.summarize,
                           color: colorScheme.onSurface),
                       tooltip: l.exportPatientSummary,
                       onPressed: () => _showPatientSummaryExport(l),
                     ),
-                  if (_results.isNotEmpty)
+                  if (_items.isNotEmpty)
                     IconButton(
                       icon: Icon(Icons.delete_sweep,
                           color: colorScheme.onSurface),
@@ -627,7 +696,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildFilterBar(AppLocalizations l) {
-    if (_results.isEmpty) return const SizedBox.shrink();
+    if (_items.isEmpty) return const SizedBox.shrink();
 
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
@@ -635,72 +704,114 @@ class _HistoryScreenState extends State<HistoryScreen> {
         OptoSpacing.md,
         OptoSpacing.sm,
         OptoSpacing.md,
-        OptoSpacing.xs,
+        OptoSpacing.sm,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration(
-                hintText: l.historySearchHint,
-                hintStyle:
-                    TextStyle(color: colorScheme.onSurfaceVariant),
-                prefixIcon: Icon(Icons.search,
-                    color: colorScheme.onSurfaceVariant),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear,
-                            color: colorScheme.onSurfaceVariant),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: colorScheme.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-                  borderSide:
-                      BorderSide(color: colorScheme.outlineVariant),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  style: TextStyle(color: colorScheme.onSurface),
+                  decoration: InputDecoration(
+                    hintText: l.historySearchHint,
+                    hintStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
+                    prefixIcon: Icon(Icons.search,
+                        color: colorScheme.onSurfaceVariant),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.clear,
+                                color: colorScheme.onSurfaceVariant),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: colorScheme.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                      borderSide:
+                          BorderSide(color: colorScheme.outlineVariant),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                      borderSide:
+                          BorderSide(color: colorScheme.outlineVariant),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                      borderSide: const BorderSide(color: OptoColors.primary),
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                    isDense: true,
+                  ),
+                  onChanged: (v) => setState(() => _searchQuery = v.trim()),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-                  borderSide:
-                      BorderSide(color: colorScheme.outlineVariant),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-                  borderSide: const BorderSide(color: OptoColors.primary),
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                isDense: true,
               ),
-              onChanged: (v) => setState(() => _searchQuery = v.trim()),
-            ),
-          ),
-          const SizedBox(width: 12),
-          SegmentedButton<_HistoryViewMode>(
-            segments: [
-              ButtonSegment(
-                value: _HistoryViewMode.byPatient,
-                icon: const Icon(Icons.person, size: 18),
-                label: Text(l.historyGroupByPatient),
-              ),
-              ButtonSegment(
-                value: _HistoryViewMode.byDate,
-                icon: const Icon(Icons.calendar_today, size: 18),
-                label: Text(l.historyOrderByDate),
+              const SizedBox(width: 12),
+              SegmentedButton<_HistoryViewMode>(
+                segments: [
+                  ButtonSegment(
+                    value: _HistoryViewMode.byPatient,
+                    icon: const Icon(Icons.person, size: 18),
+                    label: Text(l.historyGroupByPatient),
+                  ),
+                  ButtonSegment(
+                    value: _HistoryViewMode.byDate,
+                    icon: const Icon(Icons.calendar_today, size: 18),
+                    label: Text(l.historyOrderByDate),
+                  ),
+                ],
+                selected: {_viewMode},
+                onSelectionChanged: (v) => setState(() => _viewMode = v.first),
+                style: ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
             ],
-            selected: {_viewMode},
-            onSelectionChanged: (v) => setState(() => _viewMode = v.first),
-            style: ButtonStyle(
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                FilterChip(
+                  label: Text(Localizations.localeOf(context).languageCode == 'es' ? 'Todos' : 'All'),
+                  selected: _activeFilter == null,
+                  onSelected: (_) => setState(() => _activeFilter = null),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestPeripheral),
+                  selected: _activeFilter == 'peripheral',
+                  onSelected: (_) => setState(() => _activeFilter = 'peripheral'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestLocalization),
+                  selected: _activeFilter == 'localization',
+                  onSelected: (_) => setState(() => _activeFilter = 'localization'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestMacdonald),
+                  selected: _activeFilter == 'macdonald',
+                  onSelected: (_) => setState(() => _activeFilter = 'macdonald'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestQuestionnaire),
+                  selected: _activeFilter == 'questionnaire',
+                  onSelected: (_) => setState(() => _activeFilter = 'questionnaire'),
+                ),
+              ],
             ),
           ),
         ],
@@ -715,7 +826,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildListPanel(AppLocalizations l, DateFormat dateFmt) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final filtered = _filteredResults;
+    final filtered = _filteredItems;
 
     if (filtered.isEmpty) {
       return Center(
@@ -760,22 +871,32 @@ class _HistoryScreenState extends State<HistoryScreen> {
       );
     }
 
-    final current = _results.firstWhere(
-      (r) => r.id == _selectedResultId,
-      orElse: () {
-        // Result was deleted; clear selection.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) setState(() => _selectedResultId = null);
-        });
-        return _results.isNotEmpty ? _results.first : _results.first;
-      },
-    );
+    // Find the selected item; may be a SavedResult or QuestionnaireResult.
+    Object? selected;
+    for (final item in _items) {
+      if (_idOf(item) == _selectedResultId) {
+        selected = item;
+        break;
+      }
+    }
 
-    // If the result list is empty (shouldn't normally happen because we
-    // check _results.isEmpty higher up), bail out.
-    if (_results.isEmpty) {
+    if (selected == null) {
+      // Item was deleted; clear selection.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _selectedResultId = null);
+      });
       return const SizedBox.shrink();
     }
+
+    if (selected is QuestionnaireResult) {
+      return _buildQuestionnaireDetailPanel(selected, colorScheme, l);
+    }
+
+    if (selected is! SavedResult) {
+      return const SizedBox.shrink();
+    }
+
+    final current = selected;
 
     final typeColor = _testTypeColor(current.testType);
 
@@ -1247,7 +1368,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildPatientGroupedView(List<SavedResult> filtered,
+  Widget _buildPatientGroupedView(List<Object> filtered,
       AppLocalizations l, DateFormat dateFmt, ThemeData theme) {
     final colorScheme = theme.colorScheme;
     final groups = _groupByPatient(filtered);
@@ -1305,25 +1426,357 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 endIndent: 16,
                 color: colorScheme.outlineVariant),
             // Resultados del grupo
-            ...items.map(
-                (r) => _buildResultTile(r, l, dateFmt, theme)),
+            ...items.map((item) => _buildItemTile(item, l, dateFmt, theme)),
           ],
         );
       },
     );
   }
 
-  Widget _buildDateSortedView(List<SavedResult> filtered, AppLocalizations l,
+  Widget _buildDateSortedView(List<Object> filtered, AppLocalizations l,
       DateFormat dateFmt, ThemeData theme) {
-    final sorted = List<SavedResult>.from(filtered)
-      ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    final sorted = List<Object>.from(filtered)
+      ..sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
 
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 16),
       itemCount: sorted.length,
-      itemBuilder: (context, index) =>
-          _buildResultTile(sorted[index], l, dateFmt, theme, showPatientName: true),
+      itemBuilder: (context, index) => _buildItemTile(
+        sorted[index], l, dateFmt, theme,
+        showPatientName: true,
+      ),
     );
+  }
+
+  /// Dispatches tile rendering by concrete item type.
+  Widget _buildItemTile(
+      Object item, AppLocalizations l, DateFormat dateFmt, ThemeData theme,
+      {bool showPatientName = false}) {
+    if (item is SavedResult) {
+      return _buildResultTile(item, l, dateFmt, theme,
+          showPatientName: showPatientName);
+    }
+    if (item is QuestionnaireResult) {
+      return _buildQuestionnaireTile(item, theme.colorScheme, l);
+    }
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildQuestionnaireTile(
+    QuestionnaireResult q,
+    ColorScheme cs,
+    AppLocalizations l,
+  ) {
+    final isSelected = _selectedIds.contains(q.id);
+    final isDetailSelected = q.id == _selectedResultId;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDetailSelected ? OptoColors.primary.withAlpha(26) : null,
+        border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+      ),
+      child: InkWell(
+        onTap: _selectionMode
+            ? () => _toggleSelectionById(q.id)
+            : () => setState(() => _selectedResultId = q.id),
+        onLongPress: () {
+          if (!_selectionMode) {
+            setState(() {
+              _selectionMode = true;
+              _selectedIds.add(q.id);
+            });
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(OptoSpacing.md),
+          child: Row(
+            children: [
+              if (_selectionMode)
+                Padding(
+                  padding: const EdgeInsets.only(right: OptoSpacing.sm),
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (_) => _toggleSelectionById(q.id),
+                  ),
+                ),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: OptoColors.primary.withAlpha(38),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.assignment,
+                    color: OptoColors.primary, size: 18),
+              ),
+              const SizedBox(width: OptoSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      q.patientName.isNotEmpty
+                          ? q.patientName
+                          : l.questionnaireFormTitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                    Text(
+                      l.questionnaireHistorySubtitle(q.cvsqTotalScore),
+                      style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: cs.onSurfaceVariant, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Questionnaire detail panel
+  // ---------------------------------------------------------------------------
+
+  Widget _buildQuestionnaireDetailPanel(
+    QuestionnaireResult q,
+    ColorScheme cs,
+    AppLocalizations l,
+  ) {
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: patient + date + score
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      q.patientName.isNotEmpty
+                          ? q.patientName
+                          : l.questionnaireFormTitle,
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurface),
+                    ),
+                    Text(
+                      dateFmt.format(q.completedAt),
+                      style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(l.questionnaireScoreLabel,
+                      style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                  Text(
+                    '${q.cvsqTotalScore}',
+                    style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: OptoSpacing.md),
+
+          // Export + delete buttons
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OptoActionButton(
+                label: 'PDF',
+                icon: Icons.picture_as_pdf,
+                onPressed: () =>
+                    ExportService.exportQuestionnairePdf(context, q, l),
+              ),
+              OptoActionButton(
+                label: 'Excel',
+                icon: Icons.table_chart,
+                onPressed: () => ExportService.exportQuestionnaireExcel(q, l),
+              ),
+              OptoActionButton(
+                label: 'CSV',
+                icon: Icons.description,
+                onPressed: () => ExportService.exportQuestionnaireCsv(q, l),
+              ),
+              OptoActionButton(
+                label: l.historyDelete,
+                icon: Icons.delete,
+                variant: OptoButtonVariant.danger,
+                onPressed: () async {
+                  await QuestionnaireStorage.delete(q.id);
+                  if (!mounted) return;
+                  setState(() => _selectedResultId = null);
+                  await _loadData();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: OptoSpacing.lg),
+
+          // CVS-Q section
+          Text(l.questionnaireCvsqSection,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface)),
+          const SizedBox(height: OptoSpacing.sm),
+          ...List.generate(q.cvsqAnswers.length, (i) {
+            final a = q.cvsqAnswers[i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  SizedBox(
+                      width: 24,
+                      child: Text('${i + 1}.',
+                          style: TextStyle(
+                              fontSize: 12, color: cs.onSurfaceVariant))),
+                  Expanded(
+                      child: Text(_cvsqItemText(i, l),
+                          style: TextStyle(fontSize: 12, color: cs.onSurface))),
+                  Text(_freqLabel(a.frequency, l),
+                      style: TextStyle(
+                          fontSize: 11, color: cs.onSurfaceVariant)),
+                  const SizedBox(width: 8),
+                  Text(
+                      a.intensity == null
+                          ? '—'
+                          : _intLabel(a.intensity!, l),
+                      style: TextStyle(
+                          fontSize: 11, color: cs.onSurfaceVariant)),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 24,
+                    child: Text(
+                      '${a.score}',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurface),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: OptoSpacing.md),
+
+          // FSS section
+          Text(l.questionnaireFssSection,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface)),
+          const SizedBox(height: OptoSpacing.sm),
+          ...List.generate(q.fssAnswers.length, (i) {
+            final v = q.fssAnswers[i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Text(_fssItemText(i, l),
+                          style: TextStyle(fontSize: 12, color: cs.onSurface))),
+                  Text(
+                    v == null ? '—' : '$v / 7',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  String _freqLabel(CvsqFrequency f, AppLocalizations l) => switch (f) {
+        CvsqFrequency.never => l.cvsqFreqNever,
+        CvsqFrequency.occasional => l.cvsqFreqOccasional,
+        CvsqFrequency.habitual => l.cvsqFreqHabitual,
+      };
+
+  String _intLabel(CvsqIntensity i, AppLocalizations l) => switch (i) {
+        CvsqIntensity.moderate => l.cvsqIntModerate,
+        CvsqIntensity.intense => l.cvsqIntIntense,
+      };
+
+  String _cvsqItemText(int i, AppLocalizations l) {
+    switch (i) {
+      case 0:
+        return l.cvsqItem1;
+      case 1:
+        return l.cvsqItem2;
+      case 2:
+        return l.cvsqItem3;
+      case 3:
+        return l.cvsqItem4;
+      case 4:
+        return l.cvsqItem5;
+      case 5:
+        return l.cvsqItem6;
+      case 6:
+        return l.cvsqItem7;
+      case 7:
+        return l.cvsqItem8;
+      case 8:
+        return l.cvsqItem9;
+      case 9:
+        return l.cvsqItem10;
+      case 10:
+        return l.cvsqItem11;
+      case 11:
+        return l.cvsqItem12;
+      case 12:
+        return l.cvsqItem13;
+      case 13:
+        return l.cvsqItem14;
+      case 14:
+        return l.cvsqItem15;
+      case 15:
+        return l.cvsqItem16;
+      default:
+        throw StateError('invalid CVS-Q index $i');
+    }
+  }
+
+  String _fssItemText(int i, AppLocalizations l) {
+    switch (i) {
+      case 0:
+        return l.fssItem1;
+      case 1:
+        return l.fssItem2;
+      case 2:
+        return l.fssItem3;
+      case 3:
+        return l.fssItem4;
+      case 4:
+        return l.fssItem5;
+      default:
+        throw StateError('invalid FSS index $i');
+    }
   }
 }
 

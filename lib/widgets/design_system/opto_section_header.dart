@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../theme/opto_colors.dart';
 import '../../theme/opto_spacing.dart';
 
 class OptoSectionHeader extends StatelessWidget {

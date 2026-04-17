@@ -1948,6 +1948,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Name updated'**
   String get renameSuccess;
+
+  /// No description provided for @questionnaireMenuTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CVS-Q Questionnaire'**
+  String get questionnaireMenuTitle;
+
+  /// No description provided for @questionnaireMenuSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Visual symptoms assessment'**
+  String get questionnaireMenuSubtitle;
+
+  /// No description provided for @questionnaireFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CVS-Q Questionnaire'**
+  String get questionnaireFormTitle;
+
+  /// No description provided for @questionnaireCvsqSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Visual symptoms (CVS-Q)'**
+  String get questionnaireCvsqSection;
+
+  /// No description provided for @questionnaireFssSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Fatigue and motivation — optional'**
+  String get questionnaireFssSection;
+
+  /// No description provided for @questionnaireAnsweredCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{answered}/16 answered'**
+  String questionnaireAnsweredCount(int answered);
+
+  /// No description provided for @questionnaireScoreLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'CVS-Q Score'**
+  String get questionnaireScoreLabel;
+
+  /// No description provided for @questionnaireSaveButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get questionnaireSaveButton;
+
+  /// No description provided for @questionnaireSavedSnack.
+  ///
+  /// In en, this message translates to:
+  /// **'Questionnaire saved'**
+  String get questionnaireSavedSnack;
+
+  /// No description provided for @questionnairePatientLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Patient name'**
+  String get questionnairePatientLabel;
+
+  /// No description provided for @cvsqFreqHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get cvsqFreqHeader;
+
+  /// No description provided for @cvsqIntHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'Intensity'**
+  String get cvsqIntHeader;
+
+  /// No description provided for @cvsqFreqNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get cvsqFreqNever;
+
+  /// No description provided for @cvsqFreqOccasional.
+  ///
+  /// In en, this message translates to:
+  /// **'Occasionally'**
+  String get cvsqFreqOccasional;
+
+  /// No description provided for @cvsqFreqHabitual.
+  ///
+  /// In en, this message translates to:
+  /// **'Habitually or always'**
+  String get cvsqFreqHabitual;
+
+  /// No description provided for @cvsqIntModerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate'**
+  String get cvsqIntModerate;
+
+  /// No description provided for @cvsqIntIntense.
+  ///
+  /// In en, this message translates to:
+  /// **'Intense'**
+  String get cvsqIntIntense;
+
+  /// No description provided for @cvsqItem1.
+  ///
+  /// In en, this message translates to:
+  /// **'Burning sensation'**
+  String get cvsqItem1;
+
+  /// No description provided for @cvsqItem2.
+  ///
+  /// In en, this message translates to:
+  /// **'Itching'**
+  String get cvsqItem2;
+
+  /// No description provided for @cvsqItem3.
+  ///
+  /// In en, this message translates to:
+  /// **'Foreign body sensation'**
+  String get cvsqItem3;
+
+  /// No description provided for @cvsqItem4.
+  ///
+  /// In en, this message translates to:
+  /// **'Tearing'**
+  String get cvsqItem4;
+
+  /// No description provided for @cvsqItem5.
+  ///
+  /// In en, this message translates to:
+  /// **'Excessive blinking'**
+  String get cvsqItem5;
+
+  /// No description provided for @cvsqItem6.
+  ///
+  /// In en, this message translates to:
+  /// **'Red eye'**
+  String get cvsqItem6;
+
+  /// No description provided for @cvsqItem7.
+  ///
+  /// In en, this message translates to:
+  /// **'Eye pain'**
+  String get cvsqItem7;
+
+  /// No description provided for @cvsqItem8.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy eyelids'**
+  String get cvsqItem8;
+
+  /// No description provided for @cvsqItem9.
+  ///
+  /// In en, this message translates to:
+  /// **'Dryness'**
+  String get cvsqItem9;
+
+  /// No description provided for @cvsqItem10.
+  ///
+  /// In en, this message translates to:
+  /// **'Blurred vision'**
+  String get cvsqItem10;
+
+  /// No description provided for @cvsqItem11.
+  ///
+  /// In en, this message translates to:
+  /// **'Double vision'**
+  String get cvsqItem11;
+
+  /// No description provided for @cvsqItem12.
+  ///
+  /// In en, this message translates to:
+  /// **'Difficulty focusing near'**
+  String get cvsqItem12;
+
+  /// No description provided for @cvsqItem13.
+  ///
+  /// In en, this message translates to:
+  /// **'Increased light sensitivity'**
+  String get cvsqItem13;
+
+  /// No description provided for @cvsqItem14.
+  ///
+  /// In en, this message translates to:
+  /// **'Colored halos around lights'**
+  String get cvsqItem14;
+
+  /// No description provided for @cvsqItem15.
+  ///
+  /// In en, this message translates to:
+  /// **'Feeling that vision has worsened'**
+  String get cvsqItem15;
+
+  /// No description provided for @cvsqItem16.
+  ///
+  /// In en, this message translates to:
+  /// **'Headache'**
+  String get cvsqItem16;
+
+  /// No description provided for @fssItem1.
+  ///
+  /// In en, this message translates to:
+  /// **'Fatigue level'**
+  String get fssItem1;
+
+  /// No description provided for @fssItem2.
+  ///
+  /// In en, this message translates to:
+  /// **'Motivation level'**
+  String get fssItem2;
+
+  /// No description provided for @fssItem3.
+  ///
+  /// In en, this message translates to:
+  /// **'Stress level'**
+  String get fssItem3;
+
+  /// No description provided for @fssItem4.
+  ///
+  /// In en, this message translates to:
+  /// **'Fatigue interferes with task performance'**
+  String get fssItem4;
+
+  /// No description provided for @fssItem5.
+  ///
+  /// In en, this message translates to:
+  /// **'Hours of sleep'**
+  String get fssItem5;
+
+  /// No description provided for @fssAnchorAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'Agree'**
+  String get fssAnchorAgree;
+
+  /// No description provided for @fssAnchorDisagree.
+  ///
+  /// In en, this message translates to:
+  /// **'Disagree'**
+  String get fssAnchorDisagree;
+
+  /// No description provided for @historyTestQuestionnaire.
+  ///
+  /// In en, this message translates to:
+  /// **'Questionnaire'**
+  String get historyTestQuestionnaire;
+
+  /// No description provided for @questionnaireHistorySubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CVS-Q · Score: {score}'**
+  String questionnaireHistorySubtitle(int score);
+
+  /// No description provided for @exportQuestionnaireTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'CVS-Q Questionnaire'**
+  String get exportQuestionnaireTitle;
+
+  /// No description provided for @exportQuestionnaireBulkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Questionnaires'**
+  String get exportQuestionnaireBulkTitle;
+
+  /// No description provided for @exportItemNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'#'**
+  String get exportItemNumber;
+
+  /// No description provided for @exportItemName.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get exportItemName;
+
+  /// No description provided for @exportFrequency.
+  ///
+  /// In en, this message translates to:
+  /// **'Frequency'**
+  String get exportFrequency;
+
+  /// No description provided for @exportIntensity.
+  ///
+  /// In en, this message translates to:
+  /// **'Intensity'**
+  String get exportIntensity;
+
+  /// No description provided for @exportScore.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get exportScore;
+
+  /// No description provided for @exportValueScale.
+  ///
+  /// In en, this message translates to:
+  /// **'Value (1-7)'**
+  String get exportValueScale;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

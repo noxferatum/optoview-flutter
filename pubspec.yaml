@@ -5,7 +5,7 @@ publish_to: 'none'
 # Versión de la app:
 # 1.0.0 → versión visible
 # +1    → número de compilación
-version: 3.0.0+1
+version: 3.1.0+2
 
 environment:
   sdk: '^3.8.0'
@@ -25,6 +25,8 @@ dependencies:
   file_picker: ^8.0.0
   path_provider: ^2.1.0
   animations: ^2.0.11
+  uuid: ^4.4.0
+  archive: ^3.6.1
 
 dev_dependencies:
   flutter_test:

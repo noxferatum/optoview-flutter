@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../main.dart' show themeNotifier, saveThemePreference;
+import '../models/questionnaire_result.dart';
 import '../models/saved_result.dart';
+import '../services/questionnaire_storage.dart';
 import '../services/results_storage.dart';
 import '../theme/opto_colors.dart';
 import '../theme/opto_spacing.dart';
@@ -12,6 +14,7 @@ import 'credits_screen.dart';
 import 'history_screen.dart';
 import 'localization_config_screen.dart';
 import 'macdonald_config_screen.dart';
+import 'questionnaire_form_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -23,12 +26,13 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen>
     with SingleTickerProviderStateMixin {
   List<SavedResult> _results = [];
+  List<QuestionnaireResult> _questionnaires = [];
   bool _isLoading = true;
 
   late final AnimationController _animController;
 
-  // Staggered animations (7 items max: 3 test cards + repeat + 3 stats + activity)
-  static const int _totalAnimItems = 8;
+  // Staggered animations: 3 test cards + repeat + questionnaire + stats + activity
+  static const int _totalAnimItems = 9;
   late final List<Animation<double>> _fadeAnims;
   late final List<Animation<double>> _slideAnims;
 
@@ -53,10 +57,14 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Future<void> _loadData() async {
-    final results = await ResultsStorage.loadAll();
+    final loaded = await Future.wait([
+      ResultsStorage.loadAll(),
+      QuestionnaireStorage.loadAll(),
+    ]);
     if (!mounted) return;
     setState(() {
-      _results = results;
+      _results = loaded[0] as List<SavedResult>;
+      _questionnaires = loaded[1] as List<QuestionnaireResult>;
       _isLoading = false;
     });
     _animController.forward();
@@ -85,8 +93,17 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   SavedResult? get _lastResult => _results.isNotEmpty ? _results.first : null;
 
-  List<SavedResult> get _recentResults =>
-      _results.length > 4 ? _results.sublist(0, 4) : _results;
+  DateTime _activityDate(Object item) {
+    if (item is SavedResult) return item.startedAt;
+    if (item is QuestionnaireResult) return item.completedAt;
+    throw StateError('unknown activity item type $item');
+  }
+
+  List<Object> get _recentActivity {
+    final all = <Object>[..._results, ..._questionnaires];
+    all.sort((a, b) => _activityDate(b).compareTo(_activityDate(a)));
+    return all.length > 4 ? all.sublist(0, 4) : all;
+  }
 
   // -- Helpers --
 
@@ -151,9 +168,15 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Future<void> _refreshData() async {
-    final results = await ResultsStorage.loadAll();
+    final loaded = await Future.wait([
+      ResultsStorage.loadAll(),
+      QuestionnaireStorage.loadAll(),
+    ]);
     if (!mounted) return;
-    setState(() => _results = results);
+    setState(() {
+      _results = loaded[0] as List<SavedResult>;
+      _questionnaires = loaded[1] as List<QuestionnaireResult>;
+    });
   }
 
   @override
@@ -314,6 +337,11 @@ class _DashboardScreenState extends State<DashboardScreen>
             const SizedBox(height: OptoSpacing.md),
             _animatedItem(3, _buildRepeatCard(colorScheme, theme)),
           ],
+          const SizedBox(height: OptoSpacing.sm),
+          _animatedItem(
+            4,
+            _buildQuestionnaireCard(l, colorScheme),
+          ),
         ],
       ),
     );
@@ -361,6 +389,69 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const SizedBox(height: 2),
                     Text(
                       description,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurfaceVariant,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuestionnaireCard(AppLocalizations l, ColorScheme colorScheme) {
+    return OptoCard(
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            OptoPageRoute(builder: (_) => const QuestionnaireFormScreen()),
+          ).then((_) => _refreshData());
+        },
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        child: Padding(
+          padding: const EdgeInsets.all(OptoSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: OptoColors.primary.withAlpha(38),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.assignment,
+                    color: OptoColors.primary, size: 22),
+              ),
+              const SizedBox(width: OptoSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.questionnaireMenuTitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l.questionnaireMenuSubtitle,
                       style: TextStyle(
                         fontSize: 11,
                         color: colorScheme.onSurfaceVariant,
@@ -469,18 +560,18 @@ class _DashboardScreenState extends State<DashboardScreen>
     ThemeData theme,
     ColorScheme colorScheme,
   ) {
-    if (_results.isEmpty) {
+    if (_results.isEmpty && _questionnaires.isEmpty) {
       return _buildEmptyState(colorScheme);
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _animatedItem(4, _buildStatsRow(colorScheme)),
+        _animatedItem(5, _buildStatsRow(colorScheme)),
         const SizedBox(height: OptoSpacing.md),
         Expanded(
           child: _animatedItem(
-            5,
+            6,
             _buildActivityCard(l, theme, colorScheme),
           ),
         ),
@@ -615,11 +706,17 @@ class _DashboardScreenState extends State<DashboardScreen>
           const SizedBox(height: OptoSpacing.md),
           Expanded(
             child: ListView.separated(
-              itemCount: _recentResults.length,
+              itemCount: _recentActivity.length,
               separatorBuilder: (_, __) => const SizedBox(height: OptoSpacing.sm),
               itemBuilder: (_, i) {
-                final r = _recentResults[i];
-                return _buildActivityRow(r, colorScheme);
+                final item = _recentActivity[i];
+                if (item is SavedResult) {
+                  return _buildActivityRow(item, colorScheme);
+                }
+                if (item is QuestionnaireResult) {
+                  return _buildQuestionnaireActivityRow(item, colorScheme);
+                }
+                return const SizedBox.shrink();
               },
             ),
           ),
@@ -684,6 +781,67 @@ class _DashboardScreenState extends State<DashboardScreen>
               fontSize: 10,
               fontWeight: FontWeight.w500,
               color: statusColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildQuestionnaireActivityRow(
+    QuestionnaireResult q,
+    ColorScheme colorScheme,
+  ) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: const BoxDecoration(
+            color: OptoColors.primary,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: OptoSpacing.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                q.patientName.isNotEmpty ? q.patientName : 'Cuestionario CVS-Q',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: colorScheme.onSurface,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                'CVS-Q · ${_relativeTime(q.completedAt)}',
+                style: TextStyle(
+                  fontSize: 10,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: OptoSpacing.sm,
+            vertical: 2,
+          ),
+          decoration: BoxDecoration(
+            color: OptoColors.primary.withAlpha(31),
+            borderRadius: BorderRadius.circular(OptoSpacing.radiusChip),
+          ),
+          child: Text(
+            '${q.cvsqTotalScore}',
+            style: const TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: OptoColors.primary,
             ),
           ),
         ),

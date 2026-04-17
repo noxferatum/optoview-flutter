@@ -976,4 +976,158 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get renameSuccess => 'Name updated';
+
+  @override
+  String get questionnaireMenuTitle => 'CVS-Q Questionnaire';
+
+  @override
+  String get questionnaireMenuSubtitle => 'Visual symptoms assessment';
+
+  @override
+  String get questionnaireFormTitle => 'CVS-Q Questionnaire';
+
+  @override
+  String get questionnaireCvsqSection => 'Visual symptoms (CVS-Q)';
+
+  @override
+  String get questionnaireFssSection => 'Fatigue and motivation — optional';
+
+  @override
+  String questionnaireAnsweredCount(int answered) {
+    return '$answered/16 answered';
+  }
+
+  @override
+  String get questionnaireScoreLabel => 'CVS-Q Score';
+
+  @override
+  String get questionnaireSaveButton => 'Save';
+
+  @override
+  String get questionnaireSavedSnack => 'Questionnaire saved';
+
+  @override
+  String get questionnairePatientLabel => 'Patient name';
+
+  @override
+  String get cvsqFreqHeader => 'Frequency';
+
+  @override
+  String get cvsqIntHeader => 'Intensity';
+
+  @override
+  String get cvsqFreqNever => 'Never';
+
+  @override
+  String get cvsqFreqOccasional => 'Occasionally';
+
+  @override
+  String get cvsqFreqHabitual => 'Habitually or always';
+
+  @override
+  String get cvsqIntModerate => 'Moderate';
+
+  @override
+  String get cvsqIntIntense => 'Intense';
+
+  @override
+  String get cvsqItem1 => 'Burning sensation';
+
+  @override
+  String get cvsqItem2 => 'Itching';
+
+  @override
+  String get cvsqItem3 => 'Foreign body sensation';
+
+  @override
+  String get cvsqItem4 => 'Tearing';
+
+  @override
+  String get cvsqItem5 => 'Excessive blinking';
+
+  @override
+  String get cvsqItem6 => 'Red eye';
+
+  @override
+  String get cvsqItem7 => 'Eye pain';
+
+  @override
+  String get cvsqItem8 => 'Heavy eyelids';
+
+  @override
+  String get cvsqItem9 => 'Dryness';
+
+  @override
+  String get cvsqItem10 => 'Blurred vision';
+
+  @override
+  String get cvsqItem11 => 'Double vision';
+
+  @override
+  String get cvsqItem12 => 'Difficulty focusing near';
+
+  @override
+  String get cvsqItem13 => 'Increased light sensitivity';
+
+  @override
+  String get cvsqItem14 => 'Colored halos around lights';
+
+  @override
+  String get cvsqItem15 => 'Feeling that vision has worsened';
+
+  @override
+  String get cvsqItem16 => 'Headache';
+
+  @override
+  String get fssItem1 => 'Fatigue level';
+
+  @override
+  String get fssItem2 => 'Motivation level';
+
+  @override
+  String get fssItem3 => 'Stress level';
+
+  @override
+  String get fssItem4 => 'Fatigue interferes with task performance';
+
+  @override
+  String get fssItem5 => 'Hours of sleep';
+
+  @override
+  String get fssAnchorAgree => 'Agree';
+
+  @override
+  String get fssAnchorDisagree => 'Disagree';
+
+  @override
+  String get historyTestQuestionnaire => 'Questionnaire';
+
+  @override
+  String questionnaireHistorySubtitle(int score) {
+    return 'CVS-Q · Score: $score';
+  }
+
+  @override
+  String get exportQuestionnaireTitle => 'CVS-Q Questionnaire';
+
+  @override
+  String get exportQuestionnaireBulkTitle => 'Questionnaires';
+
+  @override
+  String get exportItemNumber => '#';
+
+  @override
+  String get exportItemName => 'Item';
+
+  @override
+  String get exportFrequency => 'Frequency';
+
+  @override
+  String get exportIntensity => 'Intensity';
+
+  @override
+  String get exportScore => 'Score';
+
+  @override
+  String get exportValueScale => 'Value (1-7)';
 }
