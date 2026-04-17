@@ -218,6 +218,17 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
+  void _toggleSelectionById(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+        if (_selectedIds.isEmpty) _selectionMode = false;
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
   void _selectAll() {
     setState(() {
       _selectedIds.addAll(_filteredItems.map(_idOf));
@@ -1444,8 +1455,86 @@ class _HistoryScreenState extends State<HistoryScreen> {
       return _buildResultTile(item, l, dateFmt, theme,
           showPatientName: showPatientName);
     }
-    // TODO Task 9: render QuestionnaireResult tile.
+    if (item is QuestionnaireResult) {
+      return _buildQuestionnaireTile(item, theme.colorScheme, l);
+    }
     return const SizedBox.shrink();
+  }
+
+  Widget _buildQuestionnaireTile(
+    QuestionnaireResult q,
+    ColorScheme cs,
+    AppLocalizations l,
+  ) {
+    final isSelected = _selectedIds.contains(q.id);
+    final isDetailSelected = q.id == _selectedResultId;
+    return Container(
+      decoration: BoxDecoration(
+        color: isDetailSelected ? OptoColors.primary.withAlpha(26) : null,
+        border: Border(bottom: BorderSide(color: cs.outlineVariant)),
+      ),
+      child: InkWell(
+        onTap: _selectionMode
+            ? () => _toggleSelectionById(q.id)
+            : () => setState(() => _selectedResultId = q.id),
+        onLongPress: () {
+          if (!_selectionMode) {
+            setState(() {
+              _selectionMode = true;
+              _selectedIds.add(q.id);
+            });
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(OptoSpacing.md),
+          child: Row(
+            children: [
+              if (_selectionMode)
+                Padding(
+                  padding: const EdgeInsets.only(right: OptoSpacing.sm),
+                  child: Checkbox(
+                    value: isSelected,
+                    onChanged: (_) => _toggleSelectionById(q.id),
+                  ),
+                ),
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: OptoColors.primary.withAlpha(38),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.assignment,
+                    color: OptoColors.primary, size: 18),
+              ),
+              const SizedBox(width: OptoSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      q.patientName.isNotEmpty
+                          ? q.patientName
+                          : l.questionnaireFormTitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                    Text(
+                      l.questionnaireHistorySubtitle(q.cvsqTotalScore),
+                      style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right, color: cs.onSurfaceVariant, size: 18),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
 
