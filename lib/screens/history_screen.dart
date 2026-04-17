@@ -15,6 +15,7 @@ import '../services/questionnaire_storage.dart';
 import '../services/results_storage.dart';
 import '../theme/opto_colors.dart';
 import '../theme/opto_spacing.dart';
+import '../widgets/design_system/opto_action_button.dart';
 
 enum _HistoryViewMode { byPatient, byDate }
 
@@ -885,14 +886,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
       return const SizedBox.shrink();
     }
 
-    // TODO Task 9/10: render questionnaire detail panel.
+    if (selected is QuestionnaireResult) {
+      return _buildQuestionnaireDetailPanel(selected, colorScheme, l);
+    }
+
     if (selected is! SavedResult) {
-      return Center(
-        child: Text(
-          'Questionnaire detail coming soon',
-          style: TextStyle(color: colorScheme.onSurfaceVariant),
-        ),
-      );
+      return const SizedBox.shrink();
     }
 
     final current = selected;
@@ -1535,6 +1534,247 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ),
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Questionnaire detail panel
+  // ---------------------------------------------------------------------------
+
+  Widget _buildQuestionnaireDetailPanel(
+    QuestionnaireResult q,
+    ColorScheme cs,
+    AppLocalizations l,
+  ) {
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: patient + date + score
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      q.patientName.isNotEmpty
+                          ? q.patientName
+                          : l.questionnaireFormTitle,
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurface),
+                    ),
+                    Text(
+                      dateFmt.format(q.completedAt),
+                      style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(l.questionnaireScoreLabel,
+                      style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                  Text(
+                    '${q.cvsqTotalScore}',
+                    style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: OptoSpacing.md),
+
+          // Export + delete buttons
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OptoActionButton(
+                label: 'PDF',
+                icon: Icons.picture_as_pdf,
+                onPressed: () =>
+                    ExportService.exportQuestionnairePdf(context, q, l),
+              ),
+              OptoActionButton(
+                label: 'Excel',
+                icon: Icons.table_chart,
+                onPressed: () => ExportService.exportQuestionnaireExcel(q, l),
+              ),
+              OptoActionButton(
+                label: 'CSV',
+                icon: Icons.description,
+                onPressed: () => ExportService.exportQuestionnaireCsv(q, l),
+              ),
+              OptoActionButton(
+                label: l.historyDelete,
+                icon: Icons.delete,
+                variant: OptoButtonVariant.danger,
+                onPressed: () async {
+                  await QuestionnaireStorage.delete(q.id);
+                  if (!mounted) return;
+                  setState(() => _selectedResultId = null);
+                  await _loadData();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: OptoSpacing.lg),
+
+          // CVS-Q section
+          Text(l.questionnaireCvsqSection,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface)),
+          const SizedBox(height: OptoSpacing.sm),
+          ...List.generate(q.cvsqAnswers.length, (i) {
+            final a = q.cvsqAnswers[i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  SizedBox(
+                      width: 24,
+                      child: Text('${i + 1}.',
+                          style: TextStyle(
+                              fontSize: 12, color: cs.onSurfaceVariant))),
+                  Expanded(
+                      child: Text(_cvsqItemText(i, l),
+                          style: TextStyle(fontSize: 12, color: cs.onSurface))),
+                  Text(_freqLabel(a.frequency, l),
+                      style: TextStyle(
+                          fontSize: 11, color: cs.onSurfaceVariant)),
+                  const SizedBox(width: 8),
+                  Text(
+                      a.intensity == null
+                          ? '—'
+                          : _intLabel(a.intensity!, l),
+                      style: TextStyle(
+                          fontSize: 11, color: cs.onSurfaceVariant)),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    width: 24,
+                    child: Text(
+                      '${a.score}',
+                      textAlign: TextAlign.right,
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurface),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const SizedBox(height: OptoSpacing.md),
+
+          // FSS section
+          Text(l.questionnaireFssSection,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: cs.onSurface)),
+          const SizedBox(height: OptoSpacing.sm),
+          ...List.generate(q.fssAnswers.length, (i) {
+            final v = q.fssAnswers[i];
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Text(_fssItemText(i, l),
+                          style: TextStyle(fontSize: 12, color: cs.onSurface))),
+                  Text(
+                    v == null ? '—' : '$v / 7',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  String _freqLabel(CvsqFrequency f, AppLocalizations l) => switch (f) {
+        CvsqFrequency.never => l.cvsqFreqNever,
+        CvsqFrequency.occasional => l.cvsqFreqOccasional,
+        CvsqFrequency.habitual => l.cvsqFreqHabitual,
+      };
+
+  String _intLabel(CvsqIntensity i, AppLocalizations l) => switch (i) {
+        CvsqIntensity.moderate => l.cvsqIntModerate,
+        CvsqIntensity.intense => l.cvsqIntIntense,
+      };
+
+  String _cvsqItemText(int i, AppLocalizations l) {
+    switch (i) {
+      case 0:
+        return l.cvsqItem1;
+      case 1:
+        return l.cvsqItem2;
+      case 2:
+        return l.cvsqItem3;
+      case 3:
+        return l.cvsqItem4;
+      case 4:
+        return l.cvsqItem5;
+      case 5:
+        return l.cvsqItem6;
+      case 6:
+        return l.cvsqItem7;
+      case 7:
+        return l.cvsqItem8;
+      case 8:
+        return l.cvsqItem9;
+      case 9:
+        return l.cvsqItem10;
+      case 10:
+        return l.cvsqItem11;
+      case 11:
+        return l.cvsqItem12;
+      case 12:
+        return l.cvsqItem13;
+      case 13:
+        return l.cvsqItem14;
+      case 14:
+        return l.cvsqItem15;
+      case 15:
+        return l.cvsqItem16;
+      default:
+        throw StateError('invalid CVS-Q index $i');
+    }
+  }
+
+  String _fssItemText(int i, AppLocalizations l) {
+    switch (i) {
+      case 0:
+        return l.fssItem1;
+      case 1:
+        return l.fssItem2;
+      case 2:
+        return l.fssItem3;
+      case 3:
+        return l.fssItem4;
+      case 4:
+        return l.fssItem5;
+      default:
+        throw StateError('invalid FSS index $i');
+    }
   }
 }
 
