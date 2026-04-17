@@ -12,6 +12,7 @@ import 'credits_screen.dart';
 import 'history_screen.dart';
 import 'localization_config_screen.dart';
 import 'macdonald_config_screen.dart';
+import 'questionnaire_form_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -27,8 +28,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   late final AnimationController _animController;
 
-  // Staggered animations (7 items max: 3 test cards + repeat + 3 stats + activity)
-  static const int _totalAnimItems = 8;
+  // Staggered animations: 3 test cards + repeat + questionnaire + stats + activity
+  static const int _totalAnimItems = 9;
   late final List<Animation<double>> _fadeAnims;
   late final List<Animation<double>> _slideAnims;
 
@@ -314,6 +315,11 @@ class _DashboardScreenState extends State<DashboardScreen>
             const SizedBox(height: OptoSpacing.md),
             _animatedItem(3, _buildRepeatCard(colorScheme, theme)),
           ],
+          const SizedBox(height: OptoSpacing.sm),
+          _animatedItem(
+            4,
+            _buildQuestionnaireCard(l, colorScheme),
+          ),
         ],
       ),
     );
@@ -361,6 +367,69 @@ class _DashboardScreenState extends State<DashboardScreen>
                     const SizedBox(height: 2),
                     Text(
                       description,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: colorScheme.onSurfaceVariant,
+                size: 20,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuestionnaireCard(AppLocalizations l, ColorScheme colorScheme) {
+    return OptoCard(
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            OptoPageRoute(builder: (_) => const QuestionnaireFormScreen()),
+          ).then((_) => _refreshData());
+        },
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        child: Padding(
+          padding: const EdgeInsets.all(OptoSpacing.md),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: OptoColors.primary.withAlpha(38),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.assignment,
+                    color: OptoColors.primary, size: 22),
+              ),
+              const SizedBox(width: OptoSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l.questionnaireMenuTitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l.questionnaireMenuSubtitle,
                       style: TextStyle(
                         fontSize: 11,
                         color: colorScheme.onSurfaceVariant,
@@ -476,11 +545,11 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _animatedItem(4, _buildStatsRow(colorScheme)),
+        _animatedItem(5, _buildStatsRow(colorScheme)),
         const SizedBox(height: OptoSpacing.md),
         Expanded(
           child: _animatedItem(
-            5,
+            6,
             _buildActivityCard(l, theme, colorScheme),
           ),
         ),
