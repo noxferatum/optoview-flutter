@@ -7,9 +7,11 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 import '../l10n/app_localizations.dart';
 import '../models/macdonald_result.dart';
+import '../models/questionnaire_result.dart';
 import '../models/saved_result.dart';
 import '../services/app_logger.dart';
 import '../services/export_service.dart';
+import '../services/questionnaire_storage.dart';
 import '../services/results_storage.dart';
 import '../theme/opto_colors.dart';
 import '../theme/opto_spacing.dart';
@@ -24,7 +26,7 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  List<SavedResult> _results = [];
+  List<Object> _items = []; // SavedResult OR QuestionnaireResult
   bool _isLoading = true;
   String _searchQuery = '';
   _HistoryViewMode _viewMode = _HistoryViewMode.byPatient;
@@ -40,7 +42,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _loadResults();
+    _loadData();
   }
 
   @override
@@ -49,38 +51,67 @@ class _HistoryScreenState extends State<HistoryScreen> {
     super.dispose();
   }
 
-  Future<void> _loadResults() async {
+  Future<void> _loadData() async {
     final results = await ResultsStorage.loadAll();
-    if (mounted) {
-      setState(() {
-        _results = results;
-        _isLoading = false;
-      });
-    }
+    final questionnaires = await QuestionnaireStorage.loadAll();
+    final combined = <Object>[...results, ...questionnaires];
+    combined.sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
+    if (!mounted) return;
+    setState(() {
+      _items = combined;
+      _isLoading = false;
+    });
   }
 
-  /// Filtra resultados por nombre de paciente o tipo de test.
-  List<SavedResult> get _filteredResults {
-    if (_searchQuery.isEmpty) return _results;
+  // ---------------------------------------------------------------------------
+  // Mixed-item helpers
+  // ---------------------------------------------------------------------------
+
+  DateTime _dateOf(Object item) {
+    if (item is SavedResult) return item.startedAt;
+    if (item is QuestionnaireResult) return item.completedAt;
+    throw StateError('unknown item type $item');
+  }
+
+  String _idOf(Object item) {
+    if (item is SavedResult) return item.id;
+    if (item is QuestionnaireResult) return item.id;
+    throw StateError('unknown item type $item');
+  }
+
+  String _patientOf(Object item) {
+    if (item is SavedResult) return item.patientName;
+    if (item is QuestionnaireResult) return item.patientName;
+    throw StateError('unknown item type $item');
+  }
+
+  /// Filtra items por nombre de paciente o tipo de test.
+  List<Object> get _filteredItems {
+    if (_searchQuery.isEmpty) return _items;
     final q = _searchQuery.toLowerCase();
     final l = AppLocalizations.of(context)!;
-    return _results.where((r) {
-      final name = r.patientName.toLowerCase();
-      final type = _testTypeLabel(r.testType, l).toLowerCase();
-      return name.contains(q) || type.contains(q);
+    return _items.where((item) {
+      final name = _patientOf(item).toLowerCase();
+      if (name.contains(q)) return true;
+      if (item is SavedResult) {
+        final type = _testTypeLabel(item.testType, l).toLowerCase();
+        if (type.contains(q)) return true;
+      }
+      return false;
     }).toList();
   }
 
-  /// Agrupa resultados por paciente, ordenados: primero con nombre, luego sin nombre.
-  Map<String, List<SavedResult>> _groupByPatient(List<SavedResult> results) {
-    final groups = <String, List<SavedResult>>{};
-    for (final r in results) {
-      final key = r.patientName.isNotEmpty ? r.patientName : '';
-      groups.putIfAbsent(key, () => []).add(r);
+  /// Agrupa items por paciente, ordenados: primero con nombre, luego sin nombre.
+  Map<String, List<Object>> _groupByPatient(List<Object> items) {
+    final groups = <String, List<Object>>{};
+    for (final item in items) {
+      final name = _patientOf(item);
+      final key = name.isNotEmpty ? name : '';
+      groups.putIfAbsent(key, () => []).add(item);
     }
     // Ordenar cada grupo por fecha descendente.
     for (final list in groups.values) {
-      list.sort((a, b) => b.startedAt.compareTo(a.startedAt));
+      list.sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
     }
     return groups;
   }
@@ -101,7 +132,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Navigator.pop(ctx);
               ResultsStorage.deleteAll();
               setState(() {
-                _results.clear();
+                // Only test results are wiped here; questionnaires remain.
+                _items.removeWhere((item) => item is SavedResult);
                 _selectedResultId = null;
               });
             },
@@ -128,7 +160,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
               Navigator.pop(ctx);
               ResultsStorage.delete(result.id);
               setState(() {
-                _results.removeWhere((r) => r.id == result.id);
+                _items.removeWhere(
+                  (item) => item is SavedResult && item.id == result.id,
+                );
                 if (_selectedResultId == result.id) {
                   _selectedResultId = null;
                 }
@@ -172,7 +206,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   void _selectAll() {
     setState(() {
-      _selectedIds.addAll(_filteredResults.map((r) => r.id));
+      _selectedIds.addAll(_filteredItems.map(_idOf));
     });
   }
 
@@ -184,7 +218,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   List<SavedResult> get _selectedResults =>
-      _results.where((r) => _selectedIds.contains(r.id)).toList()
+      _items
+          .whereType<SavedResult>()
+          .where((r) => _selectedIds.contains(r.id))
+          .toList()
         ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
 
   Future<void> _bulkExport(String format, AppLocalizations l) async {
@@ -244,8 +281,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               final updated = result.copyWith(patientName: newName);
               ResultsStorage.update(updated);
               setState(() {
-                final idx = _results.indexWhere((r) => r.id == result.id);
-                if (idx != -1) _results[idx] = updated;
+                final idx = _items.indexWhere(
+                  (item) => item is SavedResult && item.id == result.id,
+                );
+                if (idx != -1) _items[idx] = updated;
               });
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -265,7 +304,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   Future<void> _exportBackup(AppLocalizations l) async {
-    if (_results.isEmpty) {
+    final savedResults = _items.whereType<SavedResult>().toList();
+    if (savedResults.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l.backupNoResults)),
       );
@@ -286,7 +326,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l.backupExportSuccess(_results.length))),
+        SnackBar(content: Text(l.backupExportSuccess(savedResults.length))),
       );
     }
   }
@@ -315,7 +355,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         SnackBar(content: Text(l.backupImportNone)),
       );
     } else {
-      await _loadResults();
+      await _loadData();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l.backupImportSuccess(count))),
       );
@@ -327,9 +367,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   void _showPatientSummaryExport(AppLocalizations l) {
-    // Group results by patient name
+    // Group results by patient name (test results only; questionnaires
+    // are not supported in the patient summary export yet).
     final patients = <String, List<SavedResult>>{};
-    for (final r in _results) {
+    for (final r in _items.whereType<SavedResult>()) {
       final name = r.patientName.isNotEmpty ? r.patientName : '-';
       patients.putIfAbsent(name, () => []).add(r);
     }
@@ -495,7 +536,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           _buildTopBar(l),
           _buildFilterBar(l),
           Expanded(
-            child: _results.isEmpty
+            child: _items.isEmpty
                 ? _buildEmptyState(l)
                 : Row(
                     children: [
@@ -562,10 +603,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   IconButton(
                     icon: Icon(Icons.select_all,
                         color: colorScheme.onSurface),
-                    tooltip: _selectedIds.length == _filteredResults.length
+                    tooltip: _selectedIds.length == _filteredItems.length
                         ? l.bulkDeselectAll
                         : l.bulkSelectAll,
-                    onPressed: _selectedIds.length == _filteredResults.length
+                    onPressed: _selectedIds.length == _filteredItems.length
                         ? _deselectAll
                         : _selectAll,
                   ),
@@ -595,21 +636,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     tooltip: l.backupImportTooltip,
                     onPressed: () => _importBackup(l),
                   ),
-                  if (_results.isNotEmpty)
+                  if (_items.isNotEmpty)
                     IconButton(
                       icon: Icon(Icons.file_upload,
                           color: colorScheme.onSurface),
                       tooltip: l.backupExportTooltip,
                       onPressed: () => _exportBackup(l),
                     ),
-                  if (_results.isNotEmpty)
+                  if (_items.isNotEmpty)
                     IconButton(
                       icon: Icon(Icons.summarize,
                           color: colorScheme.onSurface),
                       tooltip: l.exportPatientSummary,
                       onPressed: () => _showPatientSummaryExport(l),
                     ),
-                  if (_results.isNotEmpty)
+                  if (_items.isNotEmpty)
                     IconButton(
                       icon: Icon(Icons.delete_sweep,
                           color: colorScheme.onSurface),
@@ -627,7 +668,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   Widget _buildFilterBar(AppLocalizations l) {
-    if (_results.isEmpty) return const SizedBox.shrink();
+    if (_items.isEmpty) return const SizedBox.shrink();
 
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
@@ -715,7 +756,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Widget _buildListPanel(AppLocalizations l, DateFormat dateFmt) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final filtered = _filteredResults;
+    final filtered = _filteredItems;
 
     if (filtered.isEmpty) {
       return Center(
@@ -760,22 +801,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
       );
     }
 
-    final current = _results.firstWhere(
-      (r) => r.id == _selectedResultId,
-      orElse: () {
-        // Result was deleted; clear selection.
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) setState(() => _selectedResultId = null);
-        });
-        return _results.isNotEmpty ? _results.first : _results.first;
-      },
-    );
+    // Find the selected item; may be a SavedResult or QuestionnaireResult.
+    Object? selected;
+    for (final item in _items) {
+      if (_idOf(item) == _selectedResultId) {
+        selected = item;
+        break;
+      }
+    }
 
-    // If the result list is empty (shouldn't normally happen because we
-    // check _results.isEmpty higher up), bail out.
-    if (_results.isEmpty) {
+    if (selected == null) {
+      // Item was deleted; clear selection.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _selectedResultId = null);
+      });
       return const SizedBox.shrink();
     }
+
+    // TODO Task 9/10: render questionnaire detail panel.
+    if (selected is! SavedResult) {
+      return Center(
+        child: Text(
+          'Questionnaire detail coming soon',
+          style: TextStyle(color: colorScheme.onSurfaceVariant),
+        ),
+      );
+    }
+
+    final current = selected;
 
     final typeColor = _testTypeColor(current.testType);
 
@@ -1247,7 +1300,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildPatientGroupedView(List<SavedResult> filtered,
+  Widget _buildPatientGroupedView(List<Object> filtered,
       AppLocalizations l, DateFormat dateFmt, ThemeData theme) {
     final colorScheme = theme.colorScheme;
     final groups = _groupByPatient(filtered);
@@ -1305,25 +1358,38 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 endIndent: 16,
                 color: colorScheme.outlineVariant),
             // Resultados del grupo
-            ...items.map(
-                (r) => _buildResultTile(r, l, dateFmt, theme)),
+            ...items.map((item) => _buildItemTile(item, l, dateFmt, theme)),
           ],
         );
       },
     );
   }
 
-  Widget _buildDateSortedView(List<SavedResult> filtered, AppLocalizations l,
+  Widget _buildDateSortedView(List<Object> filtered, AppLocalizations l,
       DateFormat dateFmt, ThemeData theme) {
-    final sorted = List<SavedResult>.from(filtered)
-      ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+    final sorted = List<Object>.from(filtered)
+      ..sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
 
     return ListView.builder(
       padding: const EdgeInsets.only(bottom: 16),
       itemCount: sorted.length,
-      itemBuilder: (context, index) =>
-          _buildResultTile(sorted[index], l, dateFmt, theme, showPatientName: true),
+      itemBuilder: (context, index) => _buildItemTile(
+        sorted[index], l, dateFmt, theme,
+        showPatientName: true,
+      ),
     );
+  }
+
+  /// Dispatches tile rendering by concrete item type.
+  Widget _buildItemTile(
+      Object item, AppLocalizations l, DateFormat dateFmt, ThemeData theme,
+      {bool showPatientName = false}) {
+    if (item is SavedResult) {
+      return _buildResultTile(item, l, dateFmt, theme,
+          showPatientName: showPatientName);
+    }
+    // TODO Task 9: render QuestionnaireResult tile.
+    return const SizedBox.shrink();
   }
 }
 
