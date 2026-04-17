@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -447,7 +448,7 @@ abstract final class ExportService {
       buf.writeln([_fssItemPdfLabel(i, l), v == null ? '-' : '$v / 7'].join(';'));
     }
     await _shareFile(
-      Uint8List.fromList(buf.toString().codeUnits),
+      Uint8List.fromList(utf8.encode(buf.toString())),
       'OptoView_cuestionario_${q.id}.csv',
       'text/csv',
     );
@@ -1014,8 +1015,8 @@ abstract final class ExportService {
       final testsCsv = _buildTestsBulkCsv(tests, l);
       final qCsv = _buildQuestionnaireBulkCsv(questionnaires, l);
       final archive = Archive();
-      final testsBytes = testsCsv.codeUnits;
-      final qBytes = qCsv.codeUnits;
+      final testsBytes = utf8.encode(testsCsv);
+      final qBytes = utf8.encode(qCsv);
       archive
           .addFile(ArchiveFile('tests.csv', testsBytes.length, testsBytes));
       archive.addFile(
@@ -1033,7 +1034,7 @@ abstract final class ExportService {
 
     if (tests.isNotEmpty) {
       final csv = _buildTestsBulkCsv(tests, l);
-      await _shareFile(Uint8List.fromList(csv.codeUnits),
+      await _shareFile(Uint8List.fromList(utf8.encode(csv)),
           'OptoView_seleccion_$now.csv', 'text/csv');
       AppLogger.info('exportBulkCsv: compartido OK (tests)');
       return;
@@ -1041,7 +1042,7 @@ abstract final class ExportService {
 
     if (questionnaires.isNotEmpty) {
       final csv = _buildQuestionnaireBulkCsv(questionnaires, l);
-      await _shareFile(Uint8List.fromList(csv.codeUnits),
+      await _shareFile(Uint8List.fromList(utf8.encode(csv)),
           'OptoView_cuestionarios_$now.csv', 'text/csv');
       AppLogger.info('exportBulkCsv: compartido OK (cuestionarios)');
       return;
@@ -1275,7 +1276,7 @@ abstract final class ExportService {
     }
 
     await _shareFile(
-      Uint8List.fromList(buf.toString().codeUnits),
+      Uint8List.fromList(utf8.encode(buf.toString())),
       'OptoView_${result.testType}_${result.id}.csv',
       'text/csv',
     );
@@ -1344,7 +1345,7 @@ abstract final class ExportService {
     }
 
     await _shareFile(
-      Uint8List.fromList(buf.toString().codeUnits),
+      Uint8List.fromList(utf8.encode(buf.toString())),
       'OptoView_resumen_$patientName.csv',
       'text/csv',
     );

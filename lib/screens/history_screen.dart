@@ -54,9 +54,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Future<void> _loadData() async {
-    final results = await ResultsStorage.loadAll();
-    final questionnaires = await QuestionnaireStorage.loadAll();
-    final combined = <Object>[...results, ...questionnaires];
+    final loaded = await Future.wait([
+      ResultsStorage.loadAll(),
+      QuestionnaireStorage.loadAll(),
+    ]);
+    final combined = <Object>[...loaded[0], ...loaded[1]];
     combined.sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
     if (!mounted) return;
     setState(() {
@@ -143,12 +145,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
             child: Text(l.historyCancel),
           ),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              ResultsStorage.deleteAll();
+              await Future.wait([
+                ResultsStorage.deleteAll(),
+                QuestionnaireStorage.clear(),
+              ]);
+              if (!mounted) return;
               setState(() {
-                // Only test results are wiped here; questionnaires remain.
-                _items.removeWhere((item) => item is SavedResult);
+                _items.clear();
                 _selectedResultId = null;
               });
             },

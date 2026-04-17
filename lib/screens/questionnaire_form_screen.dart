@@ -323,10 +323,16 @@ class _QuestionnaireFormScreenState extends State<QuestionnaireFormScreen> {
               style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
             ),
           ),
-          OptoActionButton(
-            label: l.questionnaireSaveButton,
-            icon: Icons.save,
-            onPressed: _canSave ? () => _save(l) : () {},
+          Opacity(
+            opacity: _canSave ? 1.0 : 0.4,
+            child: IgnorePointer(
+              ignoring: !_canSave,
+              child: OptoActionButton(
+                label: l.questionnaireSaveButton,
+                icon: Icons.save,
+                onPressed: () => _save(l),
+              ),
+            ),
           ),
         ],
       ),
