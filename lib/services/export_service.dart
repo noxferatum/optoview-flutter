@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:archive/archive.dart';
 import 'package:excel/excel.dart' as xl;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -460,80 +461,178 @@ abstract final class ExportService {
   static Future<void> exportPatientSummaryPdf(
     BuildContext context,
     String patientName,
-    List<SavedResult> results,
+    List<Object> items,
     AppLocalizations l,
   ) async {
+    final tests = items.whereType<SavedResult>().toList();
+    final questionnaires = items.whereType<QuestionnaireResult>().toList();
     AppLogger.info('exportPatientSummaryPdf: inicio (paciente=$patientName, '
-        'resultados=${results.length})');
+        'tests=${tests.length}, cuestionarios=${questionnaires.length})');
 
     final doc = pw.Document();
     final now = _dateFmt.format(DateTime.now());
 
-    doc.addPage(
-      pw.MultiPage(
+    if (tests.isNotEmpty) {
+      doc.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          maxPages: 100,
+          build: (ctx) => [
+            pw.Text(l.exportPatientReport(patientName),
+                style:
+                    pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 4),
+            pw.Text(l.exportReportGenerated(now),
+                style: const pw.TextStyle(
+                    fontSize: 10, color: PdfColors.grey700)),
+            pw.Divider(),
+            pw.SizedBox(height: 8),
+            // Cabecera
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 4),
+              decoration: const pw.BoxDecoration(
+                border:
+                    pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
+              ),
+              child: pw.Row(children: [
+                pw.Expanded(
+                    flex: 3,
+                    child: pw.Text(l.exportTestDate,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 3,
+                    child: pw.Text(l.exportTestType,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text(l.exportAccuracy,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text(l.exportReactionTime,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text(l.exportDuration,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              ]),
+            ),
+            // Filas individuales (paginables por MultiPage)
+            ...tests.map((r) {
+              final acc = r.accuracy != null
+                  ? '${(r.accuracy! * 100).toStringAsFixed(1)}%'
+                  : '-';
+              final rt = r.avgReactionTimeMs != null
+                  ? '${r.avgReactionTimeMs!.toStringAsFixed(0)} ms'
+                  : '-';
+              return pw.Container(
+                padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.grey200)),
+                ),
+                child: pw.Row(children: [
+                  pw.Expanded(
+                      flex: 3,
+                      child: pw.Text(_dateFmt.format(r.startedAt),
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 3,
+                      child: pw.Text(_testTypeLabel(r.testType, l),
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 2,
+                      child:
+                          pw.Text(acc, style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 2,
+                      child:
+                          pw.Text(rt, style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 2,
+                      child: pw.Text('${r.durationActualSeconds}s',
+                          style: const pw.TextStyle(fontSize: 9))),
+                ]),
+              );
+            }),
+          ],
+        ),
+      );
+    }
+
+    if (questionnaires.isNotEmpty) {
+      doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         maxPages: 100,
         build: (ctx) => [
-          pw.Text(l.exportPatientReport(patientName),
-              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+          pw.Text(l.exportQuestionnaireBulkTitle,
+              style:
+                  pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 4),
           pw.Text(l.exportReportGenerated(now),
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+              style:
+                  const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
           pw.Divider(),
-          pw.SizedBox(height: 8),
-          // Cabecera
           pw.Container(
             padding: const pw.EdgeInsets.symmetric(vertical: 4),
             decoration: const pw.BoxDecoration(
-              border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
+              border:
+                  pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
             ),
             child: pw.Row(children: [
-              pw.Expanded(flex: 3, child: pw.Text(l.exportTestDate,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 3, child: pw.Text(l.exportTestType,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 2, child: pw.Text(l.exportAccuracy,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 2, child: pw.Text(l.exportReactionTime,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 2, child: pw.Text(l.exportDuration,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 3,
+                  child: pw.Text(l.exportTestDate,
+                      style: pw.TextStyle(
+                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 3,
+                  child: pw.Text(l.patientName,
+                      style: pw.TextStyle(
+                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 2,
+                  child: pw.Text(l.questionnaireScoreLabel,
+                      style: pw.TextStyle(
+                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
             ]),
           ),
-          // Filas individuales (paginables por MultiPage)
-          ...results.map((r) {
-            final acc = r.accuracy != null
-                ? '${(r.accuracy! * 100).toStringAsFixed(1)}%'
-                : '-';
-            final rt = r.avgReactionTimeMs != null
-                ? '${r.avgReactionTimeMs!.toStringAsFixed(0)} ms'
-                : '-';
-            return pw.Container(
-              padding: const pw.EdgeInsets.symmetric(vertical: 3),
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey200)),
-              ),
-              child: pw.Row(children: [
-                pw.Expanded(flex: 3, child: pw.Text(_dateFmt.format(r.startedAt),
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 3, child: pw.Text(_testTypeLabel(r.testType, l),
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 2, child: pw.Text(acc,
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 2, child: pw.Text(rt,
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 2, child: pw.Text('${r.durationActualSeconds}s',
-                    style: const pw.TextStyle(fontSize: 9))),
-              ]),
-            );
-          }),
+          ...questionnaires.map((q) => pw.Container(
+                padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.grey200)),
+                ),
+                child: pw.Row(children: [
+                  pw.Expanded(
+                      flex: 3,
+                      child: pw.Text(_dateFmt.format(q.completedAt),
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 3,
+                      child: pw.Text(
+                          q.patientName.isNotEmpty ? q.patientName : '-',
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 2,
+                      child: pw.Text('${q.cvsqTotalScore}',
+                          style: const pw.TextStyle(fontSize: 9))),
+                ]),
+              )),
         ],
-      ),
-    );
+      ));
+    }
 
     final bytes = await doc.save();
-    AppLogger.info('exportPatientSummaryPdf: documento generado (${bytes.length} bytes)');
+    AppLogger.info(
+        'exportPatientSummaryPdf: documento generado (${bytes.length} bytes)');
 
     await _shareFile(
       bytes,
@@ -549,83 +648,187 @@ abstract final class ExportService {
 
   static Future<void> exportBulkPdf(
     BuildContext context,
-    List<SavedResult> results,
+    List<Object> items,
     AppLocalizations l,
   ) async {
-    AppLogger.info('exportBulkPdf: inicio (resultados=${results.length})');
+    final tests = items.whereType<SavedResult>().toList();
+    final questionnaires = items.whereType<QuestionnaireResult>().toList();
+    AppLogger.info('exportBulkPdf: inicio (tests=${tests.length}, '
+        'cuestionarios=${questionnaires.length})');
 
     final doc = pw.Document();
     final now = _dateFmt.format(DateTime.now());
 
-    doc.addPage(
-      pw.MultiPage(
+    if (tests.isNotEmpty) {
+      doc.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          maxPages: 100,
+          build: (ctx) => [
+            pw.Text(l.bulkReportTitle,
+                style:
+                    pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+            pw.SizedBox(height: 4),
+            pw.Text(l.exportReportGenerated(now),
+                style: const pw.TextStyle(
+                    fontSize: 10, color: PdfColors.grey700)),
+            pw.Text('${tests.length} resultados',
+                style: const pw.TextStyle(
+                    fontSize: 10, color: PdfColors.grey700)),
+            pw.Divider(),
+            pw.SizedBox(height: 8),
+            // Header
+            pw.Container(
+              padding: const pw.EdgeInsets.symmetric(vertical: 4),
+              decoration: const pw.BoxDecoration(
+                border:
+                    pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
+              ),
+              child: pw.Row(children: [
+                pw.Expanded(
+                    flex: 3,
+                    child: pw.Text(l.patientName,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 3,
+                    child: pw.Text(l.exportTestDate,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text(l.exportTestType,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text(l.exportAccuracy,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 2,
+                    child: pw.Text(l.exportReactionTime,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+                pw.Expanded(
+                    flex: 1,
+                    child: pw.Text(l.exportDuration,
+                        style: pw.TextStyle(
+                            fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              ]),
+            ),
+            // Rows
+            ...tests.map((r) {
+              final acc = r.accuracy != null
+                  ? '${(r.accuracy! * 100).toStringAsFixed(1)}%'
+                  : '-';
+              final rt = r.avgReactionTimeMs != null
+                  ? '${r.avgReactionTimeMs!.toStringAsFixed(0)} ms'
+                  : '-';
+              return pw.Container(
+                padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.grey200)),
+                ),
+                child: pw.Row(children: [
+                  pw.Expanded(
+                      flex: 3,
+                      child: pw.Text(
+                          r.patientName.isNotEmpty ? r.patientName : '-',
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 3,
+                      child: pw.Text(_dateFmt.format(r.startedAt),
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 2,
+                      child: pw.Text(_testTypeLabel(r.testType, l),
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 2,
+                      child:
+                          pw.Text(acc, style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 2,
+                      child:
+                          pw.Text(rt, style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 1,
+                      child: pw.Text('${r.durationActualSeconds}s',
+                          style: const pw.TextStyle(fontSize: 9))),
+                ]),
+              );
+            }),
+          ],
+        ),
+      );
+    }
+
+    if (questionnaires.isNotEmpty) {
+      doc.addPage(pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(32),
         maxPages: 100,
         build: (ctx) => [
-          pw.Text(l.bulkReportTitle,
-              style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+          pw.Text(l.exportQuestionnaireBulkTitle,
+              style:
+                  pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 4),
           pw.Text(l.exportReportGenerated(now),
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-          pw.Text('${results.length} resultados',
-              style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+              style:
+                  const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
           pw.Divider(),
-          pw.SizedBox(height: 8),
-          // Header
           pw.Container(
             padding: const pw.EdgeInsets.symmetric(vertical: 4),
             decoration: const pw.BoxDecoration(
-              border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
+              border:
+                  pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
             ),
             child: pw.Row(children: [
-              pw.Expanded(flex: 3, child: pw.Text(l.patientName,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 3, child: pw.Text(l.exportTestDate,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 2, child: pw.Text(l.exportTestType,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 2, child: pw.Text(l.exportAccuracy,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 2, child: pw.Text(l.exportReactionTime,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(flex: 1, child: pw.Text(l.exportDuration,
-                  style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 3,
+                  child: pw.Text(l.exportTestDate,
+                      style: pw.TextStyle(
+                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 3,
+                  child: pw.Text(l.patientName,
+                      style: pw.TextStyle(
+                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
+              pw.Expanded(
+                  flex: 2,
+                  child: pw.Text(l.questionnaireScoreLabel,
+                      style: pw.TextStyle(
+                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
             ]),
           ),
-          // Rows
-          ...results.map((r) {
-            final acc = r.accuracy != null
-                ? '${(r.accuracy! * 100).toStringAsFixed(1)}%'
-                : '-';
-            final rt = r.avgReactionTimeMs != null
-                ? '${r.avgReactionTimeMs!.toStringAsFixed(0)} ms'
-                : '-';
-            return pw.Container(
-              padding: const pw.EdgeInsets.symmetric(vertical: 3),
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey200)),
-              ),
-              child: pw.Row(children: [
-                pw.Expanded(flex: 3, child: pw.Text(
-                    r.patientName.isNotEmpty ? r.patientName : '-',
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 3, child: pw.Text(_dateFmt.format(r.startedAt),
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 2, child: pw.Text(_testTypeLabel(r.testType, l),
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 2, child: pw.Text(acc,
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 2, child: pw.Text(rt,
-                    style: const pw.TextStyle(fontSize: 9))),
-                pw.Expanded(flex: 1, child: pw.Text('${r.durationActualSeconds}s',
-                    style: const pw.TextStyle(fontSize: 9))),
-              ]),
-            );
-          }),
+          ...questionnaires.map((q) => pw.Container(
+                padding: const pw.EdgeInsets.symmetric(vertical: 3),
+                decoration: const pw.BoxDecoration(
+                  border: pw.Border(
+                      bottom: pw.BorderSide(color: PdfColors.grey200)),
+                ),
+                child: pw.Row(children: [
+                  pw.Expanded(
+                      flex: 3,
+                      child: pw.Text(_dateFmt.format(q.completedAt),
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 3,
+                      child: pw.Text(
+                          q.patientName.isNotEmpty ? q.patientName : '-',
+                          style: const pw.TextStyle(fontSize: 9))),
+                  pw.Expanded(
+                      flex: 2,
+                      child: pw.Text('${q.cvsqTotalScore}',
+                          style: const pw.TextStyle(fontSize: 9))),
+                ]),
+              )),
         ],
-      ),
-    );
+      ));
+    }
 
     final bytes = await doc.save();
     AppLogger.info('exportBulkPdf: documento generado (${bytes.length} bytes)');
@@ -644,52 +847,89 @@ abstract final class ExportService {
   // ---------------------------------------------------------------------------
 
   static Future<void> exportBulkExcel(
-    List<SavedResult> results,
+    List<Object> items,
     AppLocalizations l,
   ) async {
-    AppLogger.info('exportBulkExcel: inicio (resultados=${results.length})');
+    final tests = items.whereType<SavedResult>().toList();
+    final questionnaires = items.whereType<QuestionnaireResult>().toList();
+    AppLogger.info('exportBulkExcel: inicio (tests=${tests.length}, '
+        'cuestionarios=${questionnaires.length})');
     final excel = xl.Excel.createExcel();
-    final sheet = excel['Seleccion'];
 
     if (excel.sheets.containsKey('Sheet1')) {
       excel.delete('Sheet1');
     }
 
-    final headers = [
-      l.patientName,
-      l.exportTestDate,
-      l.exportTestType,
-      l.exportAccuracy,
-      l.exportReactionTime,
-      l.exportDuration,
-      l.statsStimuliShown,
-    ];
-    for (int c = 0; c < headers.length; c++) {
-      sheet.cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0)).value =
-          xl.TextCellValue(headers[c]);
+    if (tests.isNotEmpty) {
+      final sheet = excel['Tests'];
+      final headers = [
+        l.patientName,
+        l.exportTestDate,
+        l.exportTestType,
+        l.exportAccuracy,
+        l.exportReactionTime,
+        l.exportDuration,
+        l.statsStimuliShown,
+      ];
+      for (int c = 0; c < headers.length; c++) {
+        sheet
+            .cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0))
+            .value = xl.TextCellValue(headers[c]);
+      }
+
+      for (int r = 0; r < tests.length; r++) {
+        final res = tests[r];
+        final row = r + 1;
+        final acc = res.accuracy != null
+            ? '${(res.accuracy! * 100).toStringAsFixed(1)}%'
+            : '-';
+        final rt = res.avgReactionTimeMs != null
+            ? '${res.avgReactionTimeMs!.toStringAsFixed(0)} ms'
+            : '-';
+        final values = [
+          res.patientName.isNotEmpty ? res.patientName : '-',
+          _dateFmt.format(res.startedAt),
+          _testTypeLabel(res.testType, l),
+          acc,
+          rt,
+          '${res.durationActualSeconds}s',
+          '${res.totalStimuliShown}',
+        ];
+        for (int c = 0; c < values.length; c++) {
+          sheet
+              .cell(xl.CellIndex.indexByColumnRow(
+                  columnIndex: c, rowIndex: row))
+              .value = xl.TextCellValue(values[c]);
+        }
+      }
     }
 
-    for (int r = 0; r < results.length; r++) {
-      final res = results[r];
-      final row = r + 1;
-      final acc = res.accuracy != null
-          ? '${(res.accuracy! * 100).toStringAsFixed(1)}%'
-          : '-';
-      final rt = res.avgReactionTimeMs != null
-          ? '${res.avgReactionTimeMs!.toStringAsFixed(0)} ms'
-          : '-';
-      final values = [
-        res.patientName.isNotEmpty ? res.patientName : '-',
-        _dateFmt.format(res.startedAt),
-        _testTypeLabel(res.testType, l),
-        acc,
-        rt,
-        '${res.durationActualSeconds}s',
-        '${res.totalStimuliShown}',
+    if (questionnaires.isNotEmpty) {
+      final sheet = excel['Cuestionarios'];
+      final headers = [
+        l.exportTestDate,
+        l.patientName,
+        l.questionnaireScoreLabel,
       ];
-      for (int c = 0; c < values.length; c++) {
-        sheet.cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: row)).value =
-            xl.TextCellValue(values[c]);
+      for (int c = 0; c < headers.length; c++) {
+        sheet
+            .cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0))
+            .value = xl.TextCellValue(headers[c]);
+      }
+      for (int r = 0; r < questionnaires.length; r++) {
+        final q = questionnaires[r];
+        final row = r + 1;
+        final values = [
+          _dateFmt.format(q.completedAt),
+          q.patientName.isNotEmpty ? q.patientName : '-',
+          '${q.cvsqTotalScore}',
+        ];
+        for (int c = 0; c < values.length; c++) {
+          sheet
+              .cell(xl.CellIndex.indexByColumnRow(
+                  columnIndex: c, rowIndex: row))
+              .value = xl.TextCellValue(values[c]);
+        }
       }
     }
 
@@ -712,13 +952,9 @@ abstract final class ExportService {
   // CSV bulk (selected results)
   // ---------------------------------------------------------------------------
 
-  static Future<void> exportBulkCsv(
-    List<SavedResult> results,
-    AppLocalizations l,
-  ) async {
-    AppLogger.info('exportBulkCsv: inicio (resultados=${results.length})');
+  static String _buildTestsBulkCsv(
+      List<SavedResult> results, AppLocalizations l) {
     final buf = StringBuffer();
-
     buf.writeln([
       l.patientName,
       l.exportTestDate,
@@ -728,7 +964,6 @@ abstract final class ExportService {
       l.exportDuration,
       l.statsStimuliShown,
     ].join(';'));
-
     for (final r in results) {
       final acc = r.accuracy != null
           ? (r.accuracy! * 100).toStringAsFixed(1)
@@ -746,14 +981,71 @@ abstract final class ExportService {
         '${r.totalStimuliShown}',
       ].join(';'));
     }
+    return buf.toString();
+  }
+
+  static String _buildQuestionnaireBulkCsv(
+      List<QuestionnaireResult> qs, AppLocalizations l) {
+    final buf = StringBuffer();
+    buf.writeln(
+        [l.exportTestDate, l.patientName, l.questionnaireScoreLabel].join(';'));
+    for (final q in qs) {
+      buf.writeln([
+        _dateFmt.format(q.completedAt),
+        q.patientName.isNotEmpty ? q.patientName : '-',
+        q.cvsqTotalScore,
+      ].join(';'));
+    }
+    return buf.toString();
+  }
+
+  static Future<void> exportBulkCsv(
+    List<Object> items,
+    AppLocalizations l,
+  ) async {
+    final tests = items.whereType<SavedResult>().toList();
+    final questionnaires = items.whereType<QuestionnaireResult>().toList();
+    AppLogger.info('exportBulkCsv: inicio (tests=${tests.length}, '
+        'cuestionarios=${questionnaires.length})');
 
     final now = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
-    await _shareFile(
-      Uint8List.fromList(buf.toString().codeUnits),
-      'OptoView_seleccion_$now.csv',
-      'text/csv',
-    );
-    AppLogger.info('exportBulkCsv: compartido OK');
+
+    if (tests.isNotEmpty && questionnaires.isNotEmpty) {
+      final testsCsv = _buildTestsBulkCsv(tests, l);
+      final qCsv = _buildQuestionnaireBulkCsv(questionnaires, l);
+      final archive = Archive();
+      final testsBytes = testsCsv.codeUnits;
+      final qBytes = qCsv.codeUnits;
+      archive
+          .addFile(ArchiveFile('tests.csv', testsBytes.length, testsBytes));
+      archive.addFile(
+          ArchiveFile('cuestionarios.csv', qBytes.length, qBytes));
+      final zipBytes = ZipEncoder().encode(archive);
+      if (zipBytes == null) {
+        AppLogger.warning('exportBulkCsv: ZipEncoder.encode() devolvió null');
+        return;
+      }
+      await _shareFile(Uint8List.fromList(zipBytes),
+          'OptoView_seleccion_$now.zip', 'application/zip');
+      AppLogger.info('exportBulkCsv: compartido OK (ZIP)');
+      return;
+    }
+
+    if (tests.isNotEmpty) {
+      final csv = _buildTestsBulkCsv(tests, l);
+      await _shareFile(Uint8List.fromList(csv.codeUnits),
+          'OptoView_seleccion_$now.csv', 'text/csv');
+      AppLogger.info('exportBulkCsv: compartido OK (tests)');
+      return;
+    }
+
+    if (questionnaires.isNotEmpty) {
+      final csv = _buildQuestionnaireBulkCsv(questionnaires, l);
+      await _shareFile(Uint8List.fromList(csv.codeUnits),
+          'OptoView_cuestionarios_$now.csv', 'text/csv');
+      AppLogger.info('exportBulkCsv: compartido OK (cuestionarios)');
+      return;
+    }
   }
 
   // ---------------------------------------------------------------------------
@@ -837,52 +1129,87 @@ abstract final class ExportService {
 
   static Future<void> exportPatientSummaryExcel(
     String patientName,
-    List<SavedResult> results,
+    List<Object> items,
     AppLocalizations l,
   ) async {
+    final tests = items.whereType<SavedResult>().toList();
+    final questionnaires = items.whereType<QuestionnaireResult>().toList();
     AppLogger.info('exportPatientSummaryExcel: inicio (paciente=$patientName, '
-        'resultados=${results.length})');
+        'tests=${tests.length}, cuestionarios=${questionnaires.length})');
     final excel = xl.Excel.createExcel();
-    final sheet = excel['Resumen'];
 
     if (excel.sheets.containsKey('Sheet1')) {
       excel.delete('Sheet1');
     }
 
-    // Header
-    final headers = [
-      l.exportTestDate,
-      l.exportTestType,
-      l.exportAccuracy,
-      l.exportReactionTime,
-      l.exportDuration,
-      l.statsStimuliShown,
-    ];
-    for (int c = 0; c < headers.length; c++) {
-      sheet.cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0)).value =
-          xl.TextCellValue(headers[c]);
+    if (tests.isNotEmpty) {
+      final sheet = excel['Tests'];
+      final headers = [
+        l.exportTestDate,
+        l.exportTestType,
+        l.exportAccuracy,
+        l.exportReactionTime,
+        l.exportDuration,
+        l.statsStimuliShown,
+      ];
+      for (int c = 0; c < headers.length; c++) {
+        sheet
+            .cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0))
+            .value = xl.TextCellValue(headers[c]);
+      }
+
+      for (int r = 0; r < tests.length; r++) {
+        final res = tests[r];
+        final row = r + 1;
+        final acc = res.accuracy != null
+            ? '${(res.accuracy! * 100).toStringAsFixed(1)}%'
+            : '-';
+        final rt = res.avgReactionTimeMs != null
+            ? '${res.avgReactionTimeMs!.toStringAsFixed(0)} ms'
+            : '-';
+        final values = [
+          _dateFmt.format(res.startedAt),
+          _testTypeLabel(res.testType, l),
+          acc,
+          rt,
+          '${res.durationActualSeconds}s',
+          '${res.totalStimuliShown}',
+        ];
+        for (int c = 0; c < values.length; c++) {
+          sheet
+              .cell(xl.CellIndex.indexByColumnRow(
+                  columnIndex: c, rowIndex: row))
+              .value = xl.TextCellValue(values[c]);
+        }
+      }
     }
 
-    for (int r = 0; r < results.length; r++) {
-      final res = results[r];
-      final row = r + 1;
-      final acc = res.accuracy != null
-          ? '${(res.accuracy! * 100).toStringAsFixed(1)}%'
-          : '-';
-      final rt = res.avgReactionTimeMs != null
-          ? '${res.avgReactionTimeMs!.toStringAsFixed(0)} ms'
-          : '-';
-      final values = [
-        _dateFmt.format(res.startedAt),
-        _testTypeLabel(res.testType, l),
-        acc,
-        rt,
-        '${res.durationActualSeconds}s',
-        '${res.totalStimuliShown}',
+    if (questionnaires.isNotEmpty) {
+      final sheet = excel['Cuestionarios'];
+      final headers = [
+        l.exportTestDate,
+        l.patientName,
+        l.questionnaireScoreLabel,
       ];
-      for (int c = 0; c < values.length; c++) {
-        sheet.cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: row)).value =
-            xl.TextCellValue(values[c]);
+      for (int c = 0; c < headers.length; c++) {
+        sheet
+            .cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0))
+            .value = xl.TextCellValue(headers[c]);
+      }
+      for (int r = 0; r < questionnaires.length; r++) {
+        final q = questionnaires[r];
+        final row = r + 1;
+        final values = [
+          _dateFmt.format(q.completedAt),
+          q.patientName.isNotEmpty ? q.patientName : '-',
+          '${q.cvsqTotalScore}',
+        ];
+        for (int c = 0; c < values.length; c++) {
+          sheet
+              .cell(xl.CellIndex.indexByColumnRow(
+                  columnIndex: c, rowIndex: row))
+              .value = xl.TextCellValue(values[c]);
+        }
       }
     }
 
@@ -961,38 +1288,59 @@ abstract final class ExportService {
 
   static Future<void> exportPatientSummaryCsv(
     String patientName,
-    List<SavedResult> results,
+    List<Object> items,
     AppLocalizations l,
   ) async {
+    final tests = items.whereType<SavedResult>().toList();
+    final questionnaires = items.whereType<QuestionnaireResult>().toList();
     AppLogger.info('exportPatientSummaryCsv: inicio (paciente=$patientName, '
-        'resultados=${results.length})');
+        'tests=${tests.length}, cuestionarios=${questionnaires.length})');
     final buf = StringBuffer();
 
-    // Header
-    buf.writeln([
-      l.exportTestDate,
-      l.exportTestType,
-      l.exportAccuracy,
-      l.exportReactionTime,
-      l.exportDuration,
-      l.statsStimuliShown,
-    ].join(';'));
-
-    for (final r in results) {
-      final acc = r.accuracy != null
-          ? (r.accuracy! * 100).toStringAsFixed(1)
-          : '';
-      final rt = r.avgReactionTimeMs != null
-          ? r.avgReactionTimeMs!.toStringAsFixed(0)
-          : '';
+    if (tests.isNotEmpty) {
+      buf.writeln(l.bulkReportTitle);
       buf.writeln([
-        _dateFmt.format(r.startedAt),
-        _testTypeLabel(r.testType, l),
-        acc,
-        rt,
-        '${r.durationActualSeconds}',
-        '${r.totalStimuliShown}',
+        l.exportTestDate,
+        l.exportTestType,
+        l.exportAccuracy,
+        l.exportReactionTime,
+        l.exportDuration,
+        l.statsStimuliShown,
       ].join(';'));
+
+      for (final r in tests) {
+        final acc = r.accuracy != null
+            ? (r.accuracy! * 100).toStringAsFixed(1)
+            : '';
+        final rt = r.avgReactionTimeMs != null
+            ? r.avgReactionTimeMs!.toStringAsFixed(0)
+            : '';
+        buf.writeln([
+          _dateFmt.format(r.startedAt),
+          _testTypeLabel(r.testType, l),
+          acc,
+          rt,
+          '${r.durationActualSeconds}',
+          '${r.totalStimuliShown}',
+        ].join(';'));
+      }
+    }
+
+    if (questionnaires.isNotEmpty) {
+      if (tests.isNotEmpty) buf.writeln();
+      buf.writeln(l.exportQuestionnaireBulkTitle);
+      buf.writeln([
+        l.exportTestDate,
+        l.patientName,
+        l.questionnaireScoreLabel,
+      ].join(';'));
+      for (final q in questionnaires) {
+        buf.writeln([
+          _dateFmt.format(q.completedAt),
+          q.patientName.isNotEmpty ? q.patientName : '-',
+          q.cvsqTotalScore,
+        ].join(';'));
+      }
     }
 
     await _shareFile(

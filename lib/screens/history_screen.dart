@@ -243,15 +243,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     });
   }
 
-  List<SavedResult> get _selectedResults =>
-      _items
-          .whereType<SavedResult>()
-          .where((r) => _selectedIds.contains(r.id))
-          .toList()
-        ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+  List<Object> get _selectedItems =>
+      _items.where((i) => _selectedIds.contains(_idOf(i))).toList()
+        ..sort((a, b) => _dateOf(b).compareTo(_dateOf(a)));
 
   Future<void> _bulkExport(String format, AppLocalizations l) async {
-    final selected = _selectedResults;
+    final selected = _selectedItems;
     if (selected.isEmpty) return;
 
     try {
@@ -393,12 +390,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // ---------------------------------------------------------------------------
 
   void _showPatientSummaryExport(AppLocalizations l) {
-    // Group results by patient name (test results only; questionnaires
-    // are not supported in the patient summary export yet).
-    final patients = <String, List<SavedResult>>{};
-    for (final r in _items.whereType<SavedResult>()) {
-      final name = r.patientName.isNotEmpty ? r.patientName : '-';
-      patients.putIfAbsent(name, () => []).add(r);
+    // Group items (tests + questionnaires) by patient name.
+    final patients = <String, List<Object>>{};
+    for (final item in _items) {
+      final rawName = _patientOf(item);
+      final name = rawName.isNotEmpty ? rawName : '-';
+      patients.putIfAbsent(name, () => []).add(item);
     }
 
     if (patients.length == 1) {
@@ -435,7 +432,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   void _showFormatPicker(
-      String patientName, List<SavedResult> results, AppLocalizations l) {
+      String patientName, List<Object> results, AppLocalizations l) {
     showModalBottomSheet(
       context: context,
       builder: (ctx) => Padding(
