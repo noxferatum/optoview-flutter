@@ -31,6 +31,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String _searchQuery = '';
   _HistoryViewMode _viewMode = _HistoryViewMode.byPatient;
   final _searchController = TextEditingController();
+  String? _activeFilter; // Filter by test type: 'peripheral', 'localization', 'macdonald', 'questionnaire', null = all
 
   // Selection mode
   bool _selectionMode = false;
@@ -85,12 +86,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
     throw StateError('unknown item type $item');
   }
 
-  /// Filtra items por nombre de paciente o tipo de test.
+  /// Filtra items por nombre de paciente, tipo de test y filtro activo.
   List<Object> get _filteredItems {
-    if (_searchQuery.isEmpty) return _items;
+    var result = _items.where((item) {
+      // Apply filter by test type / questionnaire
+      if (_activeFilter != null) {
+        if (_activeFilter == 'questionnaire') {
+          if (item is! QuestionnaireResult) return false;
+        } else {
+          if (item is! SavedResult || item.testType != _activeFilter) return false;
+        }
+      }
+      return true;
+    }).toList();
+
+    // Apply search filter
+    if (_searchQuery.isEmpty) return result;
     final q = _searchQuery.toLowerCase();
     final l = AppLocalizations.of(context)!;
-    return _items.where((item) {
+    return result.where((item) {
       final name = _patientOf(item).toLowerCase();
       if (name.contains(q)) return true;
       if (item is SavedResult) {
@@ -676,72 +690,114 @@ class _HistoryScreenState extends State<HistoryScreen> {
         OptoSpacing.md,
         OptoSpacing.sm,
         OptoSpacing.md,
-        OptoSpacing.xs,
+        OptoSpacing.sm,
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _searchController,
-              style: TextStyle(color: colorScheme.onSurface),
-              decoration: InputDecoration(
-                hintText: l.historySearchHint,
-                hintStyle:
-                    TextStyle(color: colorScheme.onSurfaceVariant),
-                prefixIcon: Icon(Icons.search,
-                    color: colorScheme.onSurfaceVariant),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear,
-                            color: colorScheme.onSurfaceVariant),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: colorScheme.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-                  borderSide:
-                      BorderSide(color: colorScheme.outlineVariant),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  style: TextStyle(color: colorScheme.onSurface),
+                  decoration: InputDecoration(
+                    hintText: l.historySearchHint,
+                    hintStyle:
+                        TextStyle(color: colorScheme.onSurfaceVariant),
+                    prefixIcon: Icon(Icons.search,
+                        color: colorScheme.onSurfaceVariant),
+                    suffixIcon: _searchQuery.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(Icons.clear,
+                                color: colorScheme.onSurfaceVariant),
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: colorScheme.surface,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                      borderSide:
+                          BorderSide(color: colorScheme.outlineVariant),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                      borderSide:
+                          BorderSide(color: colorScheme.outlineVariant),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+                      borderSide: const BorderSide(color: OptoColors.primary),
+                    ),
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                    isDense: true,
+                  ),
+                  onChanged: (v) => setState(() => _searchQuery = v.trim()),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-                  borderSide:
-                      BorderSide(color: colorScheme.outlineVariant),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-                  borderSide: const BorderSide(color: OptoColors.primary),
-                ),
-                contentPadding:
-                    const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                isDense: true,
               ),
-              onChanged: (v) => setState(() => _searchQuery = v.trim()),
-            ),
-          ),
-          const SizedBox(width: 12),
-          SegmentedButton<_HistoryViewMode>(
-            segments: [
-              ButtonSegment(
-                value: _HistoryViewMode.byPatient,
-                icon: const Icon(Icons.person, size: 18),
-                label: Text(l.historyGroupByPatient),
-              ),
-              ButtonSegment(
-                value: _HistoryViewMode.byDate,
-                icon: const Icon(Icons.calendar_today, size: 18),
-                label: Text(l.historyOrderByDate),
+              const SizedBox(width: 12),
+              SegmentedButton<_HistoryViewMode>(
+                segments: [
+                  ButtonSegment(
+                    value: _HistoryViewMode.byPatient,
+                    icon: const Icon(Icons.person, size: 18),
+                    label: Text(l.historyGroupByPatient),
+                  ),
+                  ButtonSegment(
+                    value: _HistoryViewMode.byDate,
+                    icon: const Icon(Icons.calendar_today, size: 18),
+                    label: Text(l.historyOrderByDate),
+                  ),
+                ],
+                selected: {_viewMode},
+                onSelectionChanged: (v) => setState(() => _viewMode = v.first),
+                style: ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
               ),
             ],
-            selected: {_viewMode},
-            onSelectionChanged: (v) => setState(() => _viewMode = v.first),
-            style: ButtonStyle(
-              visualDensity: VisualDensity.compact,
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                FilterChip(
+                  label: Text(Localizations.localeOf(context).languageCode == 'es' ? 'Todos' : 'All'),
+                  selected: _activeFilter == null,
+                  onSelected: (_) => setState(() => _activeFilter = null),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestPeripheral),
+                  selected: _activeFilter == 'peripheral',
+                  onSelected: (_) => setState(() => _activeFilter = 'peripheral'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestLocalization),
+                  selected: _activeFilter == 'localization',
+                  onSelected: (_) => setState(() => _activeFilter = 'localization'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestMacdonald),
+                  selected: _activeFilter == 'macdonald',
+                  onSelected: (_) => setState(() => _activeFilter = 'macdonald'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestQuestionnaire),
+                  selected: _activeFilter == 'questionnaire',
+                  onSelected: (_) => setState(() => _activeFilter = 'questionnaire'),
+                ),
+              ],
             ),
           ),
         ],
