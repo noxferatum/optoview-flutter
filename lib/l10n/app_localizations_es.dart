@@ -1130,4 +1130,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get exportValueScale => 'Valor (1-7)';
+
+  @override
+  String get settingsTitle => 'Ajustes';
+
+  @override
+  String get settingsAppearance => 'Apariencia';
+
+  @override
+  String get settingsFontSize => 'Tamaño de texto de la interfaz';
+
+  @override
+  String get settingsFontSizeNormal => 'Normal';
+
+  @override
+  String get settingsFontSizeLarge => 'Grande';
+
+  @override
+  String get settingsFontSizeExtraLarge => 'Muy grande';
+
+  @override
+  String get settingsFontSizeHint => 'No afecta al tamaño de las letras dentro de las pruebas clínicas.';
+
+  @override
+  String get settingsFontSizePreview => 'Aa';
+
+  @override
+  String get settingsLanguage => 'Idioma de la interfaz';
+
+  @override
+  String get settingsLanguageAuto => 'Automático';
+
+  @override
+  String get settingsLanguageSpanish => 'Español';
+
+  @override
+  String get settingsLanguageEnglish => 'Inglés';
 }

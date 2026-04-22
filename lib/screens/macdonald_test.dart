@@ -823,111 +823,114 @@ class _MacDonaldTestState extends State<MacDonaldTest>
     final sz = MediaQuery.of(context).size;
     final letterSizePx = sz.shortestSide * (widget.config.tamanoBase / 200);
 
-    return Scaffold(
-      body: Container(
-        color: widget.config.fondo.baseColor,
-        child: Stack(
-          children: [
-            // Center fixation
-            CenterFixation(
-              tipo: widget.config.fijacion,
-              fondo: widget.config.fondo,
-            ),
-
-            // Letters
-            if (_testStarted)
-              ..._allLetters.asMap().entries.map((entry) {
-                final idx = entry.key;
-                final letter = entry.value;
-
-                if (!letter.isRevealed) return const SizedBox.shrink();
-
-                return Positioned(
-                  left: letter.position.dx - letterSizePx / 2,
-                  top: letter.position.dy - letterSizePx / 2,
-                  child: _ChartLetter(
-                    letter: letter.letter,
-                    size: letterSizePx,
-                    color: letter.letterColor,
-                    isHighlighted: letter.isHighlighted,
-                    isCompleted: letter.isCompleted,
-                    isDark: widget.config.fondo.isDark,
-                    onTap: (widget.config.interaccion ==
-                                MacInteraccion.tocarLetras ||
-                            widget.config.interaccion ==
-                                MacInteraccion.deteccionCampo)
-                        ? () => _onLetterTapped(idx)
-                        : null,
-                  ),
-                );
-              }),
-
-            // Timer display
-            TestTimerDisplay(
-              remainingSeconds: _remaining,
-              stimuliCount: _totalLetrasShown,
-            ),
-
-            // Control buttons
-            TestControlButtons(
-              isPaused: _isPaused,
-              onTogglePause: _togglePause,
-              onStop: () => _finishTest(stoppedManually: true),
-            ),
-
-            // Next ring button (for lecturaConTiempo + porAnillos)
-            if (_testStarted &&
-                !_isPaused &&
-                widget.config.interaccion ==
-                    MacInteraccion.lecturaConTiempo &&
-                widget.config.visualizacion == MacVisualizacion.porAnillos)
-              Positioned(
-                bottom: 24,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: FilledButton.icon(
-                    onPressed: _onNextRingPressed,
-                    icon: const Icon(Icons.skip_next),
-                    label: Text(l.macNextRing),
-                  ),
-                ),
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+      child: Scaffold(
+        body: Container(
+          color: widget.config.fondo.baseColor,
+          child: Stack(
+            children: [
+              // Center fixation
+              CenterFixation(
+                tipo: widget.config.fijacion,
+                fondo: widget.config.fondo,
               ),
 
-            // Pause overlay
-            if (_isPaused)
-              PauseOverlay(
+              // Letters
+              if (_testStarted)
+                ..._allLetters.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final letter = entry.value;
+
+                  if (!letter.isRevealed) return const SizedBox.shrink();
+
+                  return Positioned(
+                    left: letter.position.dx - letterSizePx / 2,
+                    top: letter.position.dy - letterSizePx / 2,
+                    child: _ChartLetter(
+                      letter: letter.letter,
+                      size: letterSizePx,
+                      color: letter.letterColor,
+                      isHighlighted: letter.isHighlighted,
+                      isCompleted: letter.isCompleted,
+                      isDark: widget.config.fondo.isDark,
+                      onTap: (widget.config.interaccion ==
+                                  MacInteraccion.tocarLetras ||
+                              widget.config.interaccion ==
+                                  MacInteraccion.deteccionCampo)
+                          ? () => _onLetterTapped(idx)
+                          : null,
+                    ),
+                  );
+                }),
+
+              // Timer display
+              TestTimerDisplay(
                 remainingSeconds: _remaining,
-                elapsedSeconds: widget.config.duracionSegundos - _remaining,
-                stimuliShown: _totalLetrasShown,
-                onResume: _togglePause,
+                stimuliCount: _totalLetrasShown,
+              ),
+
+              // Control buttons
+              TestControlButtons(
+                isPaused: _isPaused,
+                onTogglePause: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
 
-            // Pre-test countdown
-            if (!_testStarted && !_showingInstructions)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.8),
+              // Next ring button (for lecturaConTiempo + porAnillos)
+              if (_testStarted &&
+                  !_isPaused &&
+                  widget.config.interaccion ==
+                      MacInteraccion.lecturaConTiempo &&
+                  widget.config.visualizacion == MacVisualizacion.porAnillos)
+                Positioned(
+                  bottom: 24,
+                  left: 0,
+                  right: 0,
                   child: Center(
-                    child: Text(
-                      '$_preCountdown',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 120,
-                        fontWeight: FontWeight.bold,
+                    child: FilledButton.icon(
+                      onPressed: _onNextRingPressed,
+                      icon: const Icon(Icons.skip_next),
+                      label: Text(l.macNextRing),
+                    ),
+                  ),
+                ),
+
+              // Pause overlay
+              if (_isPaused)
+                PauseOverlay(
+                  remainingSeconds: _remaining,
+                  elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                  stimuliShown: _totalLetrasShown,
+                  onResume: _togglePause,
+                  onStop: () => _finishTest(stoppedManually: true),
+                ),
+
+              // Pre-test countdown
+              if (!_testStarted && !_showingInstructions)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.8),
+                    child: Center(
+                      child: Text(
+                        '$_preCountdown',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 120,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            if (_showingInstructions)
-              InstructionOverlay(
-                testTitle: l.configMacdonaldTitle,
-                instructions: _buildInstructions(l),
-                onCountdownComplete: _handleInstructionsComplete,
-              ),
-          ],
+              if (_showingInstructions)
+                InstructionOverlay(
+                  testTitle: l.configMacdonaldTitle,
+                  instructions: _buildInstructions(l),
+                  onCountdownComplete: _handleInstructionsComplete,
+                ),
+            ],
+          ),
         ),
       ),
     );
