@@ -478,5 +478,18 @@
   "exportFrequency": "Frecuencia",
   "exportIntensity": "Intensidad",
   "exportScore": "Score",
-  "exportValueScale": "Valor (1-7)"
+  "exportValueScale": "Valor (1-7)",
+
+  "settingsTitle": "Ajustes",
+  "settingsAppearance": "Apariencia",
+  "settingsFontSize": "Tamaño de texto de la interfaz",
+  "settingsFontSizeNormal": "Normal",
+  "settingsFontSizeLarge": "Grande",
+  "settingsFontSizeExtraLarge": "Muy grande",
+  "settingsFontSizeHint": "No afecta al tamaño de las letras dentro de las pruebas clínicas.",
+  "settingsFontSizePreview": "Aa",
+  "settingsLanguage": "Idioma de la interfaz",
+  "settingsLanguageAuto": "Automático",
+  "settingsLanguageSpanish": "Español",
+  "settingsLanguageEnglish": "Inglés"
 }
