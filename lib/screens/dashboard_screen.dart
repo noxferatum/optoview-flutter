@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
-import '../main.dart' show themeNotifier, saveThemePreference;
 import '../models/questionnaire_result.dart';
 import '../models/saved_result.dart';
 import '../services/questionnaire_storage.dart';
@@ -15,6 +14,7 @@ import 'history_screen.dart';
 import 'localization_config_screen.dart';
 import 'macdonald_config_screen.dart';
 import 'questionnaire_form_screen.dart';
+import 'settings_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -183,7 +183,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context)!;
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
@@ -192,7 +191,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             ? const Center(child: CircularProgressIndicator())
             : Column(
                 children: [
-                  _buildHeader(l, theme, isDark, colorScheme),
+                  _buildHeader(l, theme, colorScheme),
                   Expanded(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
@@ -228,7 +227,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildHeader(
     AppLocalizations l,
     ThemeData theme,
-    bool isDark,
     ColorScheme colorScheme,
   ) {
     return Padding(
@@ -262,12 +260,13 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           const Spacer(),
           IconButton(
-            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
-            tooltip: isDark ? l.themeLight : l.themeDark,
+            icon: const Icon(Icons.settings),
+            tooltip: l.settingsTitle,
             onPressed: () {
-              final newMode = isDark ? ThemeMode.light : ThemeMode.dark;
-              themeNotifier.value = newMode;
-              saveThemePreference(newMode);
+              Navigator.push(
+                context,
+                OptoPageRoute(builder: (_) => const SettingsScreen()),
+              );
             },
           ),
           IconButton(
