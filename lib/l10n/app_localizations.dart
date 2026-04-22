@@ -2248,6 +2248,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Value (1-7)'**
   String get exportValueScale;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get settingsTitle;
+
+  /// No description provided for @settingsAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsAppearance;
+
+  /// No description provided for @settingsFontSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Interface text size'**
+  String get settingsFontSize;
+
+  /// No description provided for @settingsFontSizeNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get settingsFontSizeNormal;
+
+  /// No description provided for @settingsFontSizeLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Large'**
+  String get settingsFontSizeLarge;
+
+  /// No description provided for @settingsFontSizeExtraLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra large'**
+  String get settingsFontSizeExtraLarge;
+
+  /// No description provided for @settingsFontSizeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Does not affect text size within clinical tests.'**
+  String get settingsFontSizeHint;
+
+  /// No description provided for @settingsFontSizePreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Aa'**
+  String get settingsFontSizePreview;
+
+  /// No description provided for @settingsLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Interface language'**
+  String get settingsLanguage;
+
+  /// No description provided for @settingsLanguageAuto.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatic'**
+  String get settingsLanguageAuto;
+
+  /// No description provided for @settingsLanguageSpanish.
+  ///
+  /// In en, this message translates to:
+  /// **'Spanish'**
+  String get settingsLanguageSpanish;
+
+  /// No description provided for @settingsLanguageEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get settingsLanguageEnglish;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
