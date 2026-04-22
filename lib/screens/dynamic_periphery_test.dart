@@ -403,70 +403,73 @@ class _DynamicPeripheryTestState extends State<DynamicPeripheryTest>
     final mediaSize = MediaQuery.of(context).size;
     final sizePx = _layoutSizePx(mediaSize);
 
-    return Scaffold(
-      body: BackgroundPattern(
-        fondo: widget.config.fondo,
-        distractor: widget.config.fondoDistractor,
-        animado: widget.config.fondoDistractorAnimado,
-        child: Stack(
-          children: [
-            CenterFixation(
-              tipo: widget.config.fijacion,
-              fondo: widget.config.fondo,
-            ),
-            if (_showStimulus && !_isPaused)
-              PeripheralStimulus(
-                categoria: widget.config.categoria,
-                forma: _currentForma,
-                text: _currentText,
-                size: sizePx,
-                top: _currentTop,
-                left: _currentLeft,
-                onTap: () {},
-                color: _currentColorOption.color,
-                outlineColor: outlineColorForStimulus(
-                    _currentColorOption, widget.config.fondo),
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+      child: Scaffold(
+        body: BackgroundPattern(
+          fondo: widget.config.fondo,
+          distractor: widget.config.fondoDistractor,
+          animado: widget.config.fondoDistractorAnimado,
+          child: Stack(
+            children: [
+              CenterFixation(
+                tipo: widget.config.fijacion,
+                fondo: widget.config.fondo,
               ),
-            TestTimerDisplay(
-              remainingSeconds: _remaining,
-              stimuliCount: _stimuliShown,
-            ),
-            TestControlButtons(
-              isPaused: _isPaused,
-              onTogglePause: _togglePause,
-              onStop: () => _finishTest(stoppedManually: true),
-            ),
-            if (_isPaused)
-              PauseOverlay(
+              if (_showStimulus && !_isPaused)
+                PeripheralStimulus(
+                  categoria: widget.config.categoria,
+                  forma: _currentForma,
+                  text: _currentText,
+                  size: sizePx,
+                  top: _currentTop,
+                  left: _currentLeft,
+                  onTap: () {},
+                  color: _currentColorOption.color,
+                  outlineColor: outlineColorForStimulus(
+                      _currentColorOption, widget.config.fondo),
+                ),
+              TestTimerDisplay(
                 remainingSeconds: _remaining,
-                elapsedSeconds: widget.config.duracionSegundos - _remaining,
-                stimuliShown: _stimuliShown,
-                onResume: _togglePause,
+                stimuliCount: _stimuliShown,
+              ),
+              TestControlButtons(
+                isPaused: _isPaused,
+                onTogglePause: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
-            if (!_testStarted && !_showingInstructions)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.8),
-                  child: Center(
-                    child: Text(
-                      '$_preCountdown',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 120,
-                        fontWeight: FontWeight.bold,
+              if (_isPaused)
+                PauseOverlay(
+                  remainingSeconds: _remaining,
+                  elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                  stimuliShown: _stimuliShown,
+                  onResume: _togglePause,
+                  onStop: () => _finishTest(stoppedManually: true),
+                ),
+              if (!_testStarted && !_showingInstructions)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.8),
+                    child: Center(
+                      child: Text(
+                        '$_preCountdown',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 120,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            if (_showingInstructions)
-              InstructionOverlay(
-                testTitle: l.configPeripheralTitle,
-                instructions: _buildInstructions(l),
-                onCountdownComplete: _handleInstructionsComplete,
-              ),
-          ],
+              if (_showingInstructions)
+                InstructionOverlay(
+                  testTitle: l.configPeripheralTitle,
+                  instructions: _buildInstructions(l),
+                  onCountdownComplete: _handleInstructionsComplete,
+                ),
+            ],
+          ),
         ),
       ),
     );

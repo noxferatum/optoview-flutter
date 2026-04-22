@@ -601,112 +601,115 @@ class _LocalizationTestState extends State<LocalizationTest>
             sz, widget.config.tamanoPorc) *
         1.3;
 
-    return Scaffold(
-      body: BackgroundPattern(
-        fondo: widget.config.fondo,
-        distractor: widget.config.fondoDistractor,
-        animado: widget.config.fondoDistractorAnimado,
-        child: Stack(
-          children: [
-            // El centro SIEMPRE muestra el estímulo de referencia
-            Center(
-              child: Container(
-                width: centerSizePx,
-                height: centerSizePx,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 2,
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(textScaler: TextScaler.noScaling),
+      child: Scaffold(
+        body: BackgroundPattern(
+          fondo: widget.config.fondo,
+          distractor: widget.config.fondoDistractor,
+          animado: widget.config.fondoDistractorAnimado,
+          child: Stack(
+            children: [
+              // El centro SIEMPRE muestra el estímulo de referencia
+              Center(
+                child: Container(
+                  width: centerSizePx,
+                  height: centerSizePx,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
                   ),
+                  padding: const EdgeInsets.all(8),
+                  child: _buildCenterReference(centerSizePx - 16),
                 ),
-                padding: const EdgeInsets.all(8),
-                child: _buildCenterReference(centerSizePx - 16),
               ),
-            ),
 
-            // Estímulos activos
-            if (!_isPaused)
-              ..._activeStimuli.map((stimulus) => PeripheralStimulus(
-                    key: ValueKey(stimulus.id),
-                    categoria: stimulus.categoria,
-                    forma: stimulus.forma,
-                    text: stimulus.text,
-                    size: stimulus.sizePx,
-                    top: stimulus.top,
-                    left: stimulus.left,
-                    onTap: () => _onStimulusTapped(stimulus),
-                    color: stimulus.colorOption.color,
-                    outlineColor: outlineColorForStimulus(
-                        stimulus.colorOption, widget.config.fondo),
-                  )),
+              // Estímulos activos
+              if (!_isPaused)
+                ..._activeStimuli.map((stimulus) => PeripheralStimulus(
+                      key: ValueKey(stimulus.id),
+                      categoria: stimulus.categoria,
+                      forma: stimulus.forma,
+                      text: stimulus.text,
+                      size: stimulus.sizePx,
+                      top: stimulus.top,
+                      left: stimulus.left,
+                      onTap: () => _onStimulusTapped(stimulus),
+                      color: stimulus.colorOption.color,
+                      outlineColor: outlineColorForStimulus(
+                          stimulus.colorOption, widget.config.fondo),
+                    )),
 
-            // Indicadores de feedback
-            ..._feedbackIndicators.map((f) => Positioned(
-                  top: f.top - 20,
-                  left: f.left - 20,
-                  child: IgnorePointer(
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: (f.isCorrect ? Colors.green : Colors.red)
-                            .withValues(alpha: 0.6),
-                        border: Border.all(
-                          color: f.isCorrect ? Colors.green : Colors.red,
-                          width: 3,
+              // Indicadores de feedback
+              ..._feedbackIndicators.map((f) => Positioned(
+                    top: f.top - 20,
+                    left: f.left - 20,
+                    child: IgnorePointer(
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: (f.isCorrect ? Colors.green : Colors.red)
+                              .withValues(alpha: 0.6),
+                          border: Border.all(
+                            color: f.isCorrect ? Colors.green : Colors.red,
+                            width: 3,
+                          ),
+                        ),
+                        child: Icon(
+                          f.isCorrect ? Icons.check : Icons.close,
+                          color: Colors.white,
+                          size: 24,
                         ),
                       ),
-                      child: Icon(
-                        f.isCorrect ? Icons.check : Icons.close,
-                        color: Colors.white,
-                        size: 24,
-                      ),
                     ),
-                  ),
-                )),
+                  )),
 
-            TestTimerDisplay(
-              remainingSeconds: _remaining,
-              stimuliCount: _correctTouches,
-            ),
-            TestControlButtons(
-              isPaused: _isPaused,
-              onTogglePause: _togglePause,
-              onStop: () => _finishTest(stoppedManually: true),
-            ),
-            if (_isPaused)
-              PauseOverlay(
+              TestTimerDisplay(
                 remainingSeconds: _remaining,
-                elapsedSeconds: widget.config.duracionSegundos - _remaining,
-                stimuliShown: _totalStimuliShown,
-                onResume: _togglePause,
+                stimuliCount: _correctTouches,
+              ),
+              TestControlButtons(
+                isPaused: _isPaused,
+                onTogglePause: _togglePause,
                 onStop: () => _finishTest(stoppedManually: true),
               ),
-            if (!_testStarted && !_showingInstructions)
-              Positioned.fill(
-                child: Container(
-                  color: Colors.black.withValues(alpha: 0.8),
-                  child: Center(
-                    child: Text(
-                      '$_preCountdown',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 120,
-                        fontWeight: FontWeight.bold,
+              if (_isPaused)
+                PauseOverlay(
+                  remainingSeconds: _remaining,
+                  elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                  stimuliShown: _totalStimuliShown,
+                  onResume: _togglePause,
+                  onStop: () => _finishTest(stoppedManually: true),
+                ),
+              if (!_testStarted && !_showingInstructions)
+                Positioned.fill(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.8),
+                    child: Center(
+                      child: Text(
+                        '$_preCountdown',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 120,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            if (_showingInstructions)
-              InstructionOverlay(
-                testTitle: l.configLocalizationTitle,
-                instructions: _buildInstructions(l),
-                onCountdownComplete: _handleInstructionsComplete,
-              ),
-          ],
+              if (_showingInstructions)
+                InstructionOverlay(
+                  testTitle: l.configLocalizationTitle,
+                  instructions: _buildInstructions(l),
+                  onCountdownComplete: _handleInstructionsComplete,
+                ),
+            ],
+          ),
         ),
       ),
     );
