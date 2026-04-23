@@ -2,9 +2,9 @@
 /// `MediaQuery.textScaler`. Scaling is intentionally coarse (3 steps)
 /// and never applied inside the immersive clinical tests.
 enum FontScale {
-  normal(1.0, 'normal'),
-  grande(1.15, 'grande'),
-  muyGrande(1.30, 'muyGrande');
+  normal(1.15, 'normal'),
+  grande(1.30, 'grande'),
+  muyGrande(1.45, 'muyGrande');
 
   const FontScale(this.scale, this.storageKey);
 

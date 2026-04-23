@@ -138,28 +138,30 @@ class _LocalizationConfigScreenState extends State<LocalizationConfigScreen> {
     }
 
     return Scaffold(
-      body: DefaultTabController(
-        length: 4,
-        child: Column(
-          children: [
-            _buildAppBar(l),
-            const _LocConfigTabBar(),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildGeneralTab(l),
-                  _buildModoTab(l),
-                  _buildEstimuloTab(l),
-                  _buildVisualTab(l),
-                ],
+      body: SafeArea(
+        child: DefaultTabController(
+          length: 4,
+          child: Column(
+            children: [
+              _buildAppBar(l),
+              const _LocConfigTabBar(),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _buildGeneralTab(l),
+                    _buildModoTab(l),
+                    _buildEstimuloTab(l),
+                    _buildVisualTab(l),
+                  ],
+                ),
               ),
-            ),
-            ConfigBottomBar(
-              summary: _buildSummary(l),
-              onStart: _startTest,
-              startLabel: l.startTest,
-            ),
-          ],
+              ConfigBottomBar(
+                summary: _buildSummary(l),
+                onStart: _startTest,
+                startLabel: l.startTest,
+              ),
+            ],
+          ),
         ),
       ),
     );

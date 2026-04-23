@@ -117,35 +117,37 @@ class _ConfigScreenState extends State<ConfigScreen> {
     }
 
     return Scaffold(
-      body: DefaultTabController(
-        length: 4,
-        child: Column(
-          children: [
-            // Custom app bar
-            _buildAppBar(l),
+      body: SafeArea(
+        child: DefaultTabController(
+          length: 4,
+          child: Column(
+            children: [
+              // Custom app bar
+              _buildAppBar(l),
 
-            // Tab bar
-            const _ConfigTabBar(),
+              // Tab bar
+              const _ConfigTabBar(),
 
-            // Tab content
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildGeneralTab(l),
-                  _buildStimulusTab(l),
-                  _buildVisualTab(l),
-                  _buildTimeTab(l),
-                ],
+              // Tab content
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _buildGeneralTab(l),
+                    _buildStimulusTab(l),
+                    _buildVisualTab(l),
+                    _buildTimeTab(l),
+                  ],
+                ),
               ),
-            ),
 
-            // Bottom bar
-            ConfigBottomBar(
-              summary: _buildSummary(l),
-              onStart: _startTest,
-              startLabel: l.startTest,
-            ),
-          ],
+              // Bottom bar
+              ConfigBottomBar(
+                summary: _buildSummary(l),
+                onStart: _startTest,
+                startLabel: l.startTest,
+              ),
+            ],
+          ),
         ),
       ),
     );

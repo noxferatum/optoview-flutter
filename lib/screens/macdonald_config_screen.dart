@@ -152,28 +152,30 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
     }
 
     return Scaffold(
-      body: DefaultTabController(
-        length: 4,
-        child: Column(
-          children: [
-            _buildAppBar(l),
-            const _MacDonaldConfigTabBar(),
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildGeneralTab(l),
-                  _buildCartaTab(l),
-                  _buildVisualTab(l),
-                  _buildTimeTab(l),
-                ],
+      body: SafeArea(
+        child: DefaultTabController(
+          length: 4,
+          child: Column(
+            children: [
+              _buildAppBar(l),
+              const _MacDonaldConfigTabBar(),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _buildGeneralTab(l),
+                    _buildCartaTab(l),
+                    _buildVisualTab(l),
+                    _buildTimeTab(l),
+                  ],
+                ),
               ),
-            ),
-            ConfigBottomBar(
-              summary: _buildSummary(l),
-              onStart: _startTest,
-              startLabel: l.startTest,
-            ),
-          ],
+              ConfigBottomBar(
+                summary: _buildSummary(l),
+                onStart: _startTest,
+                startLabel: l.startTest,
+              ),
+            ],
+          ),
         ),
       ),
     );

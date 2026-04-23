@@ -367,8 +367,9 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   void _revealNextFieldLetter() {
     if (!mounted || _isPaused) return;
     if (_revealIndex >= _revealOrder.length) {
-      _finishTest(stoppedManually: false);
-      return;
+      // Loop: la prueba de campo se repite hasta que el cronómetro llegue a 0.
+      _revealOrder.shuffle(_rand);
+      _revealIndex = 0;
     }
 
     final idx = _revealOrder[_revealIndex];
