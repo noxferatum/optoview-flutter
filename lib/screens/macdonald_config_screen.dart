@@ -76,7 +76,6 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
         MacInteraccion.tocarLetras => l.macInteractionTouch,
         MacInteraccion.lecturaConTiempo => l.macInteractionTimed,
         MacInteraccion.lecturaSecuencial => l.macInteractionSequential,
-        MacInteraccion.deteccionCampo => l.macInteractionFieldDetection,
       };
 
   String _interactionDesc(AppLocalizations l, MacInteraccion mode) =>
@@ -84,7 +83,6 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
         MacInteraccion.tocarLetras => l.macInteractionTouchDesc,
         MacInteraccion.lecturaConTiempo => l.macInteractionTimedDesc,
         MacInteraccion.lecturaSecuencial => l.macInteractionSequentialDesc,
-        MacInteraccion.deteccionCampo => l.macInteractionFieldDetectionDesc,
       };
 
   String _visualizationLabel(AppLocalizations l, MacVisualizacion mode) =>
@@ -344,52 +342,49 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
             Expanded(
               child: Column(
                 children: [
-                  if (config.interaccion != MacInteraccion.deteccionCampo) ...[
-                    SectionCard(
-                      title: l.macVisualizationTitle,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SegmentedButton<MacVisualizacion>(
-                            segments: MacVisualizacion.values
-                                .map((m) => ButtonSegment(
-                                      value: m,
-                                      label: Text(_visualizationLabel(l, m)),
-                                    ))
-                                .toList(),
-                            selected: {config.visualizacion},
-                            onSelectionChanged: (s) => setState(() {
-                              config = config.copyWith(visualizacion: s.first);
-                            }),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _visualizationDesc(l, config.visualizacion),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
+                  SectionCard(
+                    title: l.macVisualizationTitle,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SegmentedButton<MacVisualizacion>(
+                          segments: MacVisualizacion.values
+                              .map((m) => ButtonSegment(
+                                    value: m,
+                                    label: Text(_visualizationLabel(l, m)),
+                                  ))
+                              .toList(),
+                          selected: {config.visualizacion},
+                          onSelectionChanged: (s) => setState(() {
+                            config = config.copyWith(visualizacion: s.first);
+                          }),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _visualizationDesc(l, config.visualizacion),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    SectionCard(
-                      title: l.macDirectionTitle,
-                      child: SegmentedButton<MacDireccion>(
-                        segments: MacDireccion.values
-                            .map((d) => ButtonSegment(
-                                  value: d,
-                                  label: Text(_directionLabel(l, d)),
-                                ))
-                            .toList(),
-                        selected: {config.direccion},
-                        onSelectionChanged: (s) => setState(() {
-                          config = config.copyWith(direccion: s.first);
-                        }),
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  SectionCard(
+                    title: l.macDirectionTitle,
+                    child: SegmentedButton<MacDireccion>(
+                      segments: MacDireccion.values
+                          .map((d) => ButtonSegment(
+                                value: d,
+                                label: Text(_directionLabel(l, d)),
+                              ))
+                          .toList(),
+                      selected: {config.direccion},
+                      onSelectionChanged: (s) => setState(() {
+                        config = config.copyWith(direccion: s.first);
+                      }),
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (config.visualizacion != MacVisualizacion.completa ||
-                      config.interaccion == MacInteraccion.deteccionCampo)
+                  ),
+                  const SizedBox(height: 16),
+                  if (config.visualizacion != MacVisualizacion.completa)
                     SpeedSelector(
                       value: config.velocidadRevelado,
                       onChanged: (v) => setState(() {

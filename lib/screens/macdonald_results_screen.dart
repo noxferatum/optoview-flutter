@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
@@ -39,10 +37,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     final result = widget.result;
     final summary = result.config.localizedSummary(l);
     final isTouchMode =
-        result.config.interaccion == MacInteraccion.tocarLetras ||
-        result.config.interaccion == MacInteraccion.deteccionCampo;
-    final isFieldDetection =
-        result.config.interaccion == MacInteraccion.deteccionCampo;
+        result.config.interaccion == MacInteraccion.tocarLetras;
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
@@ -101,11 +96,6 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
                       children: [
                         // Date
                         _buildDateRow(dateFmt, result),
-                        if (isFieldDetection &&
-                            result.letterEvents.isNotEmpty) ...[
-                          const SizedBox(height: OptoSpacing.md),
-                          _buildHitMissMaps(l, result),
-                        ],
                         const SizedBox(height: OptoSpacing.md),
                         _buildConfigTags(l, summary),
                       ],
@@ -380,73 +370,6 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     );
   }
 
-  // -- Hit/Miss maps --
-
-  Widget _buildHitMissMaps(AppLocalizations l, MacDonaldResult result) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildMapCard(
-            title: l.macHitMapTitle,
-            events: result.letterEvents.where((e) => e.isHit).toList(),
-            dotColor: OptoColors.success,
-            numRings: result.config.numAnillos,
-          ),
-        ),
-        const SizedBox(width: OptoSpacing.sm),
-        Expanded(
-          child: _buildMapCard(
-            title: l.macMissMapTitle,
-            events:
-                result.letterEvents.where((e) => !e.isHit).toList(),
-            dotColor: OptoColors.error,
-            numRings: result.config.numAnillos,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMapCard({
-    required String title,
-    required List<LetterEvent> events,
-    required Color dotColor,
-    required int numRings,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.all(OptoSpacing.md),
-      decoration: BoxDecoration(
-        color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
-        border: Border.all(color: colorScheme.outlineVariant),
-      ),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: OptoSpacing.sm),
-          AspectRatio(
-            aspectRatio: 1,
-            child: CustomPaint(
-              painter: _HitMapPainter(
-                events: events,
-                dotColor: dotColor,
-                numRings: numRings,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // -- Config tags --
 
   Widget _buildConfigTags(
@@ -613,65 +536,3 @@ class _StatRow extends StatelessWidget {
   }
 }
 
-// -- Hit map painter --
-
-class _HitMapPainter extends CustomPainter {
-  final List<LetterEvent> events;
-  final Color dotColor;
-  final int numRings;
-
-  _HitMapPainter({
-    required this.events,
-    required this.dotColor,
-    required this.numRings,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = min(size.width, size.height) / 2 - 4;
-
-    // Anillos concéntricos
-    final ringPaint = Paint()
-      ..color = Colors.white.withAlpha(38)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    for (int i = 1; i <= numRings; i++) {
-      final r = radius * i / numRings;
-      canvas.drawCircle(center, r, ringPaint);
-    }
-
-    // Cruz central
-    final axisPaint = Paint()
-      ..color = Colors.white.withAlpha(51)
-      ..strokeWidth = 0.5;
-    canvas.drawLine(
-      Offset(center.dx - radius, center.dy),
-      Offset(center.dx + radius, center.dy),
-      axisPaint,
-    );
-    canvas.drawLine(
-      Offset(center.dx, center.dy - radius),
-      Offset(center.dx, center.dy + radius),
-      axisPaint,
-    );
-
-    // Puntos
-    final dotPaint = Paint()
-      ..color = dotColor
-      ..style = PaintingStyle.fill;
-
-    for (final e in events) {
-      final x = center.dx + e.dx * radius;
-      final y = center.dy + e.dy * radius;
-      canvas.drawCircle(Offset(x, y), 5, dotPaint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _HitMapPainter oldDelegate) =>
-      oldDelegate.events != events ||
-      oldDelegate.dotColor != dotColor ||
-      oldDelegate.numRings != numRings;
-}
