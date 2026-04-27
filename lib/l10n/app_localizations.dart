@@ -2156,13 +2156,13 @@ abstract class AppLocalizations {
   /// No description provided for @fssAnchorAgree.
   ///
   /// In en, this message translates to:
-  /// **'A lot'**
+  /// **'Little or none'**
   String get fssAnchorAgree;
 
   /// No description provided for @fssAnchorDisagree.
   ///
   /// In en, this message translates to:
-  /// **'Little or none'**
+  /// **'A lot'**
   String get fssAnchorDisagree;
 
   /// No description provided for @historyTestQuestionnaire.

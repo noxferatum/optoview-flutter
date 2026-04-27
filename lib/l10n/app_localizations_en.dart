@@ -1082,10 +1082,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fssItem5 => 'Hours of sleep';
 
   @override
-  String get fssAnchorAgree => 'A lot';
+  String get fssAnchorAgree => 'Little or none';
 
   @override
-  String get fssAnchorDisagree => 'Little or none';
+  String get fssAnchorDisagree => 'A lot';
 
   @override
   String get historyTestQuestionnaire => 'Questionnaire';

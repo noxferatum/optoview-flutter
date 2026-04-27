@@ -460,8 +460,8 @@
   "fssItem3": "Grado de estrés",
   "fssItem4": "La fatiga me dificulta la realización de tareas",
   "fssItem5": "Horas de sueño",
-  "fssAnchorAgree": "Bastante",
-  "fssAnchorDisagree": "Poco o nada",
+  "fssAnchorAgree": "Poco o nada",
+  "fssAnchorDisagree": "Bastante",
   "historyTestQuestionnaire": "Cuestionario",
   "questionnaireHistorySubtitle": "CVS-Q · Score: {score}",
   "@questionnaireHistorySubtitle": {

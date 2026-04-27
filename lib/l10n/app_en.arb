@@ -460,8 +460,8 @@
   "fssItem3": "Stress level",
   "fssItem4": "Fatigue interferes with task performance",
   "fssItem5": "Hours of sleep",
-  "fssAnchorAgree": "A lot",
-  "fssAnchorDisagree": "Little or none",
+  "fssAnchorAgree": "Little or none",
+  "fssAnchorDisagree": "A lot",
   "historyTestQuestionnaire": "Questionnaire",
   "questionnaireHistorySubtitle": "CVS-Q · Score: {score}",
   "@questionnaireHistorySubtitle": {
