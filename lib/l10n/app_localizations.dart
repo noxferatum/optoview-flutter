@@ -1211,18 +1211,6 @@ abstract class AppLocalizations {
   /// **'The app highlights letters one by one, you read them'**
   String get macInteractionSequentialDesc;
 
-  /// No description provided for @macInteractionFieldDetection.
-  ///
-  /// In en, this message translates to:
-  /// **'Field detection'**
-  String get macInteractionFieldDetection;
-
-  /// No description provided for @macInteractionFieldDetectionDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Letters appear one at a time at random positions. Touch each letter before it disappears'**
-  String get macInteractionFieldDetectionDesc;
-
   /// No description provided for @macVisualizationTitle.
   ///
   /// In en, this message translates to:
@@ -1396,12 +1384,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sequential, progressive, fast'**
   String get presetMacAdvancedDesc;
-
-  /// No description provided for @presetMacFieldDetectionDesc.
-  ///
-  /// In en, this message translates to:
-  /// **'Visual field detection, touch letters'**
-  String get presetMacFieldDetectionDesc;
 
   /// No description provided for @macHitMapTitle.
   ///
@@ -1756,12 +1738,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Read each letter when it is highlighted on screen'**
   String get instructMacSequential;
-
-  /// No description provided for @instructMacFieldDetection.
-  ///
-  /// In en, this message translates to:
-  /// **'Touch each letter before it disappears. They will appear at random positions'**
-  String get instructMacFieldDetection;
 
   /// No description provided for @instructMacVisComplete.
   ///
@@ -2180,13 +2156,13 @@ abstract class AppLocalizations {
   /// No description provided for @fssAnchorAgree.
   ///
   /// In en, this message translates to:
-  /// **'Agree'**
+  /// **'Little or none'**
   String get fssAnchorAgree;
 
   /// No description provided for @fssAnchorDisagree.
   ///
   /// In en, this message translates to:
-  /// **'Disagree'**
+  /// **'A lot'**
   String get fssAnchorDisagree;
 
   /// No description provided for @historyTestQuestionnaire.
@@ -2320,6 +2296,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'English'**
   String get settingsLanguageEnglish;
+
+  /// No description provided for @testFieldDetectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field detection'**
+  String get testFieldDetectionTitle;
+
+  /// No description provided for @testFieldDetectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Peripheral letter detection, untimed'**
+  String get testFieldDetectionSubtitle;
+
+  /// No description provided for @historyTestFieldDetection.
+  ///
+  /// In en, this message translates to:
+  /// **'Field detection'**
+  String get historyTestFieldDetection;
+
+  /// No description provided for @configFieldDetectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Field detection'**
+  String get configFieldDetectionTitle;
+
+  /// No description provided for @configFieldDetectionDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Standardized test: 44 letters appear one at a time across 4 rings. Tap each letter before it disappears.'**
+  String get configFieldDetectionDescription;
+
+  /// No description provided for @instructFieldDetection.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your gaze on the center and tap each letter as it appears as fast as possible.'**
+  String get instructFieldDetection;
+
+  /// No description provided for @instructFieldDetectionRings.
+  ///
+  /// In en, this message translates to:
+  /// **'44 letters will appear distributed across 4 rings.'**
+  String get instructFieldDetectionRings;
+
+  /// No description provided for @fieldDetectionResultsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Results — Field detection'**
+  String get fieldDetectionResultsTitle;
+
+  /// No description provided for @fieldDetectionByRing.
+  ///
+  /// In en, this message translates to:
+  /// **'By ring'**
+  String get fieldDetectionByRing;
+
+  /// No description provided for @fieldDetectionByQuadrant.
+  ///
+  /// In en, this message translates to:
+  /// **'By quadrant'**
+  String get fieldDetectionByQuadrant;
+
+  /// No description provided for @fieldDetectionRing.
+  ///
+  /// In en, this message translates to:
+  /// **'Ring {n}'**
+  String fieldDetectionRing(int n);
+
+  /// No description provided for @fieldDetectionQuadrantTL.
+  ///
+  /// In en, this message translates to:
+  /// **'Top-Left'**
+  String get fieldDetectionQuadrantTL;
+
+  /// No description provided for @fieldDetectionQuadrantTR.
+  ///
+  /// In en, this message translates to:
+  /// **'Top-Right'**
+  String get fieldDetectionQuadrantTR;
+
+  /// No description provided for @fieldDetectionQuadrantBL.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom-Left'**
+  String get fieldDetectionQuadrantBL;
+
+  /// No description provided for @fieldDetectionQuadrantBR.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom-Right'**
+  String get fieldDetectionQuadrantBR;
+
+  /// No description provided for @fieldDetectionLetterCounter.
+  ///
+  /// In en, this message translates to:
+  /// **'{i} of {n}'**
+  String fieldDetectionLetterCounter(int i, int n);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

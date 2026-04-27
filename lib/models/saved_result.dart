@@ -3,6 +3,7 @@ import '../l10n/app_localizations.dart';
 import 'test_result.dart';
 import 'localization_result.dart';
 import 'macdonald_result.dart';
+import 'field_detection_result.dart';
 
 @immutable
 class SavedResult {
@@ -115,6 +116,38 @@ class SavedResult {
       worstReactionTimeMs:
           result.reactionTimesMs.isNotEmpty ? result.worstReactionTimeMs : null,
       anillosCompletados: result.anillosCompletados,
+      tiempoPorAnillo: result.tiempoPorAnillo.isNotEmpty
+          ? List.unmodifiable(result.tiempoPorAnillo)
+          : null,
+      letterEvents: result.letterEvents.isNotEmpty
+          ? List.unmodifiable(result.letterEvents)
+          : null,
+      configSummary: result.config.localizedSummary(l),
+    );
+  }
+
+  factory SavedResult.fromFieldDetectionResult(
+      FieldDetectionResult result, AppLocalizations l) {
+    return SavedResult(
+      id: '${result.startedAt.millisecondsSinceEpoch}',
+      testType: 'field_detection',
+      patientName: result.patientName,
+      startedAt: result.startedAt,
+      finishedAt: result.finishedAt,
+      durationActualSeconds: (result.totalDurationMs / 1000).round(),
+      completedNaturally: result.completedNaturally,
+      totalStimuliShown: result.totalLetrasShown,
+      correctTouches: result.correctCount,
+      incorrectTouches: 0,
+      missedStimuli: result.missedCount,
+      accuracy: result.accuracy,
+      avgReactionTimeMs:
+          result.reactionTimesMs.isNotEmpty ? result.avgReactionTimeMs : null,
+      bestReactionTimeMs:
+          result.reactionTimesMs.isNotEmpty ? result.bestReactionTimeMs : null,
+      worstReactionTimeMs:
+          result.reactionTimesMs.isNotEmpty ? result.worstReactionTimeMs : null,
+      anillosCompletados: result.config.numAnillos,
       tiempoPorAnillo: result.tiempoPorAnillo.isNotEmpty
           ? List.unmodifiable(result.tiempoPorAnillo)
           : null,

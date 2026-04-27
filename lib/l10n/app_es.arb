@@ -242,8 +242,6 @@
   "macInteractionTimedDesc": "Lee en voz alta con cronómetro",
   "macInteractionSequential": "Lectura secuencial",
   "macInteractionSequentialDesc": "La app resalta letras una a una, tú las lees",
-  "macInteractionFieldDetection": "Detección de campo",
-  "macInteractionFieldDetectionDesc": "Las letras aparecen una a una en posiciones aleatorias. Toca cada letra antes de que desaparezca",
 
   "macVisualizationTitle": "Modo de visualización",
   "macVisualizationComplete": "Completa",
@@ -279,7 +277,6 @@
   "presetMacStandardDesc": "Por anillos, lectura con tiempo",
   "presetMacEasyDesc": "Tocar letras, todo visible, lento",
   "presetMacAdvancedDesc": "Secuencial, progresiva, rápido",
-  "presetMacFieldDetectionDesc": "Detección de campo visual, toca letras",
 
   "macHitMapTitle": "Mapa de aciertos",
   "macMissMapTitle": "Mapa de fallos",
@@ -366,7 +363,6 @@
   "instructMacTouch": "Toca cada letra en el orden en que aparecen",
   "instructMacTimed": "Lee las letras en voz alta lo más rápido posible",
   "instructMacSequential": "Lee cada letra cuando se resalte en la pantalla",
-  "instructMacFieldDetection": "Toca cada letra antes de que desaparezca. Aparecerán en posiciones aleatorias",
   "instructMacVisComplete": "Todas las letras serán visibles desde el inicio",
   "instructMacVisProgressive": "Las letras irán apareciendo una a una",
   "instructMacVisByRings": "Las letras aparecerán anillo por anillo",
@@ -464,8 +460,8 @@
   "fssItem3": "Grado de estrés",
   "fssItem4": "La fatiga me dificulta la realización de tareas",
   "fssItem5": "Horas de sueño",
-  "fssAnchorAgree": "Acuerdo",
-  "fssAnchorDisagree": "Desacuerdo",
+  "fssAnchorAgree": "Poco o nada",
+  "fssAnchorDisagree": "Bastante",
   "historyTestQuestionnaire": "Cuestionario",
   "questionnaireHistorySubtitle": "CVS-Q · Score: {score}",
   "@questionnaireHistorySubtitle": {
@@ -491,5 +487,31 @@
   "settingsLanguage": "Idioma de la interfaz",
   "settingsLanguageAuto": "Automático",
   "settingsLanguageSpanish": "Español",
-  "settingsLanguageEnglish": "Inglés"
+  "settingsLanguageEnglish": "Inglés",
+
+  "testFieldDetectionTitle": "Detección de campo",
+  "testFieldDetectionSubtitle": "Detección de letras periféricas, sin tiempo",
+  "historyTestFieldDetection": "Detección de campo",
+  "configFieldDetectionTitle": "Detección de campo",
+  "configFieldDetectionDescription": "Test estandarizado: aparecen 44 letras de una en una en 4 anillos. Toca cada letra antes de que desaparezca.",
+  "instructFieldDetection": "Mantén la mirada en el centro y toca cada letra que aparezca lo más rápido posible.",
+  "instructFieldDetectionRings": "Aparecerán 44 letras en total distribuidas en 4 anillos.",
+  "fieldDetectionResultsTitle": "Resultados — Detección de campo",
+  "fieldDetectionByRing": "Por anillo",
+  "fieldDetectionByQuadrant": "Por cuadrante",
+  "fieldDetectionRing": "Anillo {n}",
+  "@fieldDetectionRing": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "fieldDetectionQuadrantTL": "Sup-Izq",
+  "fieldDetectionQuadrantTR": "Sup-Der",
+  "fieldDetectionQuadrantBL": "Inf-Izq",
+  "fieldDetectionQuadrantBR": "Inf-Der",
+  "fieldDetectionLetterCounter": "{i} de {n}",
+  "@fieldDetectionLetterCounter": {
+    "placeholders": {
+      "i": { "type": "int" },
+      "n": { "type": "int" }
+    }
+  }
 }

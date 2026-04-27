@@ -24,6 +24,7 @@ abstract final class OptoColors {
   static const Color peripheral = Color(0xFF5B8FD2);
   static const Color localization = Color(0xFF9B7BFF);
   static const Color macdonald = Color(0xFF4CAF7D);
+  static const Color fieldDetection = Color(0xFFE5A84B);
 
   // Scrollbar
   static const Color scrollThumb = Color(0x803F6FB2); // primary @ 50%

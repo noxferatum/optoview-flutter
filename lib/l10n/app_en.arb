@@ -242,8 +242,6 @@
   "macInteractionTimedDesc": "Read aloud with a timer",
   "macInteractionSequential": "Sequential reading",
   "macInteractionSequentialDesc": "The app highlights letters one by one, you read them",
-  "macInteractionFieldDetection": "Field detection",
-  "macInteractionFieldDetectionDesc": "Letters appear one at a time at random positions. Touch each letter before it disappears",
 
   "macVisualizationTitle": "Visualization mode",
   "macVisualizationComplete": "Complete",
@@ -279,7 +277,6 @@
   "presetMacStandardDesc": "By rings, timed reading",
   "presetMacEasyDesc": "Touch letters, all visible, slow",
   "presetMacAdvancedDesc": "Sequential, progressive, fast",
-  "presetMacFieldDetectionDesc": "Visual field detection, touch letters",
 
   "macHitMapTitle": "Hits map",
   "macMissMapTitle": "Misses map",
@@ -366,7 +363,6 @@
   "instructMacTouch": "Touch each letter in the order they appear",
   "instructMacTimed": "Read the letters aloud as fast as you can",
   "instructMacSequential": "Read each letter when it is highlighted on screen",
-  "instructMacFieldDetection": "Touch each letter before it disappears. They will appear at random positions",
   "instructMacVisComplete": "All letters will be visible from the start",
   "instructMacVisProgressive": "Letters will appear one by one",
   "instructMacVisByRings": "Letters will appear ring by ring",
@@ -464,8 +460,8 @@
   "fssItem3": "Stress level",
   "fssItem4": "Fatigue interferes with task performance",
   "fssItem5": "Hours of sleep",
-  "fssAnchorAgree": "Agree",
-  "fssAnchorDisagree": "Disagree",
+  "fssAnchorAgree": "Little or none",
+  "fssAnchorDisagree": "A lot",
   "historyTestQuestionnaire": "Questionnaire",
   "questionnaireHistorySubtitle": "CVS-Q · Score: {score}",
   "@questionnaireHistorySubtitle": {
@@ -491,5 +487,31 @@
   "settingsLanguage": "Interface language",
   "settingsLanguageAuto": "Automatic",
   "settingsLanguageSpanish": "Spanish",
-  "settingsLanguageEnglish": "English"
+  "settingsLanguageEnglish": "English",
+
+  "testFieldDetectionTitle": "Field detection",
+  "testFieldDetectionSubtitle": "Peripheral letter detection, untimed",
+  "historyTestFieldDetection": "Field detection",
+  "configFieldDetectionTitle": "Field detection",
+  "configFieldDetectionDescription": "Standardized test: 44 letters appear one at a time across 4 rings. Tap each letter before it disappears.",
+  "instructFieldDetection": "Keep your gaze on the center and tap each letter as it appears as fast as possible.",
+  "instructFieldDetectionRings": "44 letters will appear distributed across 4 rings.",
+  "fieldDetectionResultsTitle": "Results — Field detection",
+  "fieldDetectionByRing": "By ring",
+  "fieldDetectionByQuadrant": "By quadrant",
+  "fieldDetectionRing": "Ring {n}",
+  "@fieldDetectionRing": {
+    "placeholders": { "n": { "type": "int" } }
+  },
+  "fieldDetectionQuadrantTL": "Top-Left",
+  "fieldDetectionQuadrantTR": "Top-Right",
+  "fieldDetectionQuadrantBL": "Bottom-Left",
+  "fieldDetectionQuadrantBR": "Bottom-Right",
+  "fieldDetectionLetterCounter": "{i} of {n}",
+  "@fieldDetectionLetterCounter": {
+    "placeholders": {
+      "i": { "type": "int" },
+      "n": { "type": "int" }
+    }
+  }
 }

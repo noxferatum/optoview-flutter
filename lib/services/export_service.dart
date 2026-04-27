@@ -32,6 +32,7 @@ abstract final class ExportService {
         'peripheral' => l.historyTestPeripheral,
         'localization' => l.historyTestLocalization,
         'macdonald' => l.historyTestMacdonald,
+        'field_detection' => l.historyTestFieldDetection,
         _ => type,
       };
 
