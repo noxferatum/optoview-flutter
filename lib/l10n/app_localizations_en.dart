@@ -577,12 +577,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get macInteractionSequentialDesc => 'The app highlights letters one by one, you read them';
 
   @override
-  String get macInteractionFieldDetection => 'Field detection';
-
-  @override
-  String get macInteractionFieldDetectionDesc => 'Letters appear one at a time at random positions. Touch each letter before it disappears';
-
-  @override
   String get macVisualizationTitle => 'Visualization mode';
 
   @override
@@ -668,9 +662,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get presetMacAdvancedDesc => 'Sequential, progressive, fast';
-
-  @override
-  String get presetMacFieldDetectionDesc => 'Visual field detection, touch letters';
 
   @override
   String get macHitMapTitle => 'Hits map';
@@ -870,9 +861,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get instructMacSequential => 'Read each letter when it is highlighted on screen';
-
-  @override
-  String get instructMacFieldDetection => 'Touch each letter before it disappears. They will appear at random positions';
 
   @override
   String get instructMacVisComplete => 'All letters will be visible from the start';
@@ -1094,10 +1082,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fssItem5 => 'Hours of sleep';
 
   @override
-  String get fssAnchorAgree => 'Agree';
+  String get fssAnchorAgree => 'A lot';
 
   @override
-  String get fssAnchorDisagree => 'Disagree';
+  String get fssAnchorDisagree => 'Little or none';
 
   @override
   String get historyTestQuestionnaire => 'Questionnaire';
@@ -1166,4 +1154,56 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsLanguageEnglish => 'English';
+
+  @override
+  String get testFieldDetectionTitle => 'Field detection';
+
+  @override
+  String get testFieldDetectionSubtitle => 'Peripheral letter detection, untimed';
+
+  @override
+  String get historyTestFieldDetection => 'Field detection';
+
+  @override
+  String get configFieldDetectionTitle => 'Field detection';
+
+  @override
+  String get configFieldDetectionDescription => 'Standardized test: 44 letters appear one at a time across 4 rings. Tap each letter before it disappears.';
+
+  @override
+  String get instructFieldDetection => 'Keep your gaze on the center and tap each letter as it appears as fast as possible.';
+
+  @override
+  String get instructFieldDetectionRings => '44 letters will appear distributed across 4 rings.';
+
+  @override
+  String get fieldDetectionResultsTitle => 'Results — Field detection';
+
+  @override
+  String get fieldDetectionByRing => 'By ring';
+
+  @override
+  String get fieldDetectionByQuadrant => 'By quadrant';
+
+  @override
+  String fieldDetectionRing(int n) {
+    return 'Ring $n';
+  }
+
+  @override
+  String get fieldDetectionQuadrantTL => 'Top-Left';
+
+  @override
+  String get fieldDetectionQuadrantTR => 'Top-Right';
+
+  @override
+  String get fieldDetectionQuadrantBL => 'Bottom-Left';
+
+  @override
+  String get fieldDetectionQuadrantBR => 'Bottom-Right';
+
+  @override
+  String fieldDetectionLetterCounter(int i, int n) {
+    return '$i of $n';
+  }
 }
