@@ -1,0 +1,683 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
+import '../models/field_detection_result.dart';
+import '../models/macdonald_result.dart' show LetterEvent;
+import '../models/saved_result.dart';
+import '../services/results_storage.dart';
+import '../theme/opto_colors.dart';
+import '../theme/opto_spacing.dart';
+import '../utils/page_transitions.dart';
+import 'field_detection_test.dart';
+
+class FieldDetectionResultsScreen extends StatefulWidget {
+  final FieldDetectionResult result;
+
+  const FieldDetectionResultsScreen({super.key, required this.result});
+
+  @override
+  State<FieldDetectionResultsScreen> createState() =>
+      _FieldDetectionResultsScreenState();
+}
+
+class _FieldDetectionResultsScreenState
+    extends State<FieldDetectionResultsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final l = AppLocalizations.of(context)!;
+      final saved = SavedResult.fromFieldDetectionResult(widget.result, l);
+      ResultsStorage.save(saved);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final result = widget.result;
+    final summary = result.config.localizedSummary(l);
+    final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
+
+    return Scaffold(
+      body: Column(
+        children: [
+          _buildTopBar(context, l, result),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Left column
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      OptoSpacing.lg,
+                      OptoSpacing.md,
+                      OptoSpacing.sm,
+                      OptoSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildStatusBanner(l, result),
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildAccuracyCard(l, result),
+                        if (result.reactionTimesMs.isNotEmpty) ...[
+                          const SizedBox(height: OptoSpacing.md),
+                          _buildReactionTimesCard(l, result),
+                        ],
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildGeneralStatsCard(l, result),
+                      ],
+                    ),
+                  ),
+                ),
+                // Right column
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(
+                      OptoSpacing.sm,
+                      OptoSpacing.md,
+                      OptoSpacing.lg,
+                      OptoSpacing.lg,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildDateRow(dateFmt, result),
+                        if (result.letterEvents.isNotEmpty) ...[
+                          const SizedBox(height: OptoSpacing.md),
+                          _buildHitMissMaps(l, result),
+                        ],
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildByRingCard(l, result),
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildByQuadrantCard(l, result),
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildConfigTags(l, summary),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Top bar --
+
+  Widget _buildTopBar(
+    BuildContext context,
+    AppLocalizations l,
+    FieldDetectionResult result,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      color: colorScheme.surface,
+      padding: const EdgeInsets.symmetric(
+        horizontal: OptoSpacing.sm,
+        vertical: OptoSpacing.xs,
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Row(
+          children: [
+            IconButton(
+              icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+            const SizedBox(width: OptoSpacing.sm),
+            Expanded(
+              child: Text(
+                l.fieldDetectionResultsTitle,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+            ),
+            _TopBarButton(
+              icon: Icons.replay,
+              label: l.resultsRepeat,
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  OptoPageRoute(
+                    builder: (_) => FieldDetectionTest(
+                      config: result.config,
+                      patientName: result.patientName,
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(width: OptoSpacing.sm),
+            _TopBarButton(
+              icon: Icons.home,
+              label: l.resultsHome,
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // -- Status banner --
+
+  Widget _buildStatusBanner(AppLocalizations l, FieldDetectionResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isComplete = result.completedNaturally;
+    final color = isComplete ? OptoColors.success : OptoColors.warning;
+    final icon = isComplete
+        ? Icons.check_circle_outline
+        : Icons.stop_circle_outlined;
+    final text = isComplete ? l.resultsCompleted : l.resultsStopped;
+
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: color.withAlpha(26),
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: color.withAlpha(64)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(width: OptoSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+                if (result.patientName.isNotEmpty) ...[
+                  const SizedBox(height: OptoSpacing.xs),
+                  Row(
+                    children: [
+                      Icon(Icons.person, size: 14,
+                          color: colorScheme.onSurfaceVariant),
+                      const SizedBox(width: OptoSpacing.xs),
+                      Text(
+                        result.patientName,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Accuracy card --
+
+  Widget _buildAccuracyCard(AppLocalizations l, FieldDetectionResult result) {
+    return _SectionCard(
+      title: l.accuracyTitle,
+      children: [
+        _StatRow(
+          label: l.accuracyCorrect,
+          value: '${result.correctCount}',
+          valueColor: OptoColors.success,
+        ),
+        _StatRow(
+          label: l.accuracyMissed,
+          value: '${result.missedCount}',
+          valueColor:
+              result.missedCount > 0 ? OptoColors.warning : null,
+        ),
+        _StatRow(
+          label: l.accuracyPercent,
+          value: '${(result.accuracy * 100).toStringAsFixed(1)}%',
+          valueColor: result.accuracy >= 0.8
+              ? OptoColors.success
+              : OptoColors.warning,
+        ),
+      ],
+    );
+  }
+
+  // -- Reaction times card --
+
+  Widget _buildReactionTimesCard(
+      AppLocalizations l, FieldDetectionResult result) {
+    return _SectionCard(
+      title: l.reactionTitle,
+      children: [
+        _StatRow(
+          label: l.reactionAvg,
+          value: '${result.avgReactionTimeMs.toStringAsFixed(0)} ms',
+        ),
+        _StatRow(
+          label: l.reactionBest,
+          value: '${result.bestReactionTimeMs.toStringAsFixed(0)} ms',
+          valueColor: OptoColors.success,
+        ),
+        _StatRow(
+          label: l.reactionWorst,
+          value: '${result.worstReactionTimeMs.toStringAsFixed(0)} ms',
+        ),
+      ],
+    );
+  }
+
+  // -- General stats card --
+
+  Widget _buildGeneralStatsCard(
+      AppLocalizations l, FieldDetectionResult result) {
+    final actualSeconds = (result.totalDurationMs / 1000).round();
+    return _SectionCard(
+      title: l.statsTitle,
+      children: [
+        _StatRow(
+          label: l.statsActualDuration,
+          value: '${actualSeconds}s',
+        ),
+        _StatRow(
+          label: l.macStatsLettersShown,
+          value: '${result.totalLetrasShown}',
+        ),
+        _StatRow(
+          label: l.macStatsRingsCompleted,
+          value: '${result.config.numAnillos}',
+        ),
+      ],
+    );
+  }
+
+  // -- By-ring card --
+
+  Widget _buildByRingCard(AppLocalizations l, FieldDetectionResult result) {
+    final hits = result.hitsByRing;
+    final misses = result.missesByRing;
+    final acc = result.accuracyByRing;
+    final rt = result.avgRtByRing;
+
+    return _SectionCard(
+      title: l.fieldDetectionByRing,
+      children: [
+        for (int r = 0; r < result.config.numAnillos; r++)
+          _StatRow(
+            label: l.fieldDetectionRing(r + 1),
+            value:
+                '${hits[r] ?? 0}/${(hits[r] ?? 0) + (misses[r] ?? 0)}  ·  ${((acc[r] ?? 0) * 100).toStringAsFixed(0)}%${(rt[r] ?? 0) > 0 ? '  ·  ${(rt[r] ?? 0).toStringAsFixed(0)} ms' : ''}',
+          ),
+      ],
+    );
+  }
+
+  // -- By-quadrant card --
+
+  Widget _buildByQuadrantCard(
+      AppLocalizations l, FieldDetectionResult result) {
+    final hits = result.hitsByQuadrant;
+    final misses = result.missesByQuadrant;
+    final acc = result.accuracyByQuadrant;
+    final rt = result.avgRtByQuadrant;
+
+    String labelFor(FieldQuadrant q) => switch (q) {
+          FieldQuadrant.topLeft => l.fieldDetectionQuadrantTL,
+          FieldQuadrant.topRight => l.fieldDetectionQuadrantTR,
+          FieldQuadrant.bottomLeft => l.fieldDetectionQuadrantBL,
+          FieldQuadrant.bottomRight => l.fieldDetectionQuadrantBR,
+        };
+
+    return _SectionCard(
+      title: l.fieldDetectionByQuadrant,
+      children: [
+        for (final q in FieldQuadrant.values)
+          _StatRow(
+            label: labelFor(q),
+            value:
+                '${hits[q] ?? 0}/${(hits[q] ?? 0) + (misses[q] ?? 0)}  ·  ${((acc[q] ?? 0) * 100).toStringAsFixed(0)}%${(rt[q] ?? 0) > 0 ? '  ·  ${(rt[q] ?? 0).toStringAsFixed(0)} ms' : ''}',
+          ),
+      ],
+    );
+  }
+
+  // -- Date row --
+
+  Widget _buildDateRow(DateFormat dateFmt, FieldDetectionResult result) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: OptoSpacing.md,
+        vertical: OptoSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.calendar_today, size: 16,
+              color: colorScheme.onSurfaceVariant),
+          const SizedBox(width: OptoSpacing.sm),
+          Text(
+            dateFmt.format(result.startedAt),
+            style: TextStyle(
+              fontSize: 13,
+              color: colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Hit/Miss maps --
+
+  Widget _buildHitMissMaps(AppLocalizations l, FieldDetectionResult result) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildMapCard(
+            title: l.macHitMapTitle,
+            events: result.letterEvents.where((e) => e.isHit).toList(),
+            dotColor: OptoColors.success,
+            numRings: result.config.numAnillos,
+          ),
+        ),
+        const SizedBox(width: OptoSpacing.sm),
+        Expanded(
+          child: _buildMapCard(
+            title: l.macMissMapTitle,
+            events: result.letterEvents.where((e) => !e.isHit).toList(),
+            dotColor: OptoColors.error,
+            numRings: result.config.numAnillos,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapCard({
+    required String title,
+    required List<LetterEvent> events,
+    required Color dotColor,
+    required int numRings,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          AspectRatio(
+            aspectRatio: 1,
+            child: CustomPaint(
+              painter: _HitMapPainter(
+                events: events,
+                dotColor: dotColor,
+                numRings: numRings,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Config tags --
+
+  Widget _buildConfigTags(
+      AppLocalizations l, Map<String, String> summary) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.configUsedTitle,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          Wrap(
+            spacing: OptoSpacing.sm,
+            runSpacing: OptoSpacing.sm,
+            children: summary.entries.map((e) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: OptoSpacing.sm + 2,
+                  vertical: OptoSpacing.xs + 1,
+                ),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius:
+                      BorderRadius.circular(OptoSpacing.radiusChip),
+                ),
+                child: Text(
+                  '${e.key}: ${e.value}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// -- Top bar button --
+
+class _TopBarButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  const _TopBarButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return TextButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18, color: colorScheme.onSurface),
+      label: Text(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          color: colorScheme.onSurface,
+        ),
+      ),
+    );
+  }
+}
+
+// -- Section card --
+
+class _SectionCard extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _SectionCard({
+    required this.title,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+// -- Stat row --
+
+class _StatRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color? valueColor;
+
+  const _StatRow({
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: OptoSpacing.xs),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: valueColor ?? colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// -- Hit map painter --
+
+class _HitMapPainter extends CustomPainter {
+  final List<LetterEvent> events;
+  final Color dotColor;
+  final int numRings;
+
+  _HitMapPainter({
+    required this.events,
+    required this.dotColor,
+    required this.numRings,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = min(size.width, size.height) / 2 - 4;
+
+    final ringPaint = Paint()
+      ..color = Colors.white.withAlpha(38)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (int i = 1; i <= numRings; i++) {
+      final r = radius * i / numRings;
+      canvas.drawCircle(center, r, ringPaint);
+    }
+
+    final axisPaint = Paint()
+      ..color = Colors.white.withAlpha(51)
+      ..strokeWidth = 0.5;
+    canvas.drawLine(
+      Offset(center.dx - radius, center.dy),
+      Offset(center.dx + radius, center.dy),
+      axisPaint,
+    );
+    canvas.drawLine(
+      Offset(center.dx, center.dy - radius),
+      Offset(center.dx, center.dy + radius),
+      axisPaint,
+    );
+
+    final dotPaint = Paint()
+      ..color = dotColor
+      ..style = PaintingStyle.fill;
+
+    for (final e in events) {
+      final x = center.dx + e.dx * radius;
+      final y = center.dy + e.dy * radius;
+      canvas.drawCircle(Offset(x, y), 5, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _HitMapPainter oldDelegate) =>
+      oldDelegate.events != events ||
+      oldDelegate.dotColor != dotColor ||
+      oldDelegate.numRings != numRings;
+}
