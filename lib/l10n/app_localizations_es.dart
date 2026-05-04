@@ -1168,13 +1168,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get configFieldDetectionTitle => 'Detección de campo';
 
   @override
-  String get configFieldDetectionDescription => 'Test estandarizado: aparecen 44 letras de una en una en 4 anillos. Toca cada letra antes de que desaparezca.';
+  String get configFieldDetectionDescription => 'Test estandarizado: aparecen 60 letras de una en una en 5 anillos. Toca cada letra antes de que desaparezca.';
 
   @override
   String get instructFieldDetection => 'Mantén la mirada en el centro y toca cada letra que aparezca lo más rápido posible.';
 
   @override
-  String get instructFieldDetectionRings => 'Aparecerán 44 letras en total distribuidas en 4 anillos.';
+  String get instructFieldDetectionRings => 'Aparecerán 60 letras en total distribuidas en 5 anillos.';
 
   @override
   String get fieldDetectionResultsTitle => 'Resultados — Detección de campo';

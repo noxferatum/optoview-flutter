@@ -2324,7 +2324,7 @@ abstract class AppLocalizations {
   /// No description provided for @configFieldDetectionDescription.
   ///
   /// In en, this message translates to:
-  /// **'Standardized test: 44 letters appear one at a time across 4 rings. Tap each letter before it disappears.'**
+  /// **'Standardized test: 60 letters appear one at a time across 5 rings. Tap each letter before it disappears.'**
   String get configFieldDetectionDescription;
 
   /// No description provided for @instructFieldDetection.
@@ -2336,7 +2336,7 @@ abstract class AppLocalizations {
   /// No description provided for @instructFieldDetectionRings.
   ///
   /// In en, this message translates to:
-  /// **'44 letters will appear distributed across 4 rings.'**
+  /// **'60 letters will appear distributed across 5 rings.'**
   String get instructFieldDetectionRings;
 
   /// No description provided for @fieldDetectionResultsTitle.

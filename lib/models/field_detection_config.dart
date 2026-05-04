@@ -34,7 +34,7 @@ class FieldDetectionConfig {
 
   /// Configuración estándar única del test.
   static const FieldDetectionConfig standard = FieldDetectionConfig(
-    numAnillos: 4,
+    numAnillos: 5,
     letrasPorAnilloBase: 8,
     tamanoBase: 24,
     velocidad: Velocidad.lenta,
