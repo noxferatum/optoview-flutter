@@ -29,7 +29,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.appopto.optoview"
+        applicationId = "com.appopto.optoview.beta"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
