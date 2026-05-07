@@ -1168,13 +1168,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get configFieldDetectionTitle => 'Field detection';
 
   @override
-  String get configFieldDetectionDescription => 'Standardized test: 60 letters appear one at a time across 5 rings. Tap each letter before it disappears.';
+  String get configFieldDetectionDescription => 'Standardized test: 80 letters appear one at a time across 5 rings. Tap each letter before it disappears.';
 
   @override
   String get instructFieldDetection => 'Keep your gaze on the center and tap each letter as it appears as fast as possible.';
 
   @override
-  String get instructFieldDetectionRings => '60 letters will appear distributed across 5 rings.';
+  String get instructFieldDetectionRings => '80 letters will appear distributed across 5 rings.';
 
   @override
   String get fieldDetectionResultsTitle => 'Results — Field detection';
