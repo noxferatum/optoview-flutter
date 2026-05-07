@@ -269,6 +269,7 @@
   "macRandomLetters": "Random letters",
   "macRandomLettersSubtitle": "If disabled, uses the A-Z sequence",
   "macRevealSpeedTitle": "Reveal speed",
+  "macFieldDetectionUntimedNotice": "Field detection has no time limit. The test ends when the patient has been shown all 80 letters. Total elapsed time is recorded as a metric.",
 
   "resultsMacTitle": "Results - MacDonald Chart",
   "macStatsRingsCompleted": "Rings completed",

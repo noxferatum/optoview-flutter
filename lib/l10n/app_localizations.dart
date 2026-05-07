@@ -1349,6 +1349,12 @@ abstract class AppLocalizations {
   /// **'Reveal speed'**
   String get macRevealSpeedTitle;
 
+  /// No description provided for @macFieldDetectionUntimedNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'Field detection has no time limit. The test ends when the patient has been shown all 80 letters. Total elapsed time is recorded as a metric.'**
+  String get macFieldDetectionUntimedNotice;
+
   /// No description provided for @resultsMacTitle.
   ///
   /// In en, this message translates to:

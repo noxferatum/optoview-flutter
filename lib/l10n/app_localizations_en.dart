@@ -646,6 +646,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get macRevealSpeedTitle => 'Reveal speed';
 
   @override
+  String get macFieldDetectionUntimedNotice => 'Field detection has no time limit. The test ends when the patient has been shown all 80 letters. Total elapsed time is recorded as a metric.';
+
+  @override
   String get resultsMacTitle => 'Results - MacDonald Chart';
 
   @override

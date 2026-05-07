@@ -269,6 +269,7 @@
   "macRandomLetters": "Letras aleatorias",
   "macRandomLettersSubtitle": "Si se desactiva, se usa la secuencia A-Z",
   "macRevealSpeedTitle": "Velocidad de revelado",
+  "macFieldDetectionUntimedNotice": "La detección de campo no tiene límite de tiempo. El test acaba cuando se han mostrado las 80 letras al paciente. El tiempo total se registra como métrica.",
 
   "resultsMacTitle": "Resultados - Carta MacDonald",
   "macStatsRingsCompleted": "Anillos completados",

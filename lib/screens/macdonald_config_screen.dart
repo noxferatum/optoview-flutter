@@ -110,7 +110,11 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
       };
 
   String _buildSummary(AppLocalizations l) {
-    return '${_interactionLabel(l, config.interaccion)} · ${config.contenido.name} · ${config.numAnillos} anillos · ${config.duracionSegundos}s';
+    final base = '${_interactionLabel(l, config.interaccion)} · ${config.contenido.name} · ${config.numAnillos} anillos';
+    if (config.interaccion == MacInteraccion.deteccionCampo) {
+      return base;
+    }
+    return '$base · ${config.duracionSegundos}s';
   }
 
   Widget _buildAppBar(AppLocalizations l) {
@@ -475,18 +479,48 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
   // ── Tab 4: Tiempo ───────────────────────────────────────────────────
 
   Widget _buildTimeTab(AppLocalizations l) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isFieldDetection =
+        config.interaccion == MacInteraccion.deteccionCampo;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
-            child: DurationCard(
-              value: config.duracionSegundos,
-              onChanged: (v) => setState(() {
-                config = config.copyWith(duracionSegundos: v);
-              }),
-            ),
+            child: isFieldDetection
+                ? Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                      border:
+                          Border.all(color: colorScheme.outlineVariant),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.info_outline,
+                            color: colorScheme.onSurfaceVariant),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            l.macFieldDetectionUntimedNotice,
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : DurationCard(
+                    value: config.duracionSegundos,
+                    onChanged: (v) => setState(() {
+                      config = config.copyWith(duracionSegundos: v);
+                    }),
+                  ),
           ),
         ),
       ),

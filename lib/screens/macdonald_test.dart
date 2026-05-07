@@ -55,6 +55,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   Timer? _fieldLetterTimer;
 
   late int _remaining;
+  int _elapsedSeconds = 0;
   bool _isPaused = false;
 
   // Instrucciones y cuenta regresiva pre-test
@@ -283,7 +284,8 @@ class _MacDonaldTestState extends State<MacDonaldTest>
         },
       ],
       l.instructMacContent(contentLabel),
-      l.instructDuration(c.duracionSegundos),
+      if (c.interaccion != MacInteraccion.deteccionCampo)
+        l.instructDuration(c.duracionSegundos),
     ];
   }
 
@@ -318,22 +320,33 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   // --- Test lifecycle ---
 
   void _startTest() {
-    // Countdown timer
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) return;
-      setState(() {
-        _remaining = max(0, _remaining - 1);
-        if (_remaining <= 0) {
-          t.cancel();
-          _finishTest(stoppedManually: false);
-        }
-      });
-    });
+    _startCountdownTimer();
 
     _anilloStartTime = DateTime.now();
 
     // Start reveal/highlight logic based on mode
     _startModeLogic();
+  }
+
+  /// Tick timer. Field detection counts up (no auto-finish); other modes
+  /// count down and finish when remaining hits 0.
+  void _startCountdownTimer() {
+    final isFieldDetection =
+        widget.config.interaccion == MacInteraccion.deteccionCampo;
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() {
+        if (isFieldDetection) {
+          _elapsedSeconds++;
+        } else {
+          _remaining = max(0, _remaining - 1);
+          if (_remaining <= 0) {
+            t.cancel();
+            _finishTest(stoppedManually: false);
+          }
+        }
+      });
+    });
   }
 
   void _startModeLogic() {
@@ -367,9 +380,8 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   void _revealNextFieldLetter() {
     if (!mounted || _isPaused) return;
     if (_revealIndex >= _revealOrder.length) {
-      // Loop: la prueba de campo se repite hasta que el cronómetro llegue a 0.
-      _revealOrder.shuffle(_rand);
-      _revealIndex = 0;
+      _finishTest(stoppedManually: false);
+      return;
     }
 
     final idx = _revealOrder[_revealIndex];
@@ -706,17 +718,7 @@ class _MacDonaldTestState extends State<MacDonaldTest>
   void _resumeFromPause() {
     setState(() => _isPaused = false);
 
-    // Restart countdown timer
-    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
-      if (!mounted) return;
-      setState(() {
-        _remaining = max(0, _remaining - 1);
-        if (_remaining <= 0) {
-          t.cancel();
-          _finishTest(stoppedManually: false);
-        }
-      });
-    });
+    _startCountdownTimer();
     _anilloStartTime ??= DateTime.now();
 
     // Resume mode logic only if not yet fully revealed/highlighted
@@ -777,7 +779,10 @@ class _MacDonaldTestState extends State<MacDonaldTest>
       _recordRingCompletion();
     }
 
-    final actualDuration = widget.config.duracionSegundos - _remaining;
+    final actualDuration =
+        widget.config.interaccion == MacInteraccion.deteccionCampo
+            ? _elapsedSeconds
+            : widget.config.duracionSegundos - _remaining;
 
     setState(() {
       _remaining = 0;
@@ -865,9 +870,13 @@ class _MacDonaldTestState extends State<MacDonaldTest>
                   );
                 }),
 
-              // Timer display
+              // Timer display: elapsed para detección de campo (sin tiempo),
+              // restante para los demás modos.
               TestTimerDisplay(
-                remainingSeconds: _remaining,
+                remainingSeconds: widget.config.interaccion ==
+                        MacInteraccion.deteccionCampo
+                    ? _elapsedSeconds
+                    : _remaining,
                 stimuliCount: _totalLetrasShown,
               ),
 
@@ -900,8 +909,14 @@ class _MacDonaldTestState extends State<MacDonaldTest>
               // Pause overlay
               if (_isPaused)
                 PauseOverlay(
-                  remainingSeconds: _remaining,
-                  elapsedSeconds: widget.config.duracionSegundos - _remaining,
+                  remainingSeconds: widget.config.interaccion ==
+                          MacInteraccion.deteccionCampo
+                      ? null
+                      : _remaining,
+                  elapsedSeconds: widget.config.interaccion ==
+                          MacInteraccion.deteccionCampo
+                      ? _elapsedSeconds
+                      : widget.config.duracionSegundos - _remaining,
                   stimuliShown: _totalLetrasShown,
                   onResume: _togglePause,
                   onStop: () => _finishTest(stoppedManually: true),
