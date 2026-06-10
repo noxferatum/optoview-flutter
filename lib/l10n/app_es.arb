@@ -1,12 +1,9 @@
 {
   "@@locale": "es",
-
   "appTitle": "OptoView",
-
   "menuTitle": "OptoViewApp - Menú",
   "menuStart": "Iniciar",
   "menuCredits": "Créditos",
-
   "testMenuTitle": "Elige un ejercicio",
   "testPeripheralTitle": "Estimulación periférica",
   "testPeripheralSubtitle": "Entrena la percepción periférica dinámica.",
@@ -15,11 +12,9 @@
   "testComingSoonTitle": "Próximamente más",
   "testComingSoonSubtitle": "Nuevos protocolos de evaluación.",
   "testComingSoonSnackbar": "Estamos trabajando en más tests especializados.",
-
   "configPeripheralTitle": "Test de estimulación periférica",
   "configLocalizationTitle": "Test de localización periférica",
   "startTest": "Iniciar prueba",
-
   "presetsTitle": "Presets",
   "presetsHint": "Selecciona un preset o personaliza cada opción abajo.",
   "presetStandard": "Estándar",
@@ -31,7 +26,6 @@
   "presetLocStandardDesc": "Igualar centro, velocidad media",
   "presetLocEasyDesc": "Tocar todos, lento, con feedback",
   "presetLocAdvancedDesc": "Misma forma, rápido, sin feedback, 3 estímulos",
-
   "sideTitle": "Lado de estimulación",
   "sideLeft": "Izquierda",
   "sideRight": "Derecha",
@@ -45,20 +39,17 @@
   "sideDescBottom": "Los estímulos aparecerán únicamente en la parte inferior.",
   "sideDescBoth": "Los estímulos podrán aparecer en ambos lados.",
   "sideDescRandom": "El lado de aparición de los estímulos será aleatorio en cada ciclo.",
-
   "symbolTitle": "Tipo de estímulo",
   "symbolLetters": "Letras",
   "symbolNumbers": "Números",
   "symbolShapes": "Formas",
   "symbolFormTitle": "Forma (opcional)",
   "symbolFormRandom": "Aleatoria",
-
   "formaCircle": "Círculo",
   "formaSquare": "Cuadrado",
   "formaHeart": "Corazón",
   "formaTriangle": "Triángulo",
   "formaClover": "Trébol",
-
   "colorTitle": "Color del estímulo",
   "colorRed": "Rojo",
   "colorGreen": "Verde",
@@ -68,12 +59,10 @@
   "colorPurple": "Morado",
   "colorBlack": "Negro",
   "colorRandom": "Aleatorio",
-
   "speedTitle": "Velocidad",
   "speedSlow": "Lenta",
   "speedMedium": "Media",
   "speedFast": "Rápida",
-
   "movementTitle": "Movimiento del estímulo",
   "movementFixed": "Fijo",
   "movementHorizontal": "Horizontal",
@@ -83,7 +72,6 @@
   "movementDescHorizontal": "El estímulo se desliza de izquierda a derecha o viceversa.",
   "movementDescVertical": "El estímulo se desliza de arriba a abajo o viceversa.",
   "movementDescRandom": "El estímulo cambia aleatoriamente entre desplazamiento horizontal y vertical.",
-
   "distanceTitle": "Distancia al centro",
   "distanceRandom": "Aleatoria",
   "distanceRandomSubtitle": "Cambia aleatoriamente la distancia del estímulo",
@@ -91,29 +79,29 @@
   "distanceCurrent": "Distancia actual: {pct}%",
   "@distanceCurrent": {
     "placeholders": {
-      "pct": { "type": "String" }
+      "pct": {
+        "type": "String"
+      }
     }
   },
-
   "durationTitle": "Duración (segundos)",
   "durationLabel": "{value} s",
   "@durationLabel": {
     "placeholders": {
-      "value": { "type": "int" }
+      "value": {
+        "type": "int"
+      }
     }
   },
-
   "sizeTitle": "Tamaño (%)",
   "sizeRandomToggle": "Variar tamaño aleatoriamente",
   "sizeRandomSubtitle": "Si se activa, cada estímulo ajustará su tamaño alrededor del valor configurado.",
-
   "fixationTitle": "Punto de fijación",
   "fixationFace": "Cara",
   "fixationEye": "Ojo",
   "fixationDot": "Punto",
   "fixationClover": "Trébol",
   "fixationCross": "Cruz",
-
   "backgroundTitle": "Fondo y distractor",
   "backgroundLight": "Claro",
   "backgroundDark": "Oscuro",
@@ -122,7 +110,6 @@
   "backgroundDistractorSubtitle": "Añade un patrón suave de baja intensidad.",
   "backgroundAnimate": "Animar distractor",
   "backgroundAnimateSubtitle": "Activa un movimiento leve del patrón para aumentar la dificultad visual.",
-
   "locModeTitle": "Modo de localización",
   "locModeTouchAll": "Tocar todos",
   "locModeMatchCenter": "Igualar centro",
@@ -132,7 +119,6 @@
   "locModeMatchCenterDesc": "Solo toca los que coincidan con el centro",
   "locModeSameColorDesc": "Solo toca los del mismo color que el centro",
   "locModeSameShapeDesc": "Solo toca los de la misma forma que el centro",
-
   "locInteractionTitle": "Opciones de interacción",
   "locCenterFixed": "Centro fijo",
   "locCenterFixedOn": "El estímulo central no cambia durante la prueba",
@@ -143,18 +129,23 @@
   "locDisappearByTime": "Por tiempo",
   "locDisappearWaitTouch": "Esperar toque",
   "locSimultaneousTitle": "Estímulos simultáneos",
-
   "testTimeRemaining": "Tiempo restante: {seconds} s",
   "@testTimeRemaining": {
     "placeholders": {
-      "seconds": { "type": "int" }
+      "seconds": {
+        "type": "int"
+      }
     }
   },
   "testTimeAndHits": "Tiempo: {seconds} s  |  Aciertos: {hits}",
   "@testTimeAndHits": {
     "placeholders": {
-      "seconds": { "type": "int" },
-      "hits": { "type": "int" }
+      "seconds": {
+        "type": "int"
+      },
+      "hits": {
+        "type": "int"
+      }
     }
   },
   "testPause": "Pausar",
@@ -165,36 +156,28 @@
   "testStatRemaining": "Restante",
   "testStatElapsed": "Transcurrido",
   "testStatStimuli": "Estímulos",
-
   "countdownReady": "¡Prepárate!",
-
   "resultsTitle": "Resultados de la prueba",
   "resultsLocTitle": "Resultados - Localización",
   "resultsCompleted": "Prueba completada",
   "resultsStopped": "Prueba detenida",
-
   "statsTitle": "Estadísticas",
   "statsActualDuration": "Duración real",
   "statsConfigDuration": "Duración configurada",
   "statsStimuliShown": "Estímulos mostrados",
   "statsStimuliPerMinute": "Estímulos/minuto",
-
   "accuracyTitle": "Precisión",
   "accuracyCorrect": "Aciertos",
   "accuracyErrors": "Errores",
   "accuracyMissed": "Omisiones",
   "accuracyPercent": "% de acierto",
-
   "reactionTitle": "Tiempo de reacción",
   "reactionAvg": "Promedio",
   "reactionBest": "Mejor",
   "reactionWorst": "Peor",
-
   "configUsedTitle": "Configuración usada",
-
   "resultsRepeat": "Repetir prueba",
   "resultsHome": "Volver al menú",
-
   "summaryKeySide": "Lado",
   "summaryKeyStimulus": "Estímulo",
   "summaryKeyColor": "Color",
@@ -220,7 +203,9 @@
   "summarySizeRandom": "~{pct}% (aleatorio)",
   "@summarySizeRandom": {
     "placeholders": {
-      "pct": { "type": "String" }
+      "pct": {
+        "type": "String"
+      }
     }
   },
   "summaryDistractorAnimated": " + Distractor animado",
@@ -229,12 +214,9 @@
   "summaryCenterChanging": "Cambiante",
   "summaryYes": "Sí",
   "summaryNo": "No",
-
   "testMacdonaldTitle": "Carta MacDonald",
   "testMacdonaldSubtitle": "Entrena la visión periférica con letras en anillos.",
-
   "configMacdonaldTitle": "Test Carta MacDonald",
-
   "macInteractionTitle": "Modo de interacción",
   "macInteractionTouch": "Tocar letras",
   "macInteractionTouchDesc": "Toca cada letra conforme la veas",
@@ -242,7 +224,6 @@
   "macInteractionTimedDesc": "Lee en voz alta con cronómetro",
   "macInteractionSequential": "Lectura secuencial",
   "macInteractionSequentialDesc": "La app resalta letras una a una, tú las lees",
-
   "macVisualizationTitle": "Modo de visualización",
   "macVisualizationComplete": "Completa",
   "macVisualizationCompleteDesc": "Todas las letras visibles desde el inicio",
@@ -250,50 +231,42 @@
   "macVisualizationProgressiveDesc": "Las letras aparecen una a una",
   "macVisualizationByRings": "Por anillos",
   "macVisualizationByRingsDesc": "Las letras aparecen anillo por anillo",
-
   "macDirectionTitle": "Dirección de lectura",
   "macDirectionCenterOut": "Centro → Afuera",
   "macDirectionOutCenter": "Afuera → Centro",
   "macDirectionClockwise": "Horario",
   "macDirectionCounterClockwise": "Antihorario",
-
   "macContentTitle": "Tipo de contenido",
   "macContentLetters": "Letras",
   "macContentNumbers": "Números",
   "summaryKeyContent": "Contenido",
-
   "macRingsTitle": "Número de anillos",
   "macLettersPerRingTitle": "Letras por anillo (primer anillo)",
   "macRandomLetters": "Letras aleatorias",
   "macRandomLettersSubtitle": "Si se desactiva, se usa la secuencia A-Z",
   "macRevealSpeedTitle": "Velocidad de revelado",
-
   "resultsMacTitle": "Resultados - Carta MacDonald",
   "macStatsRingsCompleted": "Anillos completados",
   "macStatsTimePerRing": "Tiempo por anillo",
   "macStatsLettersShown": "Letras mostradas",
   "macStatsAvgPerRing": "Promedio por anillo",
-
   "presetMacStandardDesc": "Por anillos, lectura con tiempo",
   "presetMacEasyDesc": "Tocar letras, todo visible, lento",
   "presetMacAdvancedDesc": "Secuencial, progresiva, rápido",
-
   "macHitMapTitle": "Mapa de aciertos",
   "macMissMapTitle": "Mapa de fallos",
-
   "macNextRing": "Siguiente anillo",
   "macRingLabel": "Anillo {number}",
   "@macRingLabel": {
     "placeholders": {
-      "number": { "type": "int" }
+      "number": {
+        "type": "int"
+      }
     }
   },
-
   "patientName": "Nombre del paciente",
   "patientNameHint": "Introduce el nombre del paciente",
-
   "menuHistory": "Historial",
-
   "historyTitle": "Historial de resultados",
   "historyEmpty": "Aún no hay resultados guardados.",
   "historyClearAll": "Borrar todo",
@@ -304,7 +277,11 @@
   "historyDelete": "Eliminar",
   "bulkSelectedCount": "{count} seleccionados",
   "@bulkSelectedCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "bulkDeselectAll": "Deseleccionar todo",
   "bulkSelectAll": "Seleccionar todo",
@@ -322,16 +299,15 @@
   "historyResultCount": "{count, plural, =1{1 resultado} other{{count} resultados}}",
   "@historyResultCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
-
   "historyGroupByPatient": "Por paciente",
   "historyOrderByDate": "Por fecha",
-
   "themeDark": "Modo noche",
   "themeLight": "Modo día",
-
   "creditsTitle": "Créditos",
   "creditsAppName": "Optoview",
   "creditsDescription": "Esta aplicación ha sido desarrollada con la ayuda de la optometrista titulada experta en terapia visual\nEstefanía Rodríguez-Bobada Lillo.",
@@ -339,27 +315,56 @@
   "creditsYear": "Año",
   "creditsVersion": "Versión",
   "creditsBack": "Volver",
-
   "instructionsTitle": "Instrucciones",
   "instructionsStart": "Empezar",
   "showInstructions": "Mostrar instrucciones",
   "showInstructionsSubtitle": "Muestra un texto explicativo antes de iniciar la prueba",
   "instructFixation": "Mantén la mirada en el punto de fijación central",
   "instructStimuliSide": "Los estímulos aparecerán en: {side}",
-  "@instructStimuliSide": { "placeholders": { "side": { "type": "String" } } },
+  "@instructStimuliSide": {
+    "placeholders": {
+      "side": {
+        "type": "String"
+      }
+    }
+  },
   "instructStimuliType": "Tipo de estímulo: {type}",
-  "@instructStimuliType": { "placeholders": { "type": { "type": "String" } } },
+  "@instructStimuliType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "instructSpeed": "Velocidad: {speed}",
-  "@instructSpeed": { "placeholders": { "speed": { "type": "String" } } },
+  "@instructSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
   "instructDuration": "Duración: {duration} segundos",
-  "@instructDuration": { "placeholders": { "duration": { "type": "int" } } },
+  "@instructDuration": {
+    "placeholders": {
+      "duration": {
+        "type": "int"
+      }
+    }
+  },
   "instructLocTouchAll": "Toca todos los estímulos que aparezcan",
   "instructLocMatchCenter": "Toca solo los que coincidan con el estímulo central",
   "instructLocSameColor": "Toca solo los del mismo color que el centro",
   "instructLocSameShape": "Toca solo los de la misma forma que el centro",
   "instructLocFeedback": "Verás un indicador visual de acierto o error al tocar",
   "instructLocSimultaneous": "Aparecerán {count} estímulos a la vez",
-  "@instructLocSimultaneous": { "placeholders": { "count": { "type": "int" } } },
+  "@instructLocSimultaneous": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "instructMacTouch": "Toca cada letra en el orden en que aparecen",
   "instructMacTimed": "Lee las letras en voz alta lo más rápido posible",
   "instructMacSequential": "Lee cada letra cuando se resalte en la pantalla",
@@ -367,8 +372,13 @@
   "instructMacVisProgressive": "Las letras irán apareciendo una a una",
   "instructMacVisByRings": "Las letras aparecerán anillo por anillo",
   "instructMacContent": "Contenido: {content}",
-  "@instructMacContent": { "placeholders": { "content": { "type": "String" } } },
-
+  "@instructMacContent": {
+    "placeholders": {
+      "content": {
+        "type": "String"
+      }
+    }
+  },
   "exportPdf": "PDF",
   "exportExcel": "Excel",
   "exportCsv": "CSV",
@@ -378,14 +388,18 @@
   "exportReportGenerated": "Informe generado el {date}",
   "@exportReportGenerated": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "exportNoResults": "No hay resultados para exportar",
   "exportPatientReport": "Resumen del paciente: {name}",
   "@exportPatientReport": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "exportTestDate": "Fecha",
@@ -393,7 +407,6 @@
   "exportAccuracy": "Precisión",
   "exportDuration": "Duración",
   "exportReactionTime": "T. reacción",
-
   "backupExport": "Exportar backup",
   "backupExportTooltip": "Exportar todos los resultados como JSON",
   "backupImport": "Importar backup",
@@ -401,81 +414,26 @@
   "backupExportSuccess": "Backup exportado con {count} resultados",
   "@backupExportSuccess": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "backupImportSuccess": "Se importaron {count} resultados nuevos",
   "@backupImportSuccess": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "backupImportNone": "No se encontraron resultados nuevos para importar",
   "backupImportError": "Error al leer el archivo de backup",
   "backupNoResults": "No hay resultados para exportar",
-
   "renameTitle": "Renombrar paciente",
   "renameHint": "Nuevo nombre del paciente",
   "renameSave": "Guardar",
   "renameSuccess": "Nombre actualizado",
-
-  "questionnaireMenuTitle": "Cuestionario CVS-Q",
-  "questionnaireMenuSubtitle": "Evaluación de síntomas visuales",
-  "questionnaireFormTitle": "Cuestionario CVS-Q",
-  "questionnaireCvsqSection": "Síntomas visuales (CVS-Q)",
-  "questionnaireFssSection": "Fatiga y motivación — opcional",
-  "questionnaireAnsweredCount": "{answered}/16 respondidas",
-  "@questionnaireAnsweredCount": {
-    "placeholders": { "answered": { "type": "int" } }
-  },
-  "questionnaireScoreLabel": "Score CVS-Q",
-  "questionnaireSaveButton": "Guardar",
-  "questionnaireSavedSnack": "Cuestionario guardado",
-  "questionnairePatientLabel": "Nombre del paciente",
-  "cvsqFreqHeader": "Frecuencia",
-  "cvsqIntHeader": "Intensidad",
-  "cvsqFreqNever": "Nunca",
-  "cvsqFreqOccasional": "Ocasionalmente",
-  "cvsqFreqHabitual": "Habitualmente o siempre",
-  "cvsqIntModerate": "Moderado",
-  "cvsqIntIntense": "Intenso",
-  "cvsqItem1": "Quemazón",
-  "cvsqItem2": "Picor",
-  "cvsqItem3": "Sensación de cuerpo extraño",
-  "cvsqItem4": "Lagrimeo",
-  "cvsqItem5": "Parpadeo excesivo",
-  "cvsqItem6": "Ojo rojo",
-  "cvsqItem7": "Dolor ocular",
-  "cvsqItem8": "Párpados pesados",
-  "cvsqItem9": "Sequedad",
-  "cvsqItem10": "Visión borrosa",
-  "cvsqItem11": "Visión doble",
-  "cvsqItem12": "Dificultad de enfocar en cerca",
-  "cvsqItem13": "Elevada sensibilidad a la luz",
-  "cvsqItem14": "Halos de colores alrededor de las luces",
-  "cvsqItem15": "Siente que ha empeorado la visión",
-  "cvsqItem16": "Dolor de cabeza",
-  "fssItem1": "Grado de fatiga",
-  "fssItem2": "Grado de motivación",
-  "fssItem3": "Grado de estrés",
-  "fssItem4": "La fatiga me dificulta la realización de tareas",
-  "fssItem5": "Horas de sueño",
-  "fssAnchorAgree": "Poco o nada",
-  "fssAnchorDisagree": "Bastante",
-  "historyTestQuestionnaire": "Cuestionario",
-  "questionnaireHistorySubtitle": "CVS-Q · Score: {score}",
-  "@questionnaireHistorySubtitle": {
-    "placeholders": { "score": { "type": "int" } }
-  },
-  "exportQuestionnaireTitle": "Cuestionario CVS-Q",
-  "exportQuestionnaireBulkTitle": "Cuestionarios",
-  "exportItemNumber": "#",
-  "exportItemName": "Ítem",
-  "exportFrequency": "Frecuencia",
-  "exportIntensity": "Intensidad",
-  "exportScore": "Score",
-  "exportValueScale": "Valor (1-7)",
-
   "settingsTitle": "Ajustes",
   "settingsAppearance": "Apariencia",
   "settingsFontSize": "Tamaño de texto de la interfaz",
@@ -488,7 +446,6 @@
   "settingsLanguageAuto": "Automático",
   "settingsLanguageSpanish": "Español",
   "settingsLanguageEnglish": "Inglés",
-
   "testFieldDetectionTitle": "Detección de campo",
   "testFieldDetectionSubtitle": "Detección de letras periféricas, sin tiempo",
   "historyTestFieldDetection": "Detección de campo",
@@ -501,7 +458,11 @@
   "fieldDetectionByQuadrant": "Por cuadrante",
   "fieldDetectionRing": "Anillo {n}",
   "@fieldDetectionRing": {
-    "placeholders": { "n": { "type": "int" } }
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
   },
   "fieldDetectionQuadrantTL": "Sup-Izq",
   "fieldDetectionQuadrantTR": "Sup-Der",
@@ -510,8 +471,12 @@
   "fieldDetectionLetterCounter": "{i} de {n}",
   "@fieldDetectionLetterCounter": {
     "placeholders": {
-      "i": { "type": "int" },
-      "n": { "type": "int" }
+      "i": {
+        "type": "int"
+      },
+      "n": {
+        "type": "int"
+      }
     }
   }
 }

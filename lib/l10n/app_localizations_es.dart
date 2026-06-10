@@ -27,7 +27,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get testPeripheralTitle => 'Estimulación periférica';
 
   @override
-  String get testPeripheralSubtitle => 'Entrena la percepción periférica dinámica.';
+  String get testPeripheralSubtitle =>
+      'Entrena la percepción periférica dinámica.';
 
   @override
   String get testLocalizationTitle => 'Localización periférica';
@@ -42,7 +43,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get testComingSoonSubtitle => 'Nuevos protocolos de evaluación.';
 
   @override
-  String get testComingSoonSnackbar => 'Estamos trabajando en más tests especializados.';
+  String get testComingSoonSnackbar =>
+      'Estamos trabajando en más tests especializados.';
 
   @override
   String get configPeripheralTitle => 'Test de estimulación periférica';
@@ -57,7 +59,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetsTitle => 'Presets';
 
   @override
-  String get presetsHint => 'Selecciona un preset o personaliza cada opción abajo.';
+  String get presetsHint =>
+      'Selecciona un preset o personaliza cada opción abajo.';
 
   @override
   String get presetStandard => 'Estándar';
@@ -75,7 +78,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetAdvanced => 'Avanzado';
 
   @override
-  String get presetAdvancedDesc => 'Estímulos rápidos, pequeños y con distractores';
+  String get presetAdvancedDesc =>
+      'Estímulos rápidos, pequeños y con distractores';
 
   @override
   String get presetLocStandardDesc => 'Igualar centro, velocidad media';
@@ -84,7 +88,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get presetLocEasyDesc => 'Tocar todos, lento, con feedback';
 
   @override
-  String get presetLocAdvancedDesc => 'Misma forma, rápido, sin feedback, 3 estímulos';
+  String get presetLocAdvancedDesc =>
+      'Misma forma, rápido, sin feedback, 3 estímulos';
 
   @override
   String get sideTitle => 'Lado de estimulación';
@@ -108,22 +113,27 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sideRandom => 'Aleatorio';
 
   @override
-  String get sideDescLeft => 'Los estímulos aparecerán únicamente en el lado izquierdo de la pantalla.';
+  String get sideDescLeft =>
+      'Los estímulos aparecerán únicamente en el lado izquierdo de la pantalla.';
 
   @override
-  String get sideDescRight => 'Los estímulos aparecerán únicamente en el lado derecho de la pantalla.';
+  String get sideDescRight =>
+      'Los estímulos aparecerán únicamente en el lado derecho de la pantalla.';
 
   @override
-  String get sideDescTop => 'Los estímulos aparecerán únicamente en la parte superior.';
+  String get sideDescTop =>
+      'Los estímulos aparecerán únicamente en la parte superior.';
 
   @override
-  String get sideDescBottom => 'Los estímulos aparecerán únicamente en la parte inferior.';
+  String get sideDescBottom =>
+      'Los estímulos aparecerán únicamente en la parte inferior.';
 
   @override
   String get sideDescBoth => 'Los estímulos podrán aparecer en ambos lados.';
 
   @override
-  String get sideDescRandom => 'El lado de aparición de los estímulos será aleatorio en cada ciclo.';
+  String get sideDescRandom =>
+      'El lado de aparición de los estímulos será aleatorio en cada ciclo.';
 
   @override
   String get symbolTitle => 'Tipo de estímulo';
@@ -213,16 +223,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get movementRandom => 'Aleatorio';
 
   @override
-  String get movementDescFixed => 'El estímulo permanece estático en su posición.';
+  String get movementDescFixed =>
+      'El estímulo permanece estático en su posición.';
 
   @override
-  String get movementDescHorizontal => 'El estímulo se desliza de izquierda a derecha o viceversa.';
+  String get movementDescHorizontal =>
+      'El estímulo se desliza de izquierda a derecha o viceversa.';
 
   @override
-  String get movementDescVertical => 'El estímulo se desliza de arriba a abajo o viceversa.';
+  String get movementDescVertical =>
+      'El estímulo se desliza de arriba a abajo o viceversa.';
 
   @override
-  String get movementDescRandom => 'El estímulo cambia aleatoriamente entre desplazamiento horizontal y vertical.';
+  String get movementDescRandom =>
+      'El estímulo cambia aleatoriamente entre desplazamiento horizontal y vertical.';
 
   @override
   String get distanceTitle => 'Distancia al centro';
@@ -231,7 +245,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get distanceRandom => 'Aleatoria';
 
   @override
-  String get distanceRandomSubtitle => 'Cambia aleatoriamente la distancia del estímulo';
+  String get distanceRandomSubtitle =>
+      'Cambia aleatoriamente la distancia del estímulo';
 
   @override
   String get distanceFixed => 'Fija';
@@ -256,7 +271,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get sizeRandomToggle => 'Variar tamaño aleatoriamente';
 
   @override
-  String get sizeRandomSubtitle => 'Si se activa, cada estímulo ajustará su tamaño alrededor del valor configurado.';
+  String get sizeRandomSubtitle =>
+      'Si se activa, cada estímulo ajustará su tamaño alrededor del valor configurado.';
 
   @override
   String get fixationTitle => 'Punto de fijación';
@@ -292,13 +308,15 @@ class AppLocalizationsEs extends AppLocalizations {
   String get backgroundDistractor => 'Fondo distractor';
 
   @override
-  String get backgroundDistractorSubtitle => 'Añade un patrón suave de baja intensidad.';
+  String get backgroundDistractorSubtitle =>
+      'Añade un patrón suave de baja intensidad.';
 
   @override
   String get backgroundAnimate => 'Animar distractor';
 
   @override
-  String get backgroundAnimateSubtitle => 'Activa un movimiento leve del patrón para aumentar la dificultad visual.';
+  String get backgroundAnimateSubtitle =>
+      'Activa un movimiento leve del patrón para aumentar la dificultad visual.';
 
   @override
   String get locModeTitle => 'Modo de localización';
@@ -319,13 +337,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get locModeTouchAllDesc => 'Toca todos los estímulos que aparezcan';
 
   @override
-  String get locModeMatchCenterDesc => 'Solo toca los que coincidan con el centro';
+  String get locModeMatchCenterDesc =>
+      'Solo toca los que coincidan con el centro';
 
   @override
-  String get locModeSameColorDesc => 'Solo toca los del mismo color que el centro';
+  String get locModeSameColorDesc =>
+      'Solo toca los del mismo color que el centro';
 
   @override
-  String get locModeSameShapeDesc => 'Solo toca los de la misma forma que el centro';
+  String get locModeSameShapeDesc =>
+      'Solo toca los de la misma forma que el centro';
 
   @override
   String get locInteractionTitle => 'Opciones de interacción';
@@ -334,7 +355,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get locCenterFixed => 'Centro fijo';
 
   @override
-  String get locCenterFixedOn => 'El estímulo central no cambia durante la prueba';
+  String get locCenterFixedOn =>
+      'El estímulo central no cambia durante la prueba';
 
   @override
   String get locCenterFixedOff => 'El estímulo central cambia cada ciclo';
@@ -343,7 +365,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get locFeedback => 'Feedback visual';
 
   @override
-  String get locFeedbackSubtitle => 'Mostrar indicación visual al tocar (acierto/error)';
+  String get locFeedbackSubtitle =>
+      'Mostrar indicación visual al tocar (acierto/error)';
 
   @override
   String get locDisappearTitle => 'Desaparición del estímulo';
@@ -380,7 +403,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get testPaused => 'Test en pausa';
 
   @override
-  String get testPauseHint => 'El test se reanudará exactamente donde lo dejaste.';
+  String get testPauseHint =>
+      'El test se reanudará exactamente donde lo dejaste.';
 
   @override
   String get testStatRemaining => 'Restante';
@@ -550,7 +574,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get testMacdonaldTitle => 'Carta MacDonald';
 
   @override
-  String get testMacdonaldSubtitle => 'Entrena la visión periférica con letras en anillos.';
+  String get testMacdonaldSubtitle =>
+      'Entrena la visión periférica con letras en anillos.';
 
   @override
   String get configMacdonaldTitle => 'Test Carta MacDonald';
@@ -574,7 +599,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get macInteractionSequential => 'Lectura secuencial';
 
   @override
-  String get macInteractionSequentialDesc => 'La app resalta letras una a una, tú las lees';
+  String get macInteractionSequentialDesc =>
+      'La app resalta letras una a una, tú las lees';
 
   @override
   String get macVisualizationTitle => 'Modo de visualización';
@@ -583,7 +609,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get macVisualizationComplete => 'Completa';
 
   @override
-  String get macVisualizationCompleteDesc => 'Todas las letras visibles desde el inicio';
+  String get macVisualizationCompleteDesc =>
+      'Todas las letras visibles desde el inicio';
 
   @override
   String get macVisualizationProgressive => 'Progresiva';
@@ -595,7 +622,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get macVisualizationByRings => 'Por anillos';
 
   @override
-  String get macVisualizationByRingsDesc => 'Las letras aparecen anillo por anillo';
+  String get macVisualizationByRingsDesc =>
+      'Las letras aparecen anillo por anillo';
 
   @override
   String get macDirectionTitle => 'Dirección de lectura';
@@ -634,7 +662,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get macRandomLetters => 'Letras aleatorias';
 
   @override
-  String get macRandomLettersSubtitle => 'Si se desactiva, se usa la secuencia A-Z';
+  String get macRandomLettersSubtitle =>
+      'Si se desactiva, se usa la secuencia A-Z';
 
   @override
   String get macRevealSpeedTitle => 'Velocidad de revelado';
@@ -699,7 +728,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get historyClearAllTitle => 'Eliminar todos los resultados';
 
   @override
-  String get historyClearAllMessage => 'Se eliminarán todos los resultados guardados de forma permanente. Esta acción no se puede deshacer.';
+  String get historyClearAllMessage =>
+      'Se eliminarán todos los resultados guardados de forma permanente. Esta acción no se puede deshacer.';
 
   @override
   String get historyClearAllConfirm => 'Eliminar todo';
@@ -731,7 +761,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get historyDeleteTitle => 'Eliminar resultado';
 
   @override
-  String get historyDeleteMessage => '¿Seguro que quieres eliminar este resultado?';
+  String get historyDeleteMessage =>
+      '¿Seguro que quieres eliminar este resultado?';
 
   @override
   String get historyDetailTitle => 'Detalles del resultado';
@@ -784,7 +815,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get creditsAppName => 'Optoview';
 
   @override
-  String get creditsDescription => 'Esta aplicación ha sido desarrollada con la ayuda de la optometrista titulada experta en terapia visual\nEstefanía Rodríguez-Bobada Lillo.';
+  String get creditsDescription =>
+      'Esta aplicación ha sido desarrollada con la ayuda de la optometrista titulada experta en terapia visual\nEstefanía Rodríguez-Bobada Lillo.';
 
   @override
   String get creditsCompany => 'Empresa';
@@ -808,10 +840,12 @@ class AppLocalizationsEs extends AppLocalizations {
   String get showInstructions => 'Mostrar instrucciones';
 
   @override
-  String get showInstructionsSubtitle => 'Muestra un texto explicativo antes de iniciar la prueba';
+  String get showInstructionsSubtitle =>
+      'Muestra un texto explicativo antes de iniciar la prueba';
 
   @override
-  String get instructFixation => 'Mantén la mirada en el punto de fijación central';
+  String get instructFixation =>
+      'Mantén la mirada en el punto de fijación central';
 
   @override
   String instructStimuliSide(String side) {
@@ -837,16 +871,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get instructLocTouchAll => 'Toca todos los estímulos que aparezcan';
 
   @override
-  String get instructLocMatchCenter => 'Toca solo los que coincidan con el estímulo central';
+  String get instructLocMatchCenter =>
+      'Toca solo los que coincidan con el estímulo central';
 
   @override
-  String get instructLocSameColor => 'Toca solo los del mismo color que el centro';
+  String get instructLocSameColor =>
+      'Toca solo los del mismo color que el centro';
 
   @override
-  String get instructLocSameShape => 'Toca solo los de la misma forma que el centro';
+  String get instructLocSameShape =>
+      'Toca solo los de la misma forma que el centro';
 
   @override
-  String get instructLocFeedback => 'Verás un indicador visual de acierto o error al tocar';
+  String get instructLocFeedback =>
+      'Verás un indicador visual de acierto o error al tocar';
 
   @override
   String instructLocSimultaneous(int count) {
@@ -857,16 +895,20 @@ class AppLocalizationsEs extends AppLocalizations {
   String get instructMacTouch => 'Toca cada letra en el orden en que aparecen';
 
   @override
-  String get instructMacTimed => 'Lee las letras en voz alta lo más rápido posible';
+  String get instructMacTimed =>
+      'Lee las letras en voz alta lo más rápido posible';
 
   @override
-  String get instructMacSequential => 'Lee cada letra cuando se resalte en la pantalla';
+  String get instructMacSequential =>
+      'Lee cada letra cuando se resalte en la pantalla';
 
   @override
-  String get instructMacVisComplete => 'Todas las letras serán visibles desde el inicio';
+  String get instructMacVisComplete =>
+      'Todas las letras serán visibles desde el inicio';
 
   @override
-  String get instructMacVisProgressive => 'Las letras irán apareciendo una a una';
+  String get instructMacVisProgressive =>
+      'Las letras irán apareciendo una a una';
 
   @override
   String get instructMacVisByRings => 'Las letras aparecerán anillo por anillo';
@@ -945,7 +987,8 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get backupImportNone => 'No se encontraron resultados nuevos para importar';
+  String get backupImportNone =>
+      'No se encontraron resultados nuevos para importar';
 
   @override
   String get backupImportError => 'Error al leer el archivo de backup';
@@ -966,160 +1009,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get renameSuccess => 'Nombre actualizado';
 
   @override
-  String get questionnaireMenuTitle => 'Cuestionario CVS-Q';
-
-  @override
-  String get questionnaireMenuSubtitle => 'Evaluación de síntomas visuales';
-
-  @override
-  String get questionnaireFormTitle => 'Cuestionario CVS-Q';
-
-  @override
-  String get questionnaireCvsqSection => 'Síntomas visuales (CVS-Q)';
-
-  @override
-  String get questionnaireFssSection => 'Fatiga y motivación — opcional';
-
-  @override
-  String questionnaireAnsweredCount(int answered) {
-    return '$answered/16 respondidas';
-  }
-
-  @override
-  String get questionnaireScoreLabel => 'Score CVS-Q';
-
-  @override
-  String get questionnaireSaveButton => 'Guardar';
-
-  @override
-  String get questionnaireSavedSnack => 'Cuestionario guardado';
-
-  @override
-  String get questionnairePatientLabel => 'Nombre del paciente';
-
-  @override
-  String get cvsqFreqHeader => 'Frecuencia';
-
-  @override
-  String get cvsqIntHeader => 'Intensidad';
-
-  @override
-  String get cvsqFreqNever => 'Nunca';
-
-  @override
-  String get cvsqFreqOccasional => 'Ocasionalmente';
-
-  @override
-  String get cvsqFreqHabitual => 'Habitualmente o siempre';
-
-  @override
-  String get cvsqIntModerate => 'Moderado';
-
-  @override
-  String get cvsqIntIntense => 'Intenso';
-
-  @override
-  String get cvsqItem1 => 'Quemazón';
-
-  @override
-  String get cvsqItem2 => 'Picor';
-
-  @override
-  String get cvsqItem3 => 'Sensación de cuerpo extraño';
-
-  @override
-  String get cvsqItem4 => 'Lagrimeo';
-
-  @override
-  String get cvsqItem5 => 'Parpadeo excesivo';
-
-  @override
-  String get cvsqItem6 => 'Ojo rojo';
-
-  @override
-  String get cvsqItem7 => 'Dolor ocular';
-
-  @override
-  String get cvsqItem8 => 'Párpados pesados';
-
-  @override
-  String get cvsqItem9 => 'Sequedad';
-
-  @override
-  String get cvsqItem10 => 'Visión borrosa';
-
-  @override
-  String get cvsqItem11 => 'Visión doble';
-
-  @override
-  String get cvsqItem12 => 'Dificultad de enfocar en cerca';
-
-  @override
-  String get cvsqItem13 => 'Elevada sensibilidad a la luz';
-
-  @override
-  String get cvsqItem14 => 'Halos de colores alrededor de las luces';
-
-  @override
-  String get cvsqItem15 => 'Siente que ha empeorado la visión';
-
-  @override
-  String get cvsqItem16 => 'Dolor de cabeza';
-
-  @override
-  String get fssItem1 => 'Grado de fatiga';
-
-  @override
-  String get fssItem2 => 'Grado de motivación';
-
-  @override
-  String get fssItem3 => 'Grado de estrés';
-
-  @override
-  String get fssItem4 => 'La fatiga me dificulta la realización de tareas';
-
-  @override
-  String get fssItem5 => 'Horas de sueño';
-
-  @override
-  String get fssAnchorAgree => 'Poco o nada';
-
-  @override
-  String get fssAnchorDisagree => 'Bastante';
-
-  @override
-  String get historyTestQuestionnaire => 'Cuestionario';
-
-  @override
-  String questionnaireHistorySubtitle(int score) {
-    return 'CVS-Q · Score: $score';
-  }
-
-  @override
-  String get exportQuestionnaireTitle => 'Cuestionario CVS-Q';
-
-  @override
-  String get exportQuestionnaireBulkTitle => 'Cuestionarios';
-
-  @override
-  String get exportItemNumber => '#';
-
-  @override
-  String get exportItemName => 'Ítem';
-
-  @override
-  String get exportFrequency => 'Frecuencia';
-
-  @override
-  String get exportIntensity => 'Intensidad';
-
-  @override
-  String get exportScore => 'Score';
-
-  @override
-  String get exportValueScale => 'Valor (1-7)';
-
-  @override
   String get settingsTitle => 'Ajustes';
 
   @override
@@ -1138,7 +1027,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settingsFontSizeExtraLarge => 'Muy grande';
 
   @override
-  String get settingsFontSizeHint => 'No afecta al tamaño de las letras dentro de las pruebas clínicas.';
+  String get settingsFontSizeHint =>
+      'No afecta al tamaño de las letras dentro de las pruebas clínicas.';
 
   @override
   String get settingsFontSizePreview => 'Aa';
@@ -1159,7 +1049,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get testFieldDetectionTitle => 'Detección de campo';
 
   @override
-  String get testFieldDetectionSubtitle => 'Detección de letras periféricas, sin tiempo';
+  String get testFieldDetectionSubtitle =>
+      'Detección de letras periféricas, sin tiempo';
 
   @override
   String get historyTestFieldDetection => 'Detección de campo';
@@ -1168,13 +1059,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get configFieldDetectionTitle => 'Detección de campo';
 
   @override
-  String get configFieldDetectionDescription => 'Test estandarizado: aparecen 80 letras de una en una en 5 anillos. Toca cada letra antes de que desaparezca.';
+  String get configFieldDetectionDescription =>
+      'Test estandarizado: aparecen 80 letras de una en una en 5 anillos. Toca cada letra antes de que desaparezca.';
 
   @override
-  String get instructFieldDetection => 'Mantén la mirada en el centro y toca cada letra que aparezca lo más rápido posible.';
+  String get instructFieldDetection =>
+      'Mantén la mirada en el centro y toca cada letra que aparezca lo más rápido posible.';
 
   @override
-  String get instructFieldDetectionRings => 'Aparecerán 80 letras en total distribuidas en 5 anillos.';
+  String get instructFieldDetectionRings =>
+      'Aparecerán 80 letras en total distribuidas en 5 anillos.';
 
   @override
   String get fieldDetectionResultsTitle => 'Resultados — Detección de campo';

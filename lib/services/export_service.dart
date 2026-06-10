@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:archive/archive.dart';
 import 'package:excel/excel.dart' as xl;
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
@@ -13,7 +12,6 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:share_plus/share_plus.dart' show Share, XFile;
 
 import '../l10n/app_localizations.dart';
-import '../models/questionnaire_result.dart';
 import '../models/saved_result.dart';
 import '../utils/hit_map_renderer.dart';
 import '../utils/web_download_stub.dart'
@@ -273,190 +271,6 @@ abstract final class ExportService {
   }
 
   // ---------------------------------------------------------------------------
-  // Cuestionario individual (PDF / Excel / CSV)
-  // ---------------------------------------------------------------------------
-
-  static Future<void> exportQuestionnairePdf(
-    BuildContext context,
-    QuestionnaireResult q,
-    AppLocalizations l,
-  ) async {
-    AppLogger.info('exportQuestionnairePdf: inicio (id=${q.id})');
-    final doc = pw.Document();
-    doc.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(32),
-      maxPages: 10,
-      build: (ctx) => [
-        pw.Text(l.exportQuestionnaireTitle,
-            style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        if (q.patientName.isNotEmpty)
-          pw.Text('${l.patientName}: ${q.patientName}',
-              style: const pw.TextStyle(fontSize: 12)),
-        pw.Text(_dateFmt.format(q.completedAt),
-            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-        pw.SizedBox(height: 8),
-        pw.Text('${l.questionnaireScoreLabel}: ${q.cvsqTotalScore}',
-            style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold)),
-        pw.Divider(),
-        pw.SizedBox(height: 8),
-
-        // CVS-Q table header
-        pw.Text(l.questionnaireCvsqSection,
-            style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 4),
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
-          ),
-          child: pw.Row(children: [
-            pw.SizedBox(width: 20, child: pw.Text(l.exportItemNumber, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-            pw.Expanded(flex: 5, child: pw.Text(l.exportItemName, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-            pw.Expanded(flex: 3, child: pw.Text(l.exportFrequency, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-            pw.Expanded(flex: 2, child: pw.Text(l.exportIntensity, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-            pw.SizedBox(width: 30, child: pw.Text(l.exportScore, textAlign: pw.TextAlign.right, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-          ]),
-        ),
-        ...List.generate(q.cvsqAnswers.length, (i) {
-          final a = q.cvsqAnswers[i];
-          return pw.Container(
-            padding: const pw.EdgeInsets.symmetric(vertical: 3),
-            decoration: const pw.BoxDecoration(
-              border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey200)),
-            ),
-            child: pw.Row(children: [
-              pw.SizedBox(width: 20, child: pw.Text('${i + 1}', style: const pw.TextStyle(fontSize: 9))),
-              pw.Expanded(flex: 5, child: pw.Text(_cvsqItemPdfLabel(i, l), style: const pw.TextStyle(fontSize: 9))),
-              pw.Expanded(flex: 3, child: pw.Text(_freqPdfLabel(a.frequency, l), style: const pw.TextStyle(fontSize: 9))),
-              pw.Expanded(flex: 2, child: pw.Text(a.intensity == null ? '-' : _intPdfLabel(a.intensity!, l), style: const pw.TextStyle(fontSize: 9))),
-              pw.SizedBox(width: 30, child: pw.Text('${a.score}', textAlign: pw.TextAlign.right, style: const pw.TextStyle(fontSize: 9))),
-            ]),
-          );
-        }),
-
-        pw.SizedBox(height: 16),
-        pw.Text(l.questionnaireFssSection,
-            style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)),
-        pw.SizedBox(height: 4),
-        pw.Container(
-          padding: const pw.EdgeInsets.symmetric(vertical: 4),
-          decoration: const pw.BoxDecoration(
-            border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
-          ),
-          child: pw.Row(children: [
-            pw.Expanded(flex: 5, child: pw.Text(l.exportItemName, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-            pw.Expanded(flex: 2, child: pw.Text(l.exportValueScale, style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold))),
-          ]),
-        ),
-        ...List.generate(q.fssAnswers.length, (i) {
-          final v = q.fssAnswers[i];
-          return pw.Container(
-            padding: const pw.EdgeInsets.symmetric(vertical: 3),
-            decoration: const pw.BoxDecoration(
-              border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey200)),
-            ),
-            child: pw.Row(children: [
-              pw.Expanded(flex: 5, child: pw.Text(_fssItemPdfLabel(i, l), style: const pw.TextStyle(fontSize: 9))),
-              pw.Expanded(flex: 2, child: pw.Text(v == null ? '-' : '$v / 7', style: const pw.TextStyle(fontSize: 9))),
-            ]),
-          );
-        }),
-      ],
-    ));
-    final bytes = await doc.save();
-    await _shareFile(bytes, 'OptoView_cuestionario_${q.id}.pdf', 'application/pdf');
-    AppLogger.info('exportQuestionnairePdf: OK');
-  }
-
-  static Future<void> exportQuestionnaireExcel(
-    QuestionnaireResult q,
-    AppLocalizations l,
-  ) async {
-    AppLogger.info('exportQuestionnaireExcel: inicio (id=${q.id})');
-    final excel = xl.Excel.createExcel();
-    final sheet = excel['Cuestionario'];
-    if (excel.sheets.containsKey('Sheet1')) excel.delete('Sheet1');
-
-    int row = 0;
-    void set(int c, int r, String v) =>
-        sheet.cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: r)).value = xl.TextCellValue(v);
-
-    set(0, row, l.patientName); set(1, row, q.patientName); row++;
-    set(0, row, l.exportTestDate); set(1, row, _dateFmt.format(q.completedAt)); row++;
-    set(0, row, l.questionnaireScoreLabel); set(1, row, '${q.cvsqTotalScore}'); row++;
-    row++;
-    set(0, row, l.questionnaireCvsqSection); row++;
-    set(0, row, l.exportItemNumber); set(1, row, l.exportItemName);
-    set(2, row, l.exportFrequency); set(3, row, l.exportIntensity); set(4, row, l.exportScore);
-    row++;
-    for (int i = 0; i < q.cvsqAnswers.length; i++) {
-      final a = q.cvsqAnswers[i];
-      set(0, row, '${i + 1}');
-      set(1, row, _cvsqItemPdfLabel(i, l));
-      set(2, row, _freqPdfLabel(a.frequency, l));
-      set(3, row, a.intensity == null ? '-' : _intPdfLabel(a.intensity!, l));
-      set(4, row, '${a.score}');
-      row++;
-    }
-    row++;
-    set(0, row, l.questionnaireFssSection); row++;
-    set(0, row, l.exportItemName); set(1, row, l.exportValueScale);
-    row++;
-    for (int i = 0; i < q.fssAnswers.length; i++) {
-      final v = q.fssAnswers[i];
-      set(0, row, _fssItemPdfLabel(i, l));
-      set(1, row, v == null ? '-' : '$v / 7');
-      row++;
-    }
-
-    final bytes = excel.encode();
-    if (bytes == null) return;
-    await _shareFile(Uint8List.fromList(bytes),
-        'OptoView_cuestionario_${q.id}.xlsx',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    AppLogger.info('exportQuestionnaireExcel: OK');
-  }
-
-  static Future<void> exportQuestionnaireCsv(
-    QuestionnaireResult q,
-    AppLocalizations l,
-  ) async {
-    AppLogger.info('exportQuestionnaireCsv: inicio (id=${q.id})');
-    final buf = StringBuffer();
-    buf.writeln('${l.patientName};${q.patientName}');
-    buf.writeln('${l.exportTestDate};${_dateFmt.format(q.completedAt)}');
-    buf.writeln('${l.questionnaireScoreLabel};${q.cvsqTotalScore}');
-    buf.writeln();
-    buf.writeln(l.questionnaireCvsqSection);
-    buf.writeln([l.exportItemNumber, l.exportItemName, l.exportFrequency, l.exportIntensity, l.exportScore].join(';'));
-    for (int i = 0; i < q.cvsqAnswers.length; i++) {
-      final a = q.cvsqAnswers[i];
-      buf.writeln([
-        i + 1,
-        _cvsqItemPdfLabel(i, l),
-        _freqPdfLabel(a.frequency, l),
-        a.intensity == null ? '-' : _intPdfLabel(a.intensity!, l),
-        a.score,
-      ].join(';'));
-    }
-    buf.writeln();
-    buf.writeln(l.questionnaireFssSection);
-    buf.writeln([l.exportItemName, l.exportValueScale].join(';'));
-    for (int i = 0; i < q.fssAnswers.length; i++) {
-      final v = q.fssAnswers[i];
-      buf.writeln([_fssItemPdfLabel(i, l), v == null ? '-' : '$v / 7'].join(';'));
-    }
-    await _shareFile(
-      Uint8List.fromList(utf8.encode(buf.toString())),
-      'OptoView_cuestionario_${q.id}.csv',
-      'text/csv',
-    );
-    AppLogger.info('exportQuestionnaireCsv: OK');
-  }
-
-  // ---------------------------------------------------------------------------
   // PDF resumen por paciente
   // ---------------------------------------------------------------------------
 
@@ -467,9 +281,8 @@ abstract final class ExportService {
     AppLocalizations l,
   ) async {
     final tests = items.whereType<SavedResult>().toList();
-    final questionnaires = items.whereType<QuestionnaireResult>().toList();
     AppLogger.info('exportPatientSummaryPdf: inicio (paciente=$patientName, '
-        'tests=${tests.length}, cuestionarios=${questionnaires.length})');
+        'tests=${tests.length})');
 
     final doc = pw.Document();
     final now = _dateFmt.format(DateTime.now());
@@ -568,70 +381,6 @@ abstract final class ExportService {
       );
     }
 
-    if (questionnaires.isNotEmpty) {
-      doc.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        maxPages: 100,
-        build: (ctx) => [
-          pw.Text(l.exportQuestionnaireBulkTitle,
-              style:
-                  pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 4),
-          pw.Text(l.exportReportGenerated(now),
-              style:
-                  const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-          pw.Divider(),
-          pw.Container(
-            padding: const pw.EdgeInsets.symmetric(vertical: 4),
-            decoration: const pw.BoxDecoration(
-              border:
-                  pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
-            ),
-            child: pw.Row(children: [
-              pw.Expanded(
-                  flex: 3,
-                  child: pw.Text(l.exportTestDate,
-                      style: pw.TextStyle(
-                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(
-                  flex: 3,
-                  child: pw.Text(l.patientName,
-                      style: pw.TextStyle(
-                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(
-                  flex: 2,
-                  child: pw.Text(l.questionnaireScoreLabel,
-                      style: pw.TextStyle(
-                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
-            ]),
-          ),
-          ...questionnaires.map((q) => pw.Container(
-                padding: const pw.EdgeInsets.symmetric(vertical: 3),
-                decoration: const pw.BoxDecoration(
-                  border: pw.Border(
-                      bottom: pw.BorderSide(color: PdfColors.grey200)),
-                ),
-                child: pw.Row(children: [
-                  pw.Expanded(
-                      flex: 3,
-                      child: pw.Text(_dateFmt.format(q.completedAt),
-                          style: const pw.TextStyle(fontSize: 9))),
-                  pw.Expanded(
-                      flex: 3,
-                      child: pw.Text(
-                          q.patientName.isNotEmpty ? q.patientName : '-',
-                          style: const pw.TextStyle(fontSize: 9))),
-                  pw.Expanded(
-                      flex: 2,
-                      child: pw.Text('${q.cvsqTotalScore}',
-                          style: const pw.TextStyle(fontSize: 9))),
-                ]),
-              )),
-        ],
-      ));
-    }
-
     final bytes = await doc.save();
     AppLogger.info(
         'exportPatientSummaryPdf: documento generado (${bytes.length} bytes)');
@@ -654,9 +403,7 @@ abstract final class ExportService {
     AppLocalizations l,
   ) async {
     final tests = items.whereType<SavedResult>().toList();
-    final questionnaires = items.whereType<QuestionnaireResult>().toList();
-    AppLogger.info('exportBulkPdf: inicio (tests=${tests.length}, '
-        'cuestionarios=${questionnaires.length})');
+    AppLogger.info('exportBulkPdf: inicio (tests=${tests.length})');
 
     final doc = pw.Document();
     final now = _dateFmt.format(DateTime.now());
@@ -768,70 +515,6 @@ abstract final class ExportService {
       );
     }
 
-    if (questionnaires.isNotEmpty) {
-      doc.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        maxPages: 100,
-        build: (ctx) => [
-          pw.Text(l.exportQuestionnaireBulkTitle,
-              style:
-                  pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
-          pw.SizedBox(height: 4),
-          pw.Text(l.exportReportGenerated(now),
-              style:
-                  const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
-          pw.Divider(),
-          pw.Container(
-            padding: const pw.EdgeInsets.symmetric(vertical: 4),
-            decoration: const pw.BoxDecoration(
-              border:
-                  pw.Border(bottom: pw.BorderSide(color: PdfColors.grey400)),
-            ),
-            child: pw.Row(children: [
-              pw.Expanded(
-                  flex: 3,
-                  child: pw.Text(l.exportTestDate,
-                      style: pw.TextStyle(
-                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(
-                  flex: 3,
-                  child: pw.Text(l.patientName,
-                      style: pw.TextStyle(
-                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
-              pw.Expanded(
-                  flex: 2,
-                  child: pw.Text(l.questionnaireScoreLabel,
-                      style: pw.TextStyle(
-                          fontSize: 9, fontWeight: pw.FontWeight.bold))),
-            ]),
-          ),
-          ...questionnaires.map((q) => pw.Container(
-                padding: const pw.EdgeInsets.symmetric(vertical: 3),
-                decoration: const pw.BoxDecoration(
-                  border: pw.Border(
-                      bottom: pw.BorderSide(color: PdfColors.grey200)),
-                ),
-                child: pw.Row(children: [
-                  pw.Expanded(
-                      flex: 3,
-                      child: pw.Text(_dateFmt.format(q.completedAt),
-                          style: const pw.TextStyle(fontSize: 9))),
-                  pw.Expanded(
-                      flex: 3,
-                      child: pw.Text(
-                          q.patientName.isNotEmpty ? q.patientName : '-',
-                          style: const pw.TextStyle(fontSize: 9))),
-                  pw.Expanded(
-                      flex: 2,
-                      child: pw.Text('${q.cvsqTotalScore}',
-                          style: const pw.TextStyle(fontSize: 9))),
-                ]),
-              )),
-        ],
-      ));
-    }
-
     final bytes = await doc.save();
     AppLogger.info('exportBulkPdf: documento generado (${bytes.length} bytes)');
 
@@ -853,9 +536,7 @@ abstract final class ExportService {
     AppLocalizations l,
   ) async {
     final tests = items.whereType<SavedResult>().toList();
-    final questionnaires = items.whereType<QuestionnaireResult>().toList();
-    AppLogger.info('exportBulkExcel: inicio (tests=${tests.length}, '
-        'cuestionarios=${questionnaires.length})');
+    AppLogger.info('exportBulkExcel: inicio (tests=${tests.length})');
     final excel = xl.Excel.createExcel();
 
     if (excel.sheets.containsKey('Sheet1')) {
@@ -896,35 +577,6 @@ abstract final class ExportService {
           rt,
           '${res.durationActualSeconds}s',
           '${res.totalStimuliShown}',
-        ];
-        for (int c = 0; c < values.length; c++) {
-          sheet
-              .cell(xl.CellIndex.indexByColumnRow(
-                  columnIndex: c, rowIndex: row))
-              .value = xl.TextCellValue(values[c]);
-        }
-      }
-    }
-
-    if (questionnaires.isNotEmpty) {
-      final sheet = excel['Cuestionarios'];
-      final headers = [
-        l.exportTestDate,
-        l.patientName,
-        l.questionnaireScoreLabel,
-      ];
-      for (int c = 0; c < headers.length; c++) {
-        sheet
-            .cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0))
-            .value = xl.TextCellValue(headers[c]);
-      }
-      for (int r = 0; r < questionnaires.length; r++) {
-        final q = questionnaires[r];
-        final row = r + 1;
-        final values = [
-          _dateFmt.format(q.completedAt),
-          q.patientName.isNotEmpty ? q.patientName : '-',
-          '${q.cvsqTotalScore}',
         ];
         for (int c = 0; c < values.length; c++) {
           sheet
@@ -986,66 +638,20 @@ abstract final class ExportService {
     return buf.toString();
   }
 
-  static String _buildQuestionnaireBulkCsv(
-      List<QuestionnaireResult> qs, AppLocalizations l) {
-    final buf = StringBuffer();
-    buf.writeln(
-        [l.exportTestDate, l.patientName, l.questionnaireScoreLabel].join(';'));
-    for (final q in qs) {
-      buf.writeln([
-        _dateFmt.format(q.completedAt),
-        q.patientName.isNotEmpty ? q.patientName : '-',
-        q.cvsqTotalScore,
-      ].join(';'));
-    }
-    return buf.toString();
-  }
-
   static Future<void> exportBulkCsv(
     List<Object> items,
     AppLocalizations l,
   ) async {
     final tests = items.whereType<SavedResult>().toList();
-    final questionnaires = items.whereType<QuestionnaireResult>().toList();
-    AppLogger.info('exportBulkCsv: inicio (tests=${tests.length}, '
-        'cuestionarios=${questionnaires.length})');
+    AppLogger.info('exportBulkCsv: inicio (tests=${tests.length})');
 
     final now = DateFormat('yyyyMMdd_HHmm').format(DateTime.now());
-
-    if (tests.isNotEmpty && questionnaires.isNotEmpty) {
-      final testsCsv = _buildTestsBulkCsv(tests, l);
-      final qCsv = _buildQuestionnaireBulkCsv(questionnaires, l);
-      final archive = Archive();
-      final testsBytes = utf8.encode(testsCsv);
-      final qBytes = utf8.encode(qCsv);
-      archive
-          .addFile(ArchiveFile('tests.csv', testsBytes.length, testsBytes));
-      archive.addFile(
-          ArchiveFile('cuestionarios.csv', qBytes.length, qBytes));
-      final zipBytes = ZipEncoder().encode(archive);
-      if (zipBytes == null) {
-        AppLogger.warning('exportBulkCsv: ZipEncoder.encode() devolvió null');
-        return;
-      }
-      await _shareFile(Uint8List.fromList(zipBytes),
-          'OptoView_seleccion_$now.zip', 'application/zip');
-      AppLogger.info('exportBulkCsv: compartido OK (ZIP)');
-      return;
-    }
 
     if (tests.isNotEmpty) {
       final csv = _buildTestsBulkCsv(tests, l);
       await _shareFile(Uint8List.fromList(utf8.encode(csv)),
           'OptoView_seleccion_$now.csv', 'text/csv');
       AppLogger.info('exportBulkCsv: compartido OK (tests)');
-      return;
-    }
-
-    if (questionnaires.isNotEmpty) {
-      final csv = _buildQuestionnaireBulkCsv(questionnaires, l);
-      await _shareFile(Uint8List.fromList(utf8.encode(csv)),
-          'OptoView_cuestionarios_$now.csv', 'text/csv');
-      AppLogger.info('exportBulkCsv: compartido OK (cuestionarios)');
       return;
     }
   }
@@ -1135,9 +741,8 @@ abstract final class ExportService {
     AppLocalizations l,
   ) async {
     final tests = items.whereType<SavedResult>().toList();
-    final questionnaires = items.whereType<QuestionnaireResult>().toList();
     AppLogger.info('exportPatientSummaryExcel: inicio (paciente=$patientName, '
-        'tests=${tests.length}, cuestionarios=${questionnaires.length})');
+        'tests=${tests.length})');
     final excel = xl.Excel.createExcel();
 
     if (excel.sheets.containsKey('Sheet1')) {
@@ -1176,35 +781,6 @@ abstract final class ExportService {
           rt,
           '${res.durationActualSeconds}s',
           '${res.totalStimuliShown}',
-        ];
-        for (int c = 0; c < values.length; c++) {
-          sheet
-              .cell(xl.CellIndex.indexByColumnRow(
-                  columnIndex: c, rowIndex: row))
-              .value = xl.TextCellValue(values[c]);
-        }
-      }
-    }
-
-    if (questionnaires.isNotEmpty) {
-      final sheet = excel['Cuestionarios'];
-      final headers = [
-        l.exportTestDate,
-        l.patientName,
-        l.questionnaireScoreLabel,
-      ];
-      for (int c = 0; c < headers.length; c++) {
-        sheet
-            .cell(xl.CellIndex.indexByColumnRow(columnIndex: c, rowIndex: 0))
-            .value = xl.TextCellValue(headers[c]);
-      }
-      for (int r = 0; r < questionnaires.length; r++) {
-        final q = questionnaires[r];
-        final row = r + 1;
-        final values = [
-          _dateFmt.format(q.completedAt),
-          q.patientName.isNotEmpty ? q.patientName : '-',
-          '${q.cvsqTotalScore}',
         ];
         for (int c = 0; c < values.length; c++) {
           sheet
@@ -1294,9 +870,8 @@ abstract final class ExportService {
     AppLocalizations l,
   ) async {
     final tests = items.whereType<SavedResult>().toList();
-    final questionnaires = items.whereType<QuestionnaireResult>().toList();
     AppLogger.info('exportPatientSummaryCsv: inicio (paciente=$patientName, '
-        'tests=${tests.length}, cuestionarios=${questionnaires.length})');
+        'tests=${tests.length})');
     final buf = StringBuffer();
 
     if (tests.isNotEmpty) {
@@ -1328,23 +903,6 @@ abstract final class ExportService {
       }
     }
 
-    if (questionnaires.isNotEmpty) {
-      if (tests.isNotEmpty) buf.writeln();
-      buf.writeln(l.exportQuestionnaireBulkTitle);
-      buf.writeln([
-        l.exportTestDate,
-        l.patientName,
-        l.questionnaireScoreLabel,
-      ].join(';'));
-      for (final q in questionnaires) {
-        buf.writeln([
-          _dateFmt.format(q.completedAt),
-          q.patientName.isNotEmpty ? q.patientName : '-',
-          q.cvsqTotalScore,
-        ].join(';'));
-      }
-    }
-
     await _shareFile(
       Uint8List.fromList(utf8.encode(buf.toString())),
       'OptoView_resumen_$patientName.csv',
@@ -1352,42 +910,4 @@ abstract final class ExportService {
     );
     AppLogger.info('exportPatientSummaryCsv: compartido OK');
   }
-
-  // ---------------------------------------------------------------------------
-  // Helpers cuestionario
-  // ---------------------------------------------------------------------------
-
-  static String _cvsqItemPdfLabel(int i, AppLocalizations l) {
-    switch (i) {
-      case 0: return l.cvsqItem1; case 1: return l.cvsqItem2;
-      case 2: return l.cvsqItem3; case 3: return l.cvsqItem4;
-      case 4: return l.cvsqItem5; case 5: return l.cvsqItem6;
-      case 6: return l.cvsqItem7; case 7: return l.cvsqItem8;
-      case 8: return l.cvsqItem9; case 9: return l.cvsqItem10;
-      case 10: return l.cvsqItem11; case 11: return l.cvsqItem12;
-      case 12: return l.cvsqItem13; case 13: return l.cvsqItem14;
-      case 14: return l.cvsqItem15; case 15: return l.cvsqItem16;
-      default: throw StateError('invalid CVS-Q index $i');
-    }
-  }
-
-  static String _fssItemPdfLabel(int i, AppLocalizations l) {
-    switch (i) {
-      case 0: return l.fssItem1; case 1: return l.fssItem2;
-      case 2: return l.fssItem3; case 3: return l.fssItem4;
-      case 4: return l.fssItem5;
-      default: throw StateError('invalid FSS index $i');
-    }
-  }
-
-  static String _freqPdfLabel(CvsqFrequency f, AppLocalizations l) => switch (f) {
-        CvsqFrequency.never => l.cvsqFreqNever,
-        CvsqFrequency.occasional => l.cvsqFreqOccasional,
-        CvsqFrequency.habitual => l.cvsqFreqHabitual,
-      };
-
-  static String _intPdfLabel(CvsqIntensity i, AppLocalizations l) => switch (i) {
-        CvsqIntensity.moderate => l.cvsqIntModerate,
-        CvsqIntensity.intense => l.cvsqIntIntense,
-      };
 }
