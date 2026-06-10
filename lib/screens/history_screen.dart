@@ -515,6 +515,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         'peripheral' => l.historyTestPeripheral,
         'localization' => l.historyTestLocalization,
         'macdonald' => l.historyTestMacdonald,
+        'field_detection' => l.historyTestFieldDetection,
         _ => type,
       };
 
@@ -522,6 +523,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         'peripheral' => Icons.blur_on,
         'localization' => Icons.touch_app,
         'macdonald' => Icons.grid_on,
+        'field_detection' => Icons.visibility,
         _ => Icons.science,
       };
 
@@ -529,6 +531,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         'peripheral' => OptoColors.peripheral,
         'localization' => OptoColors.localization,
         'macdonald' => OptoColors.macdonald,
+        'field_detection' => OptoColors.fieldDetection,
         _ => OptoColors.primary,
       };
 
@@ -804,6 +807,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   label: Text(l.historyTestMacdonald),
                   selected: _activeFilter == 'macdonald',
                   onSelected: (_) => setState(() => _activeFilter = 'macdonald'),
+                ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: Text(l.historyTestFieldDetection),
+                  selected: _activeFilter == 'field_detection',
+                  onSelected: (_) =>
+                      setState(() => _activeFilter = 'field_detection'),
                 ),
                 const SizedBox(width: 8),
                 FilterChip(

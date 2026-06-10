@@ -76,7 +76,6 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
         MacInteraccion.tocarLetras => l.macInteractionTouch,
         MacInteraccion.lecturaConTiempo => l.macInteractionTimed,
         MacInteraccion.lecturaSecuencial => l.macInteractionSequential,
-        MacInteraccion.deteccionCampo => l.macInteractionFieldDetection,
       };
 
   String _interactionDesc(AppLocalizations l, MacInteraccion mode) =>
@@ -84,7 +83,6 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
         MacInteraccion.tocarLetras => l.macInteractionTouchDesc,
         MacInteraccion.lecturaConTiempo => l.macInteractionTimedDesc,
         MacInteraccion.lecturaSecuencial => l.macInteractionSequentialDesc,
-        MacInteraccion.deteccionCampo => l.macInteractionFieldDetectionDesc,
       };
 
   String _visualizationLabel(AppLocalizations l, MacVisualizacion mode) =>
@@ -110,11 +108,7 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
       };
 
   String _buildSummary(AppLocalizations l) {
-    final base = '${_interactionLabel(l, config.interaccion)} · ${config.contenido.name} · ${config.numAnillos} anillos';
-    if (config.interaccion == MacInteraccion.deteccionCampo) {
-      return base;
-    }
-    return '$base · ${config.duracionSegundos}s';
+    return '${_interactionLabel(l, config.interaccion)} · ${config.contenido.name} · ${config.numAnillos} anillos · ${config.duracionSegundos}s';
   }
 
   Widget _buildAppBar(AppLocalizations l) {
@@ -348,52 +342,49 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
             Expanded(
               child: Column(
                 children: [
-                  if (config.interaccion != MacInteraccion.deteccionCampo) ...[
-                    SectionCard(
-                      title: l.macVisualizationTitle,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          SegmentedButton<MacVisualizacion>(
-                            segments: MacVisualizacion.values
-                                .map((m) => ButtonSegment(
-                                      value: m,
-                                      label: Text(_visualizationLabel(l, m)),
-                                    ))
-                                .toList(),
-                            selected: {config.visualizacion},
-                            onSelectionChanged: (s) => setState(() {
-                              config = config.copyWith(visualizacion: s.first);
-                            }),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _visualizationDesc(l, config.visualizacion),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
+                  SectionCard(
+                    title: l.macVisualizationTitle,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SegmentedButton<MacVisualizacion>(
+                          segments: MacVisualizacion.values
+                              .map((m) => ButtonSegment(
+                                    value: m,
+                                    label: Text(_visualizationLabel(l, m)),
+                                  ))
+                              .toList(),
+                          selected: {config.visualizacion},
+                          onSelectionChanged: (s) => setState(() {
+                            config = config.copyWith(visualizacion: s.first);
+                          }),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          _visualizationDesc(l, config.visualizacion),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    SectionCard(
-                      title: l.macDirectionTitle,
-                      child: SegmentedButton<MacDireccion>(
-                        segments: MacDireccion.values
-                            .map((d) => ButtonSegment(
-                                  value: d,
-                                  label: Text(_directionLabel(l, d)),
-                                ))
-                            .toList(),
-                        selected: {config.direccion},
-                        onSelectionChanged: (s) => setState(() {
-                          config = config.copyWith(direccion: s.first);
-                        }),
-                      ),
+                  ),
+                  const SizedBox(height: 16),
+                  SectionCard(
+                    title: l.macDirectionTitle,
+                    child: SegmentedButton<MacDireccion>(
+                      segments: MacDireccion.values
+                          .map((d) => ButtonSegment(
+                                value: d,
+                                label: Text(_directionLabel(l, d)),
+                              ))
+                          .toList(),
+                      selected: {config.direccion},
+                      onSelectionChanged: (s) => setState(() {
+                        config = config.copyWith(direccion: s.first);
+                      }),
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                  if (config.visualizacion != MacVisualizacion.completa ||
-                      config.interaccion == MacInteraccion.deteccionCampo)
+                  ),
+                  const SizedBox(height: 16),
+                  if (config.visualizacion != MacVisualizacion.completa)
                     SpeedSelector(
                       value: config.velocidadRevelado,
                       onChanged: (v) => setState(() {
@@ -479,48 +470,18 @@ class _MacDonaldConfigScreenState extends State<MacDonaldConfigScreen> {
   // ── Tab 4: Tiempo ───────────────────────────────────────────────────
 
   Widget _buildTimeTab(AppLocalizations l) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isFieldDetection =
-        config.interaccion == MacInteraccion.deteccionCampo;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
-            child: isFieldDetection
-                ? Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: colorScheme.outlineVariant),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.info_outline,
-                            color: colorScheme.onSurfaceVariant),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            l.macFieldDetectionUntimedNotice,
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : DurationCard(
-                    value: config.duracionSegundos,
-                    onChanged: (v) => setState(() {
-                      config = config.copyWith(duracionSegundos: v);
-                    }),
-                  ),
+            child: DurationCard(
+              value: config.duracionSegundos,
+              onChanged: (v) => setState(() {
+                config = config.copyWith(duracionSegundos: v);
+              }),
+            ),
           ),
         ),
       ),

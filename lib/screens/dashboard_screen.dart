@@ -10,6 +10,7 @@ import '../utils/page_transitions.dart';
 import '../widgets/design_system/opto_card.dart';
 import 'config_screen.dart';
 import 'credits_screen.dart';
+import 'field_detection_config_screen.dart';
 import 'history_screen.dart';
 import 'localization_config_screen.dart';
 import 'macdonald_config_screen.dart';
@@ -31,8 +32,8 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   late final AnimationController _animController;
 
-  // Staggered animations: 3 test cards + repeat + questionnaire + stats + activity
-  static const int _totalAnimItems = 9;
+  // Staggered animations: 4 test cards + repeat + questionnaire + stats + activity
+  static const int _totalAnimItems = 10;
   late final List<Animation<double>> _fadeAnims;
   late final List<Animation<double>> _slideAnims;
 
@@ -128,6 +129,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         return 'Localización';
       case 'macdonald':
         return 'MacDonald';
+      case 'field_detection':
+        return 'Detección de campo';
       default:
         return testType;
     }
@@ -141,6 +144,8 @@ class _DashboardScreenState extends State<DashboardScreen>
         return OptoColors.localization;
       case 'macdonald':
         return OptoColors.macdonald;
+      case 'field_detection':
+        return OptoColors.fieldDetection;
       default:
         return OptoColors.primary;
     }
@@ -157,6 +162,9 @@ class _DashboardScreenState extends State<DashboardScreen>
         break;
       case 'macdonald':
         screen = const MacDonaldConfigScreen();
+        break;
+      case 'field_detection':
+        screen = const FieldDetectionConfigScreen();
         break;
       default:
         return;
@@ -332,13 +340,25 @@ class _DashboardScreenState extends State<DashboardScreen>
               colorScheme: colorScheme,
             ),
           ),
+          const SizedBox(height: OptoSpacing.sm),
+          _animatedItem(
+            3,
+            _buildTestCard(
+              icon: Icons.visibility,
+              color: OptoColors.fieldDetection,
+              name: l.testFieldDetectionTitle,
+              description: l.testFieldDetectionSubtitle,
+              onTap: () => _navigateToConfig('field_detection'),
+              colorScheme: colorScheme,
+            ),
+          ),
           if (_lastResult != null) ...[
             const SizedBox(height: OptoSpacing.md),
-            _animatedItem(3, _buildRepeatCard(colorScheme, theme)),
+            _animatedItem(4, _buildRepeatCard(colorScheme, theme)),
           ],
           const SizedBox(height: OptoSpacing.sm),
           _animatedItem(
-            4,
+            5,
             _buildQuestionnaireCard(l, colorScheme),
           ),
         ],
@@ -566,11 +586,11 @@ class _DashboardScreenState extends State<DashboardScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _animatedItem(5, _buildStatsRow(colorScheme)),
+        _animatedItem(6, _buildStatsRow(colorScheme)),
         const SizedBox(height: OptoSpacing.md),
         Expanded(
           child: _animatedItem(
-            6,
+            7,
             _buildActivityCard(l, theme, colorScheme),
           ),
         ),

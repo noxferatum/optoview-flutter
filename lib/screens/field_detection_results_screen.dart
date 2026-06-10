@@ -1,32 +1,35 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../l10n/app_localizations.dart';
-import '../models/macdonald_config.dart';
-import '../models/macdonald_result.dart';
+import '../models/field_detection_result.dart';
+import '../models/macdonald_result.dart' show LetterEvent;
 import '../models/saved_result.dart';
 import '../services/results_storage.dart';
 import '../theme/opto_colors.dart';
 import '../theme/opto_spacing.dart';
 import '../utils/page_transitions.dart';
-import 'macdonald_test.dart';
+import 'field_detection_test.dart';
 
-class MacDonaldResultsScreen extends StatefulWidget {
-  final MacDonaldResult result;
+class FieldDetectionResultsScreen extends StatefulWidget {
+  final FieldDetectionResult result;
 
-  const MacDonaldResultsScreen({super.key, required this.result});
+  const FieldDetectionResultsScreen({super.key, required this.result});
 
   @override
-  State<MacDonaldResultsScreen> createState() =>
-      _MacDonaldResultsScreenState();
+  State<FieldDetectionResultsScreen> createState() =>
+      _FieldDetectionResultsScreenState();
 }
 
-class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
+class _FieldDetectionResultsScreenState
+    extends State<FieldDetectionResultsScreen> {
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final l = AppLocalizations.of(context)!;
-      final saved = SavedResult.fromMacDonaldResult(widget.result, l);
+      final saved = SavedResult.fromFieldDetectionResult(widget.result, l);
       ResultsStorage.save(saved);
     });
   }
@@ -36,8 +39,6 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     final l = AppLocalizations.of(context)!;
     final result = widget.result;
     final summary = result.config.localizedSummary(l);
-    final isTouchMode =
-        result.config.interaccion == MacInteraccion.tocarLetras;
     final dateFmt = DateFormat('dd/MM/yyyy HH:mm');
 
     return Scaffold(
@@ -50,7 +51,6 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
               children: [
                 // Left column
                 Expanded(
-                  flex: 1,
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(
                       OptoSpacing.lg,
@@ -62,18 +62,11 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _buildStatusBanner(l, result),
-                        if (isTouchMode) ...[
-                          const SizedBox(height: OptoSpacing.md),
-                          _buildAccuracyCard(l, result),
-                        ],
-                        if (isTouchMode &&
-                            result.reactionTimesMs.isNotEmpty) ...[
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildAccuracyCard(l, result),
+                        if (result.reactionTimesMs.isNotEmpty) ...[
                           const SizedBox(height: OptoSpacing.md),
                           _buildReactionTimesCard(l, result),
-                        ],
-                        if (result.tiempoPorAnillo.isNotEmpty) ...[
-                          const SizedBox(height: OptoSpacing.md),
-                          _buildRingTimesCard(l, result),
                         ],
                         const SizedBox(height: OptoSpacing.md),
                         _buildGeneralStatsCard(l, result),
@@ -83,7 +76,6 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
                 ),
                 // Right column
                 Expanded(
-                  flex: 1,
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(
                       OptoSpacing.sm,
@@ -94,8 +86,15 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Date
                         _buildDateRow(dateFmt, result),
+                        if (result.letterEvents.isNotEmpty) ...[
+                          const SizedBox(height: OptoSpacing.md),
+                          _buildHitMissMaps(l, result),
+                        ],
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildByRingCard(l, result),
+                        const SizedBox(height: OptoSpacing.md),
+                        _buildByQuadrantCard(l, result),
                         const SizedBox(height: OptoSpacing.md),
                         _buildConfigTags(l, summary),
                       ],
@@ -115,7 +114,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
   Widget _buildTopBar(
     BuildContext context,
     AppLocalizations l,
-    MacDonaldResult result,
+    FieldDetectionResult result,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
@@ -137,7 +136,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
             const SizedBox(width: OptoSpacing.sm),
             Expanded(
               child: Text(
-                l.resultsMacTitle,
+                l.fieldDetectionResultsTitle,
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
@@ -151,7 +150,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
               onPressed: () {
                 Navigator.of(context).pushReplacement(
                   OptoPageRoute(
-                    builder: (_) => MacDonaldTest(
+                    builder: (_) => FieldDetectionTest(
                       config: result.config,
                       patientName: result.patientName,
                     ),
@@ -175,7 +174,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
 
   // -- Status banner --
 
-  Widget _buildStatusBanner(AppLocalizations l, MacDonaldResult result) {
+  Widget _buildStatusBanner(AppLocalizations l, FieldDetectionResult result) {
     final colorScheme = Theme.of(context).colorScheme;
     final isComplete = result.completedNaturally;
     final color = isComplete ? OptoColors.success : OptoColors.warning;
@@ -234,26 +233,20 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
 
   // -- Accuracy card --
 
-  Widget _buildAccuracyCard(AppLocalizations l, MacDonaldResult result) {
+  Widget _buildAccuracyCard(AppLocalizations l, FieldDetectionResult result) {
     return _SectionCard(
       title: l.accuracyTitle,
       children: [
         _StatRow(
           label: l.accuracyCorrect,
-          value: '${result.correctTouches}',
+          value: '${result.correctCount}',
           valueColor: OptoColors.success,
         ),
         _StatRow(
-          label: l.accuracyErrors,
-          value: '${result.incorrectTouches}',
-          valueColor:
-              result.incorrectTouches > 0 ? OptoColors.error : null,
-        ),
-        _StatRow(
           label: l.accuracyMissed,
-          value: '${result.missedLetras}',
+          value: '${result.missedCount}',
           valueColor:
-              result.missedLetras > 0 ? OptoColors.warning : null,
+              result.missedCount > 0 ? OptoColors.warning : null,
         ),
         _StatRow(
           label: l.accuracyPercent,
@@ -269,7 +262,7 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
   // -- Reaction times card --
 
   Widget _buildReactionTimesCard(
-      AppLocalizations l, MacDonaldResult result) {
+      AppLocalizations l, FieldDetectionResult result) {
     return _SectionCard(
       title: l.reactionTitle,
       children: [
@@ -290,42 +283,17 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
     );
   }
 
-  // -- Ring times card --
-
-  Widget _buildRingTimesCard(AppLocalizations l, MacDonaldResult result) {
-    return _SectionCard(
-      title: l.macStatsTimePerRing,
-      children: [
-        ...result.tiempoPorAnillo.asMap().entries.map(
-              (e) => _StatRow(
-                label: l.macRingLabel(e.key + 1),
-                value: '${(e.value / 1000).toStringAsFixed(1)}s',
-              ),
-            ),
-        if (result.tiempoPorAnillo.length > 1)
-          _StatRow(
-            label: l.macStatsAvgPerRing,
-            value:
-                '${(result.tiempoPorAnillo.reduce((a, b) => a + b) / result.tiempoPorAnillo.length / 1000).toStringAsFixed(1)}s',
-          ),
-      ],
-    );
-  }
-
   // -- General stats card --
 
   Widget _buildGeneralStatsCard(
-      AppLocalizations l, MacDonaldResult result) {
+      AppLocalizations l, FieldDetectionResult result) {
+    final actualSeconds = (result.totalDurationMs / 1000).round();
     return _SectionCard(
       title: l.statsTitle,
       children: [
         _StatRow(
           label: l.statsActualDuration,
-          value: '${result.durationActualSeconds}s',
-        ),
-        _StatRow(
-          label: l.statsConfigDuration,
-          value: '${result.config.duracionSegundos}s',
+          value: '${actualSeconds}s',
         ),
         _StatRow(
           label: l.macStatsLettersShown,
@@ -333,15 +301,65 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
         ),
         _StatRow(
           label: l.macStatsRingsCompleted,
-          value: '${result.anillosCompletados}',
+          value: '${result.config.numAnillos}',
         ),
+      ],
+    );
+  }
+
+  // -- By-ring card --
+
+  Widget _buildByRingCard(AppLocalizations l, FieldDetectionResult result) {
+    final hits = result.hitsByRing;
+    final misses = result.missesByRing;
+    final acc = result.accuracyByRing;
+    final rt = result.avgRtByRing;
+
+    return _SectionCard(
+      title: l.fieldDetectionByRing,
+      children: [
+        for (int r = 0; r < result.config.numAnillos; r++)
+          _StatRow(
+            label: l.fieldDetectionRing(r + 1),
+            value:
+                '${hits[r] ?? 0}/${(hits[r] ?? 0) + (misses[r] ?? 0)}  ·  ${((acc[r] ?? 0) * 100).toStringAsFixed(0)}%${(rt[r] ?? 0) > 0 ? '  ·  ${(rt[r] ?? 0).toStringAsFixed(0)} ms' : ''}',
+          ),
+      ],
+    );
+  }
+
+  // -- By-quadrant card --
+
+  Widget _buildByQuadrantCard(
+      AppLocalizations l, FieldDetectionResult result) {
+    final hits = result.hitsByQuadrant;
+    final misses = result.missesByQuadrant;
+    final acc = result.accuracyByQuadrant;
+    final rt = result.avgRtByQuadrant;
+
+    String labelFor(FieldQuadrant q) => switch (q) {
+          FieldQuadrant.topLeft => l.fieldDetectionQuadrantTL,
+          FieldQuadrant.topRight => l.fieldDetectionQuadrantTR,
+          FieldQuadrant.bottomLeft => l.fieldDetectionQuadrantBL,
+          FieldQuadrant.bottomRight => l.fieldDetectionQuadrantBR,
+        };
+
+    return _SectionCard(
+      title: l.fieldDetectionByQuadrant,
+      children: [
+        for (final q in FieldQuadrant.values)
+          _StatRow(
+            label: labelFor(q),
+            value:
+                '${hits[q] ?? 0}/${(hits[q] ?? 0) + (misses[q] ?? 0)}  ·  ${((acc[q] ?? 0) * 100).toStringAsFixed(0)}%${(rt[q] ?? 0) > 0 ? '  ·  ${(rt[q] ?? 0).toStringAsFixed(0)} ms' : ''}',
+          ),
       ],
     );
   }
 
   // -- Date row --
 
-  Widget _buildDateRow(DateFormat dateFmt, MacDonaldResult result) {
+  Widget _buildDateRow(DateFormat dateFmt, FieldDetectionResult result) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(
@@ -363,6 +381,72 @@ class _MacDonaldResultsScreenState extends State<MacDonaldResultsScreen> {
             style: TextStyle(
               fontSize: 13,
               color: colorScheme.onSurface,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // -- Hit/Miss maps --
+
+  Widget _buildHitMissMaps(AppLocalizations l, FieldDetectionResult result) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildMapCard(
+            title: l.macHitMapTitle,
+            events: result.letterEvents.where((e) => e.isHit).toList(),
+            dotColor: OptoColors.success,
+            numRings: result.config.numAnillos,
+          ),
+        ),
+        const SizedBox(width: OptoSpacing.sm),
+        Expanded(
+          child: _buildMapCard(
+            title: l.macMissMapTitle,
+            events: result.letterEvents.where((e) => !e.isHit).toList(),
+            dotColor: OptoColors.error,
+            numRings: result.config.numAnillos,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMapCard({
+    required String title,
+    required List<LetterEvent> events,
+    required Color dotColor,
+    required int numRings,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(OptoSpacing.md),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(OptoSpacing.radiusCard),
+        border: Border.all(color: colorScheme.outlineVariant),
+      ),
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: OptoSpacing.sm),
+          AspectRatio(
+            aspectRatio: 1,
+            child: CustomPaint(
+              painter: _HitMapPainter(
+                events: events,
+                dotColor: dotColor,
+                numRings: numRings,
+              ),
             ),
           ),
         ],
@@ -515,11 +599,13 @@ class _StatRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: colorScheme.onSurfaceVariant,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
           Text(
@@ -536,3 +622,62 @@ class _StatRow extends StatelessWidget {
   }
 }
 
+// -- Hit map painter --
+
+class _HitMapPainter extends CustomPainter {
+  final List<LetterEvent> events;
+  final Color dotColor;
+  final int numRings;
+
+  _HitMapPainter({
+    required this.events,
+    required this.dotColor,
+    required this.numRings,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = min(size.width, size.height) / 2 - 4;
+
+    final ringPaint = Paint()
+      ..color = Colors.white.withAlpha(38)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+
+    for (int i = 1; i <= numRings; i++) {
+      final r = radius * i / numRings;
+      canvas.drawCircle(center, r, ringPaint);
+    }
+
+    final axisPaint = Paint()
+      ..color = Colors.white.withAlpha(51)
+      ..strokeWidth = 0.5;
+    canvas.drawLine(
+      Offset(center.dx - radius, center.dy),
+      Offset(center.dx + radius, center.dy),
+      axisPaint,
+    );
+    canvas.drawLine(
+      Offset(center.dx, center.dy - radius),
+      Offset(center.dx, center.dy + radius),
+      axisPaint,
+    );
+
+    final dotPaint = Paint()
+      ..color = dotColor
+      ..style = PaintingStyle.fill;
+
+    for (final e in events) {
+      final x = center.dx + e.dx * radius;
+      final y = center.dy + e.dy * radius;
+      canvas.drawCircle(Offset(x, y), 5, dotPaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _HitMapPainter oldDelegate) =>
+      oldDelegate.events != events ||
+      oldDelegate.dotColor != dotColor ||
+      oldDelegate.numRings != numRings;
+}

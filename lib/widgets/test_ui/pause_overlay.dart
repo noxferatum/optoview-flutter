@@ -8,15 +8,14 @@ import '../../theme/opto_colors.dart';
 class PauseOverlay extends StatelessWidget {
   const PauseOverlay({
     super.key,
-    this.remainingSeconds,
+    required this.remainingSeconds,
     required this.elapsedSeconds,
     required this.stimuliShown,
     required this.onResume,
     required this.onStop,
   });
 
-  /// Si es null, no se muestra la estadística "restante" (modos sin tiempo).
-  final int? remainingSeconds;
+  final int remainingSeconds;
   final int elapsedSeconds;
   final int stimuliShown;
   final VoidCallback onResume;
@@ -70,8 +69,7 @@ class PauseOverlay extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      if (remainingSeconds != null)
-                        _PauseStat(value: '$remainingSeconds', label: l.testStatRemaining),
+                      _PauseStat(value: '$remainingSeconds', label: l.testStatRemaining),
                       _PauseStat(value: '$elapsedSeconds', label: l.testStatElapsed),
                       _PauseStat(value: '$stimuliShown', label: l.testStatStimuli),
                     ],

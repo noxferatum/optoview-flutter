@@ -577,12 +577,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get macInteractionSequentialDesc => 'La app resalta letras una a una, tú las lees';
 
   @override
-  String get macInteractionFieldDetection => 'Detección de campo';
-
-  @override
-  String get macInteractionFieldDetectionDesc => 'Las letras aparecen una a una en posiciones aleatorias. Toca cada letra antes de que desaparezca';
-
-  @override
   String get macVisualizationTitle => 'Modo de visualización';
 
   @override
@@ -646,9 +640,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get macRevealSpeedTitle => 'Velocidad de revelado';
 
   @override
-  String get macFieldDetectionUntimedNotice => 'La detección de campo no tiene límite de tiempo. El test acaba cuando se han mostrado las 80 letras al paciente. El tiempo total se registra como métrica.';
-
-  @override
   String get resultsMacTitle => 'Resultados - Carta MacDonald';
 
   @override
@@ -671,9 +662,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get presetMacAdvancedDesc => 'Secuencial, progresiva, rápido';
-
-  @override
-  String get presetMacFieldDetectionDesc => 'Detección de campo visual, toca letras';
 
   @override
   String get macHitMapTitle => 'Mapa de aciertos';
@@ -873,9 +861,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get instructMacSequential => 'Lee cada letra cuando se resalte en la pantalla';
-
-  @override
-  String get instructMacFieldDetection => 'Toca cada letra antes de que desaparezca. Aparecerán en posiciones aleatorias';
 
   @override
   String get instructMacVisComplete => 'Todas las letras serán visibles desde el inicio';
@@ -1097,10 +1082,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get fssItem5 => 'Horas de sueño';
 
   @override
-  String get fssAnchorAgree => 'Acuerdo';
+  String get fssAnchorAgree => 'Poco o nada';
 
   @override
-  String get fssAnchorDisagree => 'Desacuerdo';
+  String get fssAnchorDisagree => 'Bastante';
 
   @override
   String get historyTestQuestionnaire => 'Cuestionario';
@@ -1169,4 +1154,56 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get settingsLanguageEnglish => 'Inglés';
+
+  @override
+  String get testFieldDetectionTitle => 'Detección de campo';
+
+  @override
+  String get testFieldDetectionSubtitle => 'Detección de letras periféricas, sin tiempo';
+
+  @override
+  String get historyTestFieldDetection => 'Detección de campo';
+
+  @override
+  String get configFieldDetectionTitle => 'Detección de campo';
+
+  @override
+  String get configFieldDetectionDescription => 'Test estandarizado: aparecen 80 letras de una en una en 5 anillos. Toca cada letra antes de que desaparezca.';
+
+  @override
+  String get instructFieldDetection => 'Mantén la mirada en el centro y toca cada letra que aparezca lo más rápido posible.';
+
+  @override
+  String get instructFieldDetectionRings => 'Aparecerán 80 letras en total distribuidas en 5 anillos.';
+
+  @override
+  String get fieldDetectionResultsTitle => 'Resultados — Detección de campo';
+
+  @override
+  String get fieldDetectionByRing => 'Por anillo';
+
+  @override
+  String get fieldDetectionByQuadrant => 'Por cuadrante';
+
+  @override
+  String fieldDetectionRing(int n) {
+    return 'Anillo $n';
+  }
+
+  @override
+  String get fieldDetectionQuadrantTL => 'Sup-Izq';
+
+  @override
+  String get fieldDetectionQuadrantTR => 'Sup-Der';
+
+  @override
+  String get fieldDetectionQuadrantBL => 'Inf-Izq';
+
+  @override
+  String get fieldDetectionQuadrantBR => 'Inf-Der';
+
+  @override
+  String fieldDetectionLetterCounter(int i, int n) {
+    return '$i de $n';
+  }
 }
